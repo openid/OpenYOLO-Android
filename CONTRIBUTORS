@@ -1,0 +1,14 @@
+# People who have agreed to one of the CLAs and can contribute patches.
+# The AUTHORS file lists the copyright holders; this file
+# lists people. For example, Google employees are listed here
+# but not in AUTHORS, because Google holds the copyright.
+#
+# Names should be added to this file as:
+#     Name <email address>
+#
+# This list is maintained in the lexicographic order of the author's full name.
+
+David Larson <dlarson@keepersecurity.com>
+Iain McGinniss <iainmcgin@google.com>
+Stan Kocken <stan.kocken@dashlane.com>
+Stanojko Markovikj <stanojko.markovikj@dashlane.com>

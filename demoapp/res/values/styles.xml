@@ -1,0 +1,30 @@
+<resources>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="SideButton" parent="Widget.AppCompat.Button.Small">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center</item>
+    </style>
+
+    <style name="BlueButtonThemeOverlay" parent="ThemeOverlay.AppCompat">
+        <item name="colorAccent">@color/colorPrimary</item>
+    </style>
+
+    <style name="GreenButtonThemeOverlay" parent="ThemeOverlay.AppCompat">
+        <item name="colorAccent">@color/material_color_green_600</item>
+    </style>
+
+    <style name="RedButtonThemeOverlay" parent="ThemeOverlay.AppCompat">
+        <item name="colorAccent">@color/material_color_red_600</item>
+    </style>
+
+</resources>

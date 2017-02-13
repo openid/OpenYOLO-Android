@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name_short">Trapdoor</string>
+    <string name="app_name_hint">App / site name</string>
+    <string name="copy_password_text">Copy password</string>
+    <string name="user_name_hint">User name</string>
+    <string name="pin_prompt">Enter your pin:</string>
+    <string name="trapdoor_icon_contentDescription">Trapdoor icon</string>
+</resources>

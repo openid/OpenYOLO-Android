@@ -1,0 +1,33 @@
+apply plugin: 'com.android.application'
+apply plugin: 'checkstyle'
+apply plugin: 'com.neenbedankt.android-apt'
+
+apply from:'../config/android-common.gradle'
+
+android {
+    defaultConfig {
+        applicationId "org.openyolo.demoapp"
+        project.archivesBaseName = "openyolo-demoapp"
+        vectorDrawables.useSupportLibrary = true
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt')
+        }
+    }
+}
+
+dependencies {
+    compile project(':api')
+    compile "com.android.support:appcompat-v7:${rootProject.supportLibVersion}"
+    compile "com.android.support:support-vector-drawable:${rootProject.supportLibVersion}"
+    compile "com.android.support:design:${rootProject.supportLibVersion}"
+    compile "com.android.support:support-vector-drawable:${rootProject.supportLibVersion}"
+
+    compile 'com.jakewharton:butterknife:8.5.1'
+    compile 'com.github.bumptech.glide:glide:3.7.0'
+    apt 'com.jakewharton:butterknife-compiler:8.5.1'
+}
+
+apply from:'../config/style.gradle'

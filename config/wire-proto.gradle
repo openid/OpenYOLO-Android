@@ -1,0 +1,26 @@
+android.sourceSets.main.java.srcDirs += 'java_gen'
+
+configurations {
+    protoCompileDeps
+}
+
+dependencies {
+    compile 'com.squareup.wire:wire-runtime:2.1.2'
+    protoCompileDeps 'com.squareup.wire:wire-compiler:2.1.2'
+}
+
+task protoCompile(type: JavaExec) {
+    main = 'com.squareup.wire.WireCompiler'
+    classpath configurations.protoCompileDeps
+    args = [
+            '--proto_path=' + file('proto').getAbsolutePath(),
+            '--java_out=' + file('java_gen').getAbsolutePath(),
+            '--excludes=google.protobuf.*'
+    ]
+}
+
+preBuild.dependsOn protoCompile
+
+clean {
+    delete 'java_gen'
+}

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="org.openyolo.demoprovider.barbican">
+
+    <permission android:name="org.openyolo.demoprovider.barbican.STORAGE" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="org.openyolo.demoprovider.barbican.STORAGE" />
+
+    <application
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name_short"
+        android:supportsRtl="false"
+        android:theme="@style/AppTheme"
+        android:name=".Application">
+
+        <activity
+            android:name=".LaunchActivity"
+            android:label="@string/app_name_short"
+            android:theme="@style/SplashTheme"
+            android:windowSoftInputMode="stateHidden"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="barbican.openyolo.org"
+                    android:scheme="https" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".WelcomeActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize|stateVisible"
+            android:exported="false" />
+
+        <activity
+            android:name=".UnlockActivity"
+            android:theme="@style/AppTheme.NoUi"
+            android:windowSoftInputMode="adjustResize|stateVisible"
+            android:exported="false" />
+
+        <activity
+            android:name=".LockActivity"
+            android:theme="@style/AppTheme.NoUi"
+            android:exported="false" />
+
+        <activity
+            android:name=".CredentialListActivity"
+            android:label="Stored Credentials"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:exported="false" />
+
+        <activity
+            android:name=".CreateCredentialActivity"
+            android:theme="@style/AppTheme"
+            android:label="@string/create_credential_activity_label"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:exported="false" />
+
+        <activity android:name=".provider.RetrieveCredentialActivity"
+            android:theme="@style/AppTheme.NoUi"
+            android:exported="true"
+            android:excludeFromRecents="true" />
+
+        <activity android:name=".provider.SaveCredentialActivity"
+            android:theme="@style/AppTheme.NoUi"
+            android:exported="true"
+            android:excludeFromRecents="true">
+            <intent-filter>
+                <action android:name="org.openyolo.save"/>
+                <category android:name="org.openyolo" />
+                <!--
+                as this app only supports saving ID and password based credentials, this is
+                declared using a data filter.
+                -->
+                <data
+                    android:scheme="openyolo"
+                    android:host="id-and-password" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".provider.HintActivity"
+            android:theme="@style/AppTheme.NoUi"
+            android:exported="true"
+            android:excludeFromRecents="true">
+            <intent-filter>
+                <action android:name="org.openyolo.hint"/>
+                <category android:name="org.openyolo" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".provider.SaveCredentialConfirmationActivity"
+                  android:theme="@style/AppTheme.Dialog"
+                  android:excludeFromRecents="true" />
+
+        <activity android:name=".provider.SaveAfterUnlockActivity"
+                  android:theme="@style/AppTheme.NoUi"
+                  android:excludeFromRecents="true" />
+
+        <activity
+            android:name=".provider.AutoSignInActivity"
+            android:theme="@style/AutoSignInTheme"
+            android:excludeFromRecents="true"
+            android:exported="false" />
+
+        <activity
+            android:name=".provider.CredentialPickerActivity"
+            android:theme="@style/AppTheme.Dialog"
+            android:excludeFromRecents="true"
+            android:exported="false" />
+
+        <activity
+            android:name=".NeverSaveListActivity"
+            android:theme="@style/AppTheme"/>
+            android:exported="false" />
+
+        <service
+            android:name=".storage.CredentialStorageService"
+            android:label="@string/credential_storage_service_label"
+            android:enabled="true"
+            android:exported="false"
+            android:permission="org.openyolo.demoprovider.STORAGE"/>
+
+        <receiver
+            android:name=".provider.CredentialQueryReceiver"
+            android:exported="true"
+            android:enabled="true"
+            tools:ignore="ExportedReceiver">
+            <intent-filter>
+                <action android:name="org.openyolo.credential" />
+                <category android:name="com.google.bbq.QUERY" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

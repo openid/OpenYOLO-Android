@@ -1,0 +1,62 @@
+apply from: 'config/localprops.gradle'
+apply from: 'config/keystore.gradle'
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.2.3'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath 'org.ajoberstar:gradle-git:1.6.0'
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+    }
+}
+
+try {
+    def grgit = org.ajoberstar.grgit.Grgit.open(dir: '.')
+    def lastCommit = grgit.head()
+
+    project.ext.versionNum = grgit.log(includes:['HEAD']).size()
+    project.ext.versionDate = lastCommit.getDate()
+    project.ext.versionName = grgit.describe()
+    if (project.ext.versionName == null) {
+        project.ext.versionName = "DEV"
+    }
+} catch (Exception ex) {
+    logger.lifecycle(
+        "unable to infer version information from git - using defaults")
+    project.ext.versionNum = 0
+    project.ext.versionDate = new Date()
+    project.ext.versionName = 'DEV'
+}
+
+task showVersion << {
+    logger.lifecycle("Version ID: " + project.versionNum)
+    logger.lifecycle("Version Date: " + project.versionDate)
+    logger.lifecycle("Version Name: " + project.versionName)
+}
+
+project.ext.minSdkVersion = 15
+project.ext.compileSdkVersion = 25
+project.ext.buildToolsVersion = '25.0.2'
+project.ext.supportLibVersion = '25.1.1'
+
+subprojects {
+    repositories {
+        jcenter()
+
+        maven {
+          url "${rootProject.androidSdkDir}/extras/android/m2repository"
+        }
+    }
+
+    group = "org.openyolo"
+    version = versionName
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.3'
+}

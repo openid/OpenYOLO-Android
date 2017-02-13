@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="retrieve_picker_prompt">Use account from:</string>
+    <string name="provider_icon_contentDescription">Provider icon</string>
+    <string name="possibly_unsafe">Possibly unsafe</string>
+    <string name="save_picker_prompt">Save your account with:</string>
+    <string name="hint_picker_prompt">Use account details stored in:</string>
+</resources>

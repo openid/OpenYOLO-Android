@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+this exists to provide a layer of indirection to the vector drawable, which
+ensures that support-vector-drawable will render the vector regardless of
+the context where it is used.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/warning_icon" />
+</selector>

@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name_short">OpenYOLO</string>
+    <string name="retrieve_button_label">Get</string>
+    <string name="save_button_label">Save</string>
+    <string name="clear_button_label">Clear fields</string>
+    <string name="retrieve_button_content_description">Retrieve a credential</string>
+    <string name="save_button_content_description">Save a credential</string>
+    <string name="clear_button_content_description">Clear data entry fields</string>
+    <string name="id_field_hint">Identifier</string>
+    <string name="generate_id_button_content_description">Generate a random identifier</string>
+    <string name="password_field_hint">Password</string>
+    <string name="generate_password_button_content_description">Generate a random password</string>
+    <string name="generate_display_name_button_content_description">Generate random display name</string>
+    <string name="federation_provider_field_hint">Federation provider</string>
+    <string name="profile_picture_field_hint">Profile Picture URI</string>
+    <string name="google_provider_button_content_description">Set federation provider to Google</string>
+    <string name="facebook_provider_button_content_description">Set federation provider to Facebook</string>
+    <string name="generate_profile_picture_button_content_description">Generate a random profile picture URI</string>
+    <string name="profile_picture_view_content_description">Profile picture display</string>
+    <string name="main_header">OpenYOLO demo</string>
+    <string name="display_name_field_hint">Display name</string>
+    <string name="request_failed">OpenYOLO request failed</string>
+    <string name="no_credentials">No credentials available</string>
+    <string name="retrieve_cancelled">Credential retrieve cancelled</string>
+    <string name="hint_cancelled">Hint retrieve cancelled</string>
+    <string name="cleared_fields">Cleared fields</string>
+    <string name="no_credential_returned">No credential returned</string>
+    <string name="hint_button_label">Hint</string>
+    <string name="hint_button_content_description">Hint for new account creation</string>
+    <string name="no_available_save_providers">"No available providers can save this credential</string>
+    <string name="no_available_hint_providers">"No available hint providers</string>
+    <string name="credential_saved">Credential saved</string>
+    <string name="credential_save_canceled">Credential save canceled</string>
+    <string name="unknown_response">Unknown response</string>
+</resources>

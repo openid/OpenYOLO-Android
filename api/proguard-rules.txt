@@ -1,0 +1,8 @@
+# it is safe to ignore the resources ids from OpenYOLO api. Without this flag we have issue with picker_title, provider_list
+-dontwarn org.openyolo.api.R$id
+
+# valid4j use reflection to inject Providers and Policy
+-keep class org.valid4j.** { *; }
+
+# it is safe to ignore okio warnings
+-dontwarn okio.**

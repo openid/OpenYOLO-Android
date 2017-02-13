@@ -1,0 +1,37 @@
+<resources xmlns:xliff="http://schemas.android.com/tools">
+    <string name="action_create_done_contentDescription">Store credential</string>
+    <string name="action_lock_contentDescription">Lock credential store</string>
+    <string name="app_name_short">Barbican</string>
+    <string name="app_spinner_label">App:</string>
+    <string name="create_credential_activity_label">Store credential</string>
+    <string name="create_failure">Failed to create the credential store :(</string>
+    <string name="credential_storage_service_label">Barbican credential storage service</string>
+    <string name="credential_authority_icon">App icon</string>
+    <string name="credential_selection_prompt">Continue with:</string>
+    <string name="credential_icon">Credential profile picture</string>
+    <string name="id_hint">User name</string>
+    <string name="invalid_password">Invalid password, try again</string>
+    <string name="logo_contentDescription">Barbican logo</string>
+    <string name="password_hint">Password</string>
+    <string name="save_failed">Failed to save credential :(</string>
+    <string name="unlock_prompt">Enter your password:</string>
+    <string name="unlock_loading_prompt">Decrypting store…</string>
+    <string name="unlocked_notification_title">Barbican is unlocked</string>
+    <string name="unlocked_notification_text">Passwords are currently readable.</string>
+    <string name="unlocked_notification_lock_action">Lock now</string>
+    <string name="welcome_loading_prompt">Initializing storage…</string>
+    <string name="welcome_title">Welcome!</string>
+    <string name="welcome_prompt">Please choose a password with at least 6 characters:</string>
+    <string name="never_save">Never</string>
+    <string name="save_account">Save account</string>
+    <string name="save_prompt_template">
+        Would you like to save your account for
+        <xliff:g example="Netflix" id="appName">%1$s</xliff:g>
+        to Barbican?
+    </string>
+    <string name="action_wipe_contentDescription">Wipe associations for save</string>
+    <string name="remove_unpaired_api_dialog_title">Remove this App from the \"Never Save\" list?</string>
+    <string name="openyolo_simple_yes">Yes</string>
+    <string name="openyolo_simple_no">No</string>
+    <string name="ask_delete_credential">Delete credential?</string>
+</resources>

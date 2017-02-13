@@ -1,0 +1,9 @@
+*.keystore
+.gradle
+build
+.idea
+*.iml
+gradle.properties
+local.properties
+node-modules
+java_gen

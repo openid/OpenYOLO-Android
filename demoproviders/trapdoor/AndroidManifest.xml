@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="org.openyolo.demoprovider.trapdoor">
+
+    <permission android:name="org.openyolo.demoprovider.trapdoor.STORAGE" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="org.openyolo.demoprovider.trapdoor.STORAGE" />
+
+    <application
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name_short"
+        android:supportsRtl="false"
+        android:theme="@style/AppTheme"
+        android:name=".Application"
+        tools:ignore="GoogleAppIndexingWarning">
+
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name_short"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="stateHidden"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".RetrieveActivity"
+            android:label="@string/app_name_short"
+            android:theme="@style/AppTheme.Dialog"
+            android:excludeFromRecents="true"
+            android:windowSoftInputMode="stateAlwaysVisible"
+            android:exported="true" />
+
+        <receiver
+            android:name=".CredentialQueryReceiver"
+            android:exported="true"
+            android:enabled="true"
+            tools:ignore="ExportedReceiver">
+            <intent-filter>
+                <action android:name="org.openyolo.credential" />
+                <category android:name="com.google.bbq.QUERY" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+</manifest>
