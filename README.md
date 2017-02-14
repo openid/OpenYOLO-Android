@@ -1,5 +1,8 @@
 # OpenYOLO for Android
 
+[![Build Status](https://www.bitrise.io/app/e7b1a2bcce9d787c.svg?token=kvggLFAJ-Tx48g6I671NSg)](https://www.bitrise.io/app/e7b1a2bcce9d787c)
+[![codecov](https://codecov.io/gh/openid/OpenYOLO-Android/branch/master/graph/badge.svg)](https://codecov.io/gh/openid/OpenYOLO-Android)
+
 OpenYOLO for Android is a protocol for storing, updating and assisting in the 
 creation of user credentials apps. It can be used to assist in the sign-in 
 and sign-up process for Android apps, and queries can be responded to by 
