@@ -1,1 +1,1 @@
-include ':bbq', ':api', ':spi', ':demoapp', ':demoproviders:barbican', ':demoproviders:trapdoor'
+include ':bbq', ':api', ':spi', ':testapp', ':demoproviders:barbican', ':demoproviders:trapdoor'

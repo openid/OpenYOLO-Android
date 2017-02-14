@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.openyolo.demoapp;
+package org.openyolo.testapp;
 
 import android.support.annotation.NonNull;
 import java.util.Locale;

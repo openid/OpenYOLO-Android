@@ -15,4 +15,4 @@
 /**
  * Example usage of the OpenYOLO API to retrieve and save credentials.
  */
-package org.openyolo.demoapp;
+package org.openyolo.testapp;

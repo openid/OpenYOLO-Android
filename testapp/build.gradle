@@ -6,8 +6,8 @@ apply from:'../config/android-common.gradle'
 
 android {
     defaultConfig {
-        applicationId "org.openyolo.demoapp"
-        project.archivesBaseName = "openyolo-demoapp"
+        applicationId "org.openyolo.testapp"
+        project.archivesBaseName = "openyolo-testapp"
         vectorDrawables.useSupportLibrary = true
     }
     buildTypes {

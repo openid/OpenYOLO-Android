@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.openyolo.demoapp;
+package org.openyolo.testapp;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -45,9 +45,9 @@ import org.openyolo.api.RetrieveResult;
 /**
  * Interacts with the OpenYOLO API to retrieve and save credentials.
  */
-public class OpenYoloDemoActivity extends AppCompatActivity {
+public class OpenYoloTestActivity extends AppCompatActivity {
 
-    private static final String LOG_TAG = "OpenYoloDemoActivity";
+    private static final String LOG_TAG = "OpenYoloTestActivity";
     private static final int RC_RETRIEVE = 100;
     private static final int RC_SAVE = 200;
     private static final int RC_HINT = 300;
