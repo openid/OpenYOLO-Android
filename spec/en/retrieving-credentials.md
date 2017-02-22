@@ -7,7 +7,7 @@ NOTE: writing this chapter is *in progress*.
 ## Retrieve request messages
 
 ```protobuf
-message FindRequest {
+message CredentialRetrieveRequest {
     repeated string       authDomains        = 1; // at least one required
     repeated string       authMethods        = 2; // at least one required
     repeated KeyValuePair additionalParams   = 3;
@@ -27,7 +27,7 @@ request credentials outside its equivalence class.
 ## Retrieve response messages
 
 ```protobuf
-message FindResponse {
+message CredentialRetrieveResponse {
     optional bytes        retrieveIntent   = 1; // required
     repeated KeyValuePair additionalParams = 2;
 }
