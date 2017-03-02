@@ -6,3 +6,6 @@
 
 # it is safe to ignore okio warnings
 -dontwarn okio.**
+
+# Hamcrest reflection
+-keep class org.hamcrest.** { *; }
