@@ -4,6 +4,7 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
+
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
@@ -15,16 +16,15 @@
         <item name="android:layout_gravity">center</item>
     </style>
 
-    <style name="BlueButtonThemeOverlay" parent="ThemeOverlay.AppCompat">
-        <item name="colorAccent">@color/colorPrimary</item>
-    </style>
-
     <style name="GreenButtonThemeOverlay" parent="ThemeOverlay.AppCompat">
         <item name="colorAccent">@color/material_color_green_600</item>
     </style>
 
-    <style name="RedButtonThemeOverlay" parent="ThemeOverlay.AppCompat">
-        <item name="colorAccent">@color/material_color_red_600</item>
+    <style name="Headline" parent="TextAppearance.AppCompat.Headline">
+    </style>
+
+    <style name="DemoContent">
+        <item name="android:padding">16dp</item>
     </style>
 
 </resources>
