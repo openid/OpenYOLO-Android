@@ -18,12 +18,11 @@
       android:layout_height="wrap_content"
       android:text="@string/request"/>
 
-    <LinearLayout
+    <org.openyolo.testapp.CredentialView
       android:id="@+id/save_credential"
       android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      android:orientation="vertical">
-    </LinearLayout>
+      android:layout_height="match_parent">
+    </org.openyolo.testapp.CredentialView>
 
     <Button
       android:id="@+id/save_button"

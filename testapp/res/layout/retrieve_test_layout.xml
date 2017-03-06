@@ -18,47 +18,16 @@
       android:layout_height="wrap_content"
       android:text="@string/request"/>
 
-    <LinearLayout
-      android:layout_width="match_parent"
+    <TextView
+      android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:layout_marginTop="16dp"
-      android:orientation="horizontal">
+      android:text="@string/authentication_method_section_title"/>
 
-      <android.support.design.widget.TextInputLayout
-        android:id="@+id/id_layout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1">
-
-        <android.support.design.widget.TextInputEditText
-          android:id="@+id/authentication_method"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:hint="@string/authentication_method_hint"
-          android:inputType="textNoSuggestions|textVisiblePassword"
-          />
-      </android.support.design.widget.TextInputLayout>
-
-      <ImageButton
-        android:id="@+id/openyolo_id_and_password_provider_button"
-        style="@style/SideButton"
-        android:contentDescription="@string/open_yolo_id_and_password_button_content_description"
-        app:srcCompat="@drawable/account_box_24dp"/>
-
-      <ImageButton
-        android:id="@+id/google_provider_button"
-        style="@style/SideButton"
-        android:contentDescription="@string/google_provider_button_content_description"
-        app:srcCompat="@drawable/google_24dp"/>
-
-      <ImageButton
-        android:id="@+id/facebook_provider_button"
-        style="@style/SideButton"
-        android:contentDescription="@string/facebook_provider_button_content_description"
-        app:srcCompat="@drawable/facebook_24dp"/>
-
-
-    </LinearLayout>
+    <org.openyolo.testapp.AuthenticationMethodsInputView
+      android:id="@+id/authentication_methods_input"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content">
+    </org.openyolo.testapp.AuthenticationMethodsInputView>
 
     <Button
       android:id="@+id/retrieve_button"
@@ -79,12 +48,11 @@
       android:layout_height="wrap_content"
       android:text="@string/response"/>
 
-    <LinearLayout
+    <org.openyolo.testapp.CredentialView
       android:id="@+id/retrieve_credential"
       android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      android:orientation="vertical">
-    </LinearLayout>
+      android:layout_height="wrap_content">
+    </org.openyolo.testapp.CredentialView>
 
   </LinearLayout>
 </android.support.v4.widget.NestedScrollView>

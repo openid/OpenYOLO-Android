@@ -20,11 +20,8 @@ import static android.app.Activity.RESULT_OK;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,10 +41,12 @@ public final class HintTestPageFragment extends TestPageFragment {
 
     private static final int RC_HINT = 0;
 
-    @BindView(R.id.authentication_method)
-    EditText mAuthenticationMethod;
+    @BindView(R.id.authentication_method_text_input)
+    EditText mAuthenticationMethodInput;
 
-    private CredentialFragment mCredentialFragment;
+    @BindView(R.id.hint_credential)
+    CredentialView mCredentialView;
+
     private CredentialClient mApi;
 
     public String getPageTitle() {
@@ -68,20 +67,9 @@ public final class HintTestPageFragment extends TestPageFragment {
             Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.hint_test_layout, container, false);
         ButterKnife.bind(this, view);
+        mCredentialView.setEnableInputGeneration(false);
 
         return view;
-    }
-
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        FragmentManager fm = getChildFragmentManager();
-        mCredentialFragment = (CredentialFragment) fm.findFragmentById(R.id.hint_credential);
-        if (null == mCredentialFragment) {
-            FragmentTransaction fragmentTransaction = fm.beginTransaction();
-            mCredentialFragment = CredentialFragment.newInstance(false /* enableInputGeneration */);
-            fragmentTransaction.add(R.id.hint_credential, mCredentialFragment);
-            fragmentTransaction.commit();
-        }
     }
 
     @Override
@@ -98,7 +86,7 @@ public final class HintTestPageFragment extends TestPageFragment {
             if (credential == null) {
                 showSnackbar(R.string.no_credential_returned);
             } else {
-                mCredentialFragment.setFieldsFromCredential(credential);
+                mCredentialView.setFieldsFromCredential(credential);
             }
         } else if (resultCode == RESULT_CANCELED) {
             showSnackbar(R.string.hint_cancelled);
@@ -109,9 +97,9 @@ public final class HintTestPageFragment extends TestPageFragment {
 
     @OnClick(R.id.hint_button)
     void onHint() {
-        mCredentialFragment.clearFields();
+        mCredentialView.clearFields();
 
-        Uri authMethodUri = Uri.parse(mAuthenticationMethod.getText().toString());
+        Uri authMethodUri = Uri.parse(mAuthenticationMethodInput.getText().toString());
 
         HintRequest.Builder requestBuilder = new HintRequest.Builder(authMethodUri);
 
@@ -126,17 +114,17 @@ public final class HintTestPageFragment extends TestPageFragment {
 
     @OnClick(R.id.openyolo_id_and_password_provider_button)
     void onIdAndPasswordAuthenticationMethod() {
-        mAuthenticationMethod.setText(AuthenticationMethods.ID_AND_PASSWORD.toString());
+        mAuthenticationMethodInput.setText(AuthenticationMethods.ID_AND_PASSWORD.toString());
     }
 
     @OnClick(R.id.google_provider_button)
     void onGoogleAuthenticationMethod() {
-        mAuthenticationMethod.setText(AuthenticationMethods.GOOGLE.toString());
+        mAuthenticationMethodInput.setText(AuthenticationMethods.GOOGLE.toString());
     }
 
     @OnClick(R.id.facebook_provider_button)
     void onFacebookAuthenticationMethod() {
-        mAuthenticationMethod.setText(AuthenticationMethods.FACEBOOK.toString());
+        mAuthenticationMethodInput.setText(AuthenticationMethods.FACEBOOK.toString());
     }
 
     private void showSnackbar(@StringRes int messageId) {

@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * The main OpenYolo test activity.
  */
-public class OpenYoloTestActivity extends AppCompatActivity {
+public final class OpenYoloTestActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

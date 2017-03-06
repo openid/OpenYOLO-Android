@@ -21,6 +21,7 @@
     </style>
 
     <style name="Headline" parent="TextAppearance.AppCompat.Headline">
+        <item name="android:layout_marginBottom">16dp</item>
     </style>
 
     <style name="DemoContent">

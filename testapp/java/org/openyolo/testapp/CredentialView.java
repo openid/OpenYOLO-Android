@@ -14,17 +14,16 @@
 
 package org.openyolo.testapp;
 
+import android.content.Context;
 import android.net.Uri;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.view.LayoutInflater;
+import android.util.AttributeSet;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -35,12 +34,8 @@ import org.openyolo.api.AuthenticationMethods;
 import org.openyolo.api.Credential;
 import org.openyolo.api.PasswordSpecification;
 
-/**
- * A reusable fragment that displays an OpenYolo credential.
- */
-public final class CredentialFragment extends Fragment {
+public final class CredentialView extends LinearLayout {
 
-    private static final String EXTRA_ENABLE_INPUT_GENERATION = "EXTRA_ENABLE_INPUT_GENERATION";
     @BindView(R.id.generate_id_button)
     ImageButton mGenerateIdButton;
 
@@ -82,42 +77,32 @@ public final class CredentialFragment extends Fragment {
 
     private RandomData mRandomData;
 
-    /**
-     * Returns a new instance of a {@link CredentialFragment}.
-     */
-    public static CredentialFragment newInstance(boolean enableInputGeneration) {
-        Bundle args = new Bundle();
-        args.putBoolean(EXTRA_ENABLE_INPUT_GENERATION, enableInputGeneration);
-
-        CredentialFragment fragment = new CredentialFragment();
-        fragment.setArguments(args);
-        return fragment;
+    CredentialView(Context context) {
+        super(context);
+        initialize(context);
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    CredentialView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        initialize(context);
+    }
+
+    CredentialView(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+        initialize(context);
+    }
+
+    private void initialize(Context context) {
+        View view = View.inflate(context, R.layout.credential_layout, this);
 
         mRandomData = new RandomData();
-    }
-
-    @Override
-    public View onCreateView(
-            LayoutInflater inflater,
-            ViewGroup container,
-            Bundle savedInstanceState) {
-
-        View view = inflater.inflate(R.layout.credential_layout, container, false);
-        ButterKnife.bind(this, view);
-        setEnableInputGeneration(getArguments().getBoolean(EXTRA_ENABLE_INPUT_GENERATION));
-
-        return view;
+        ButterKnife.bind(view);
     }
 
     /**
      * Hides or shows input generation buttons.
      */
-    private void setEnableInputGeneration(boolean isEnabled) {
+    public void setEnableInputGeneration(boolean isEnabled) {
         int visibility = View.GONE;
         if (isEnabled) {
             visibility = View.VISIBLE;
@@ -169,7 +154,7 @@ public final class CredentialFragment extends Fragment {
 
     @OnTextChanged(R.id.profile_picture_field)
     void loadProfilePicture() {
-        Glide.with(this)
+        Glide.with(getContext())
                 .load(Uri.parse(mProfilePictureField.getText().toString()))
                 .fitCenter()
                 .into(mProfilePictureView);
@@ -188,6 +173,7 @@ public final class CredentialFragment extends Fragment {
 
     /**
      * Populates the fragment's fields from a given OpenYolo credential.
+     *
      * @param credential an OpenYolo credential
      */
     public void setFieldsFromCredential(Credential credential) {
@@ -200,6 +186,7 @@ public final class CredentialFragment extends Fragment {
 
     /**
      * Create an OpenYolo credential from the current fragment's fields.
+     *
      * @return an OpenYolo Credential .
      */
     @Nullable
@@ -236,5 +223,4 @@ public final class CredentialFragment extends Fragment {
             field.setText(value.toString());
         }
     }
-
 }

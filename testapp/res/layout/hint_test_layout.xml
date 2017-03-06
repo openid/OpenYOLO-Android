@@ -31,12 +31,11 @@
         android:layout_weight="1">
 
         <android.support.design.widget.TextInputEditText
-          android:id="@+id/authentication_method"
+          android:id="@+id/authentication_method_text_input"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:hint="@string/authentication_method_hint"
-          android:inputType="textNoSuggestions|textVisiblePassword"
-          />
+          android:hint="@string/authentication_method_field_hint"
+          android:inputType="textNoSuggestions|textVisiblePassword"/>
       </android.support.design.widget.TextInputLayout>
 
       <ImageButton
@@ -78,12 +77,11 @@
       android:layout_height="wrap_content"
       android:text="@string/response"/>
 
-    <LinearLayout
+    <org.openyolo.testapp.CredentialView
       android:id="@+id/hint_credential"
       android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      android:orientation="vertical">
-    </LinearLayout>
+      android:layout_height="match_parent">
+    </org.openyolo.testapp.CredentialView>
 
   </LinearLayout>
 </android.support.v4.widget.NestedScrollView>

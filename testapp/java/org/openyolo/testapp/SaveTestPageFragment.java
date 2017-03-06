@@ -19,14 +19,12 @@ import static android.app.Activity.RESULT_OK;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import org.openyolo.api.Credential;
@@ -35,11 +33,13 @@ import org.openyolo.api.CredentialClient;
 /**
  * Fragment which contains a method of testing the OpenYolo credential save flow.
  */
-public class SaveTestPageFragment extends TestPageFragment {
+public final class SaveTestPageFragment extends TestPageFragment {
 
     private static final int RC_SAVE = 0;
 
-    private CredentialFragment mCredentialFragment;
+    @BindView(R.id.save_credential)
+    CredentialView mCredentialView;
+
     private CredentialClient mApi;
 
     public String getPageTitle() {
@@ -61,25 +61,14 @@ public class SaveTestPageFragment extends TestPageFragment {
         View view = inflater.inflate(R.layout.save_test_layout, container, false);
 
         ButterKnife.bind(this, view);
+        mCredentialView.setEnableInputGeneration(true);
 
         return view;
     }
 
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        FragmentManager fm = getChildFragmentManager();
-        mCredentialFragment = (CredentialFragment) fm.findFragmentById(R.id.save_credential);
-        if (null == mCredentialFragment) {
-            FragmentTransaction fragmentTransaction = fm.beginTransaction();
-            mCredentialFragment = CredentialFragment.newInstance(true /* enableInputGeneration */);
-            fragmentTransaction.add(R.id.save_credential, mCredentialFragment);
-            fragmentTransaction.commit();
-        }
-    }
-
     @OnClick(R.id.save_button)
     void onSave() {
-        Credential credential = mCredentialFragment.makeCredentialFromFields();
+        Credential credential = mCredentialView.makeCredentialFromFields();
         Intent saveIntent = mApi.getSaveIntent(credential);
         if (saveIntent == null) {
             showSnackbar(R.string.no_available_save_providers);

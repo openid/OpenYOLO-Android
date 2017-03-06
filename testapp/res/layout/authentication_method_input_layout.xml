@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent">
+
+  <android.support.v7.widget.AppCompatCheckBox
+    android:id="@+id/facebook_authentication_method_checkbox"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="@string/facebook_authentication_method_checkbox_text"/>
+  <android.support.v7.widget.AppCompatCheckBox
+    android:id="@+id/google_authentication_method_checkbox"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="@string/google_authentication_method_checkbox_text"/>
+  <android.support.v7.widget.AppCompatCheckBox
+    android:id="@+id/id_and_password_authentication_method_checkbox"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="@string/id_and_password_authentication_method_checkbox_text"/>
+
+  <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <android.support.v7.widget.AppCompatCheckBox
+      android:id="@+id/custom_authentication_method_checkbox"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_vertical"/>
+
+    <android.support.design.widget.TextInputEditText
+      android:id="@+id/custom_authentication_method"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:hint="@string/custom_authentication_method_hint"
+      android:inputType="textNoSuggestions|textVisiblePassword"/>
+  </LinearLayout>
+</LinearLayout>
