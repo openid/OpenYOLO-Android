@@ -183,8 +183,6 @@ The BBQ protocol uses [Android broadcast intents][intent-overview] with
 recipients specified by package name in order to asynchronously deliver
 requests and responses. A retrieval request carries the following information:
 
-- A set of authentication domains from which a credential is required.
-
 - The set of authentication mechanisms that are supported by the requester.
 
 It is recommended that an app send a credential request whenever a user would

@@ -17,31 +17,18 @@
 
 package org.openyolo.api;
 
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.TestCase.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
+import android.net.Uri;
 import android.os.Parcel;
 import java.io.IOException;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.openyolo.proto.CredentialRetrieveRequest;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -53,10 +40,6 @@ import org.robolectric.annotation.Config;
 @Config(manifest = Config.NONE)
 public class RetrieveRequestTest {
 
-    private static final AuthenticationDomain DOMAIN = new AuthenticationDomain(
-            "android://2qKVvu1OLulMJAFbVq9ia08h759E8rPUD8QckJAKa_G0hnxDxXzaVNG2_Uhps_I8" +
-            "7V4Lo8BdCxaA307H0HYkAw==@com.example.app");
-
     private static final byte[] testBytes = new byte[]
             {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
@@ -64,35 +47,11 @@ public class RetrieveRequestTest {
 
     @Before
     public void setUp() {
-        request = new RetrieveRequest.Builder(DOMAIN)
+        request = new RetrieveRequest.Builder()
                 .setAuthenticationMethods(AuthenticationMethods.ID_AND_PASSWORD)
                 .addAdditionalParameter("a", "b")
                 .addAdditionalParameter("c", testBytes)
                 .build();
-    }
-
-    @SuppressLint("PackageManagerGetSignatures")
-    @Test
-    public void testForSelf() throws Exception {
-        Context mockContext = mock(Context.class);
-        PackageInfo packageInfo = new PackageInfo();
-        packageInfo.signatures = new Signature[2];
-        packageInfo.signatures[0] = new Signature(testBytes);
-        packageInfo.signatures[1] = new Signature(new byte[16]);
-
-        PackageManager pm = mock(PackageManager.class);
-        when(pm.getPackageInfo("com.example.app", PackageManager.GET_SIGNATURES))
-                .thenReturn(packageInfo);
-        when(mockContext.getPackageName()).thenReturn("com.example.app");
-        when(mockContext.getPackageManager()).thenReturn(pm);
-
-        RetrieveRequest request = RetrieveRequest.forSelf(mockContext);
-
-        assertThat(request).isNotNull();
-        assertThat(request.getAuthenticationDomains().size()).isEqualTo(1);
-        assertThat(request.getAuthenticationDomains()).contains(DOMAIN);
-        assertThat(request.getAuthenticationMethods()).isEmpty();
-        assertThat(request.getAdditionalParameters()).isEmpty();
     }
 
     @Test
@@ -103,8 +62,6 @@ public class RetrieveRequestTest {
             p.setDataPosition(0);
             RetrieveRequest deserialized = RetrieveRequest.CREATOR.createFromParcel(p);
             assertThat(deserialized).isNotNull();
-            assertThat(deserialized.getAuthenticationDomains())
-                    .isEqualTo(request.getAuthenticationDomains());
             assertThat(deserialized.getAuthenticationMethods())
                     .isEqualTo(request.getAuthenticationMethods());
             assertMapsEqual(
@@ -116,6 +73,29 @@ public class RetrieveRequestTest {
     }
 
     @Test
+    public void forAuthenticationMethods_withValidAuthenticationMethodsUsingVarArgs_returnsValidRequest() {
+        RetrieveRequest request = RetrieveRequest
+            .forAuthenticationMethods(AuthenticationMethods.GOOGLE, AuthenticationMethods.FACEBOOK);
+
+        assertThat(request.getAuthenticationMethods())
+            .containsOnly(AuthenticationMethods.GOOGLE, AuthenticationMethods.FACEBOOK);
+    }
+
+    @Test
+    public void forAuthenticationMethods_withValidAuthenticationMethodUsingSet_returnsValidRequest() {
+        Set<Uri> authenticationMethods = new HashSet<>();
+        Collections.addAll(
+            authenticationMethods,
+            AuthenticationMethods.GOOGLE,
+            AuthenticationMethods.FACEBOOK);
+
+        RetrieveRequest request = RetrieveRequest.forAuthenticationMethods(authenticationMethods);
+
+        assertThat(request.getAuthenticationMethods())
+            .containsOnly(AuthenticationMethods.GOOGLE, AuthenticationMethods.FACEBOOK);
+    }
+
+    @Test
     public void testGetAdditionalParameters() {
         assertThat(request.getAdditionalParameters()).isNotNull();
         assertThat(request.getAdditionalParameters()).hasSize(2);
@@ -124,16 +104,10 @@ public class RetrieveRequestTest {
     }
 
     @Test
-    public void testGetAuthDomains() {
-        assertThat(request.getAuthenticationDomains()).hasSize(1);
-        assertThat(request.getAuthenticationDomains()).contains(DOMAIN);
-    }
-
-    @Test
     public void testGetAuthMethods() {
         assertThat(request.getAuthenticationMethods()).hasSize(1);
         assertThat(request.getAuthenticationMethods())
-                .contains(AuthenticationMethods.ID_AND_PASSWORD);
+                .containsOnly(AuthenticationMethods.ID_AND_PASSWORD);
     }
 
     @Test(expected = NullPointerException.class)

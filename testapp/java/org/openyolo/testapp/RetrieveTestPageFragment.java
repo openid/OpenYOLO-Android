@@ -31,7 +31,6 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-import org.openyolo.api.AuthenticationDomain;
 import org.openyolo.api.Credential;
 import org.openyolo.api.CredentialClient;
 import org.openyolo.api.RetrieveCallback;
@@ -104,12 +103,10 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
     void onRetrieve() {
         mCredentialView.clearFields();
 
-        AuthenticationDomain authenticationDomain =
-                AuthenticationDomain.getSelfAuthDomain(getContext());
         Set<Uri> authenticationMethods =
                 mAuthenticationMethodsInputView.getEnabledAuthenticationMethods();
 
-        RetrieveRequest request = new RetrieveRequest.Builder(authenticationDomain)
+        RetrieveRequest request = new RetrieveRequest.Builder()
                 .setAuthenticationMethods(authenticationMethods)
                 .build();
 

@@ -56,9 +56,6 @@ public final class AuthenticationDomain implements Comparable<AuthenticationDoma
     static final ValueConverter<String, AuthenticationDomain> CONVERTER_STRING_TO_DOMAIN =
             new StringToAuthenticationDomainConverter();
 
-    static final ValueConverter<AuthenticationDomain, String> CONVERTER_DOMAIN_TO_STRING =
-            new AuthenticationDomainToStringConverter();
-
     private static final String DIGEST_SHA_512 = "SHA-512";
     private static final String SCHEME_ANDROID = "android";
     private static final String SCHEME_HTTP = "http";
@@ -226,14 +223,6 @@ public final class AuthenticationDomain implements Comparable<AuthenticationDoma
     @Override
     public int compareTo(@NonNull AuthenticationDomain authenticationDomain) {
         return mUri.compareTo(authenticationDomain.getUri());
-    }
-
-    static class AuthenticationDomainToStringConverter
-            implements ValueConverter<AuthenticationDomain, String> {
-        @Override
-        public String convert(AuthenticationDomain value) {
-            return value.toString();
-        }
     }
 
     static class StringToAuthenticationDomainConverter

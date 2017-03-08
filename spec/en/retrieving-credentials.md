@@ -8,21 +8,14 @@ NOTE: writing this chapter is *in progress*.
 
 ```protobuf
 message CredentialRetrieveRequest {
-    repeated string       authDomains        = 1; // at least one required
     repeated string       authMethods        = 2; // at least one required
     repeated KeyValuePair additionalParams   = 3;
 }
 ```
 
-The set of authentication domains specified in the request _may_ be disjoint
-from the set of domains known to be related to the requester (via its package
-name): such requests would allow trusted intermediaries (e.g. keyboard apps,
-mail clients, etc.) to request credentials that they do not directly own.
-It is the responsibility of the credential provider to determine whether to
-permit such requests. Typically, requests should only be permitted for
-an authentication domain that is provably associated with to the requester,
-or if the app has been explicitly whitelisted (by the user or provider) to
-request credentials outside its equivalence class.
+The CredentialRetrieveRequest must explicitly specify all credentials qualifiers the client
+supports with the exception of the authentication domain which will determined implicitly via the
+callers package name.
 
 ## Retrieve response messages
 

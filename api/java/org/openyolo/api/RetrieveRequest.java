@@ -18,8 +18,6 @@ import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.unmodifiableSet;
 import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.openyolo.api.AuthenticationDomain.CONVERTER_DOMAIN_TO_STRING;
-import static org.openyolo.api.AuthenticationDomain.CONVERTER_STRING_TO_DOMAIN;
 import static org.openyolo.api.internal.CollectionConverter.toList;
 import static org.openyolo.api.internal.CollectionConverter.toMap;
 import static org.openyolo.api.internal.CollectionConverter.toSet;
@@ -31,7 +29,6 @@ import static org.openyolo.api.internal.UriConverters.CONVERTER_STRING_TO_URI;
 import static org.openyolo.api.internal.UriConverters.CONVERTER_URI_TO_STRING;
 import static org.valid4j.Assertive.require;
 
-import android.content.Context;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -47,28 +44,16 @@ import org.openyolo.api.internal.NoopValueConverter;
 import org.openyolo.proto.CredentialRetrieveRequest;
 
 /**
- * A request for credentials, to be sent to credential providers on the device. A request specifies
- * at least one {@link AuthenticationDomain authentication domain} for which a credential is
- * required.
+ * A request for credentials, to be sent to credential providers on the device.
  */
 public class RetrieveRequest implements Parcelable {
 
     /**
      * Parcelable reader for {@link RetrieveRequest} instances.
+     *
      * @see android.os.Parcelable
      */
     public static final Creator<RetrieveRequest> CREATOR = new RetrieveRequestCreator();
-
-    /**
-     * Creates a basic retrieve request for the current application.
-     */
-    public static RetrieveRequest forSelf(Context context) {
-        return new RetrieveRequest.Builder(AuthenticationDomain.getSelfAuthDomain(context))
-                .build();
-    }
-
-    @NonNull
-    private final Set<AuthenticationDomain> mAuthDomains;
 
     @NonNull
     private final Set<Uri> mAuthMethods;
@@ -77,29 +62,35 @@ public class RetrieveRequest implements Parcelable {
     private final Map<String, byte[]> mAdditionalParams;
 
     private RetrieveRequest(
-            @NonNull Set<AuthenticationDomain> authDomains,
             @NonNull Set<Uri> authMethods,
             @NonNull Map<String, byte[]> additionalParams) {
-        mAuthDomains = authDomains;
         mAuthMethods = authMethods;
         mAdditionalParams = additionalParams;
     }
 
     /**
-     * The set of authentication domains for which a credential is desired. It is the
-     * responsibility of the credential provider to validate that the requester is permitted to
-     * retrieve credentials for this set of domains, and how to interpret requests for domains
-     * which are beyond the provably associated scope of the requester.
+     * Creates a {@link RetrieveRequest} from the given authentication methods.
      */
-    @NonNull
-    public Set<AuthenticationDomain> getAuthenticationDomains() {
-        return mAuthDomains;
+    public static RetrieveRequest forAuthenticationMethods(
+            @NonNull Set<Uri> authenticationMethods) {
+        return new RetrieveRequest.Builder()
+                .setAuthenticationMethods(authenticationMethods)
+                .build();
     }
 
     /**
-     * The set of authentication methods that the requestor supports. This is used to filter the
-     * set of credentials saved by the provider. If no authentication methods are specified, then
-     * no filtering of saved credentials will occur.
+     * Creates a {@link RetrieveRequest} from the given authentication methods.
+     */
+    public static RetrieveRequest forAuthenticationMethods(@NonNull Uri... authenticationMethods) {
+        return new RetrieveRequest.Builder()
+                .setAuthenticationMethods(authenticationMethods)
+                .build();
+    }
+
+    /**
+     * The set of authentication methods that the requestor supports. This is used to filter the set
+     * of credentials saved by the provider. If no authentication methods are specified, then no
+     * filtering of saved credentials will occur.
      */
     @NonNull
     public Set<Uri> getAuthenticationMethods() {
@@ -115,8 +106,8 @@ public class RetrieveRequest implements Parcelable {
     }
 
     /**
-     * Retrieves the value of the named additional parameter, where the value is a UTF-8
-     * encoded string.
+     * Retrieves the value of the named additional parameter, where the value is a UTF-8 encoded
+     * string.
      */
     @Nullable
     public String getAdditionalParameterAsString(@NonNull String key) {
@@ -153,7 +144,6 @@ public class RetrieveRequest implements Parcelable {
      */
     public CredentialRetrieveRequest toProtocolBuffer() {
         return new CredentialRetrieveRequest.Builder()
-                .authDomains(toList(mAuthDomains, CONVERTER_DOMAIN_TO_STRING))
                 .authMethods(toList(mAuthMethods, CONVERTER_URI_TO_STRING))
                 .additionalParams(toList(mAdditionalParams.entrySet(), CONVERTER_ENTRY_TO_KVP))
                 .build();
@@ -164,94 +154,23 @@ public class RetrieveRequest implements Parcelable {
      */
     public static final class Builder {
 
-        private Set<AuthenticationDomain> mAuthDomains = new HashSet<>();
         private Set<Uri> mAuthMethods = new HashSet<>();
         private Map<String, byte[]> mAdditionalParams = new HashMap<>();
 
         /**
-         * Starts the process of creating a retrieve request using the data contained in
-         * the provided protocol buffer representation.
+         * Starts the process of creating a retrieve request using the data contained in the
+         * provided protocol buffer representation.
          */
         public Builder(@NonNull CredentialRetrieveRequest requestProto) {
             require(requestProto, notNullValue());
-            setAuthenticationDomains(toSet(requestProto.authDomains, CONVERTER_STRING_TO_DOMAIN));
             setAuthenticationMethods(toSet(requestProto.authMethods, CONVERTER_STRING_TO_URI));
             setAdditionalParameters(toMap(requestProto.additionalParams, CONVERTER_KVP_TO_PAIR));
         }
 
         /**
-         * Starts the process of describing a retrieve request, providing the set of authentication
-         * domains for which a credential is desired. At least one authentication domain is
-         * required.
+         * Starts the process of describing a retrieve request.
          */
-        public Builder(
-                @NonNull AuthenticationDomain authDomain,
-                @NonNull AuthenticationDomain... additionalAuthDomains) {
-            setAuthenticationDomains(authDomain, additionalAuthDomains);
-        }
-
-        /**
-         * Starts the process of describing a retrieve request, providing the set of authentication
-         * domains (in the form of URI strings) for which a credential is desired. At least one
-         * authentication domain is required.
-         */
-        public Builder(
-                @NonNull String authDomain,
-                @NonNull String... additionalAuthDomains) {
-            setAuthenticationDomains(authDomain, additionalAuthDomains);
-        }
-
-        /**
-         * Starts the process of describing a retrieve request, with the mandatory list
-         * of authentication domains specified. The list must be non-null, with non-null entries.
-         */
-        public Builder(@NonNull Set<AuthenticationDomain> authDomains) {
-            setAuthenticationDomains(authDomains);
-        }
-
-        /**
-         * Specifies the authentication domain(s) for which a credential is desired.
-         * At least one must be specified. All values specified must be non-null.
-         */
-        @NonNull
-        public Builder setAuthenticationDomains(
-                @NonNull AuthenticationDomain authDomain,
-                @NonNull AuthenticationDomain... additionalAuthDomains) {
-            setAuthenticationDomains(toSet(
-                    authDomain,
-                    additionalAuthDomains,
-                    NoopValueConverter.<AuthenticationDomain>getInstance()));
-            return this;
-        }
-
-        /**
-         * Specifies the authentication domain(s) for which a credential is desired, in the
-         * form of URI strings. At least one value must be specified. All values specified must be
-         * non-null.
-         */
-        @NonNull
-        public Builder setAuthenticationDomains(
-                @NonNull String authDomain,
-                @NonNull String... authDomainStrs) {
-            setAuthenticationDomains(toSet(
-                    authDomain,
-                    authDomainStrs,
-                    CONVERTER_STRING_TO_DOMAIN));
-            return this;
-        }
-
-        /**
-         * Specifies the authentication domains from which a credential is desired.
-         * Must not be null. Must contain at least one value.
-         */
-        @NonNull
-        public Builder setAuthenticationDomains(@NonNull Set<AuthenticationDomain> authDomains) {
-            require(authDomains, notNullValue());
-            require(!authDomains.isEmpty(), "at least one authentication domain must be specified");
-            require(authDomains, everyItem(notNullValue()));
-            mAuthDomains = authDomains;
-            return this;
-        }
+        public Builder() {}
 
         /**
          * Specifies the authentication methods supported by the requester. If no values are
@@ -268,8 +187,8 @@ public class RetrieveRequest implements Parcelable {
         /**
          * Specifies the authentication methods supported by the requester. If no values are
          * specified, then any stored credential matching the set of specified authentication
-         * domains may be returned. The provided set must be non-null, and contain only
-         * non-null values.
+         * domains may be returned. The provided set must be non-null, and contain only non-null
+         * values.
          */
         public Builder setAuthenticationMethods(@NonNull Set<Uri> authMethods) {
             require(authMethods, notNullValue());
@@ -279,8 +198,8 @@ public class RetrieveRequest implements Parcelable {
         }
 
         /**
-         * Specifies additional, non-standard retrieve request parameters. The provided map
-         * must be non-null, and contain only non-null keys and values.
+         * Specifies additional, non-standard retrieve request parameters. The provided map must be
+         * non-null, and contain only non-null keys and values.
          */
         public Builder setAdditionalParameters(
                 @NonNull Map<String, byte[]> additionalParams) {
@@ -292,8 +211,9 @@ public class RetrieveRequest implements Parcelable {
         }
 
         /**
-         * Adds an additional parameter, where the value will be encoded as a UTF-8 string.
-         * Both the parameter name and value must be non-null.
+         * Adds an additional parameter, where the value will be encoded as a UTF-8 string. Both the
+         * parameter name and value must be non-null.
+         *
          * @see {@link RetrieveRequest#getAdditionalParameterAsString(String)}
          */
         public Builder addAdditionalParameter(
@@ -320,13 +240,13 @@ public class RetrieveRequest implements Parcelable {
         @NonNull
         public RetrieveRequest build() {
             return new RetrieveRequest(
-                    unmodifiableSet(mAuthDomains),
                     unmodifiableSet(mAuthMethods),
                     unmodifiableMap(mAdditionalParams));
         }
     }
 
     private static final class RetrieveRequestCreator implements Creator<RetrieveRequest> {
+
         @Override
         public RetrieveRequest createFromParcel(Parcel in) {
 

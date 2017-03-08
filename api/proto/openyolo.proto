@@ -21,7 +21,15 @@ package org.openyolo;
 option java_package = "org.openyolo.proto";
 
 message CredentialRetrieveRequest {
-    repeated string       authDomains        = 1; // at least one required
+    /**
+     * Deprecated since 03/07/17
+     * Filtering credentials by authentication domains has been deprecated. The
+     * authentication domain must instead be determined implicitly by via the
+     * calling package name.
+     * @see <a href="https://github.com/openid/OpenYOLO-Android/issues/5">
+     *     Original discussion to deprecate</a>
+     */
+    repeated string       authDomains        = 1 [deprecated=true];
     repeated string       authMethods        = 2; // at least one required
     repeated KeyValuePair additionalParams   = 3;
 }

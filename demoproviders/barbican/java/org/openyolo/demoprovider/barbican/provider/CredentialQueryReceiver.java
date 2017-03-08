@@ -21,7 +21,6 @@ import android.util.Log;
 import com.google.bbq.QueryResponseSender;
 import com.google.bbq.proto.BroadcastQuery;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import okio.ByteString;
@@ -63,23 +62,6 @@ public class CredentialQueryReceiver extends BaseCredentialQueryReceiver {
         // domains (such as affiliated apps and sites). This potentially larger list would then be
         // matched against the requested set of domains.
 
-        final Set<AuthenticationDomain> matchingDomains = new HashSet<>();
-        for (AuthenticationDomain domain : request.getAuthenticationDomains()) {
-            if (requestorDomains.contains(domain)) {
-                matchingDomains.add(domain);
-            } else {
-                Log.i(LOG_TAG, "Access to credentials in domain " + domain
-                        + " denied to " + query.requestingApp);
-            }
-        }
-
-        if (matchingDomains.isEmpty()) {
-            Log.w(LOG_TAG, "Credential request from " + query.requestingApp
-                    + " does not match any permitted domains");
-            responseSender.sendResponse(query, null);
-            return;
-        }
-
         Log.i(LOG_TAG, "Processing query for " + query.requestingApp);
 
         CredentialStorage storage;
@@ -94,7 +76,7 @@ public class CredentialQueryReceiver extends BaseCredentialQueryReceiver {
         boolean credentialsFound = false;
         byte[] responseBytes = null;
 
-        Iterator<AuthenticationDomain> authDomainIter = matchingDomains.iterator();
+        Iterator<AuthenticationDomain> authDomainIter = requestorDomains.iterator();
         while (!credentialsFound && authDomainIter.hasNext()) {
             credentialsFound = storage.hasCredentialFor(authDomainIter.next().toString());
         }

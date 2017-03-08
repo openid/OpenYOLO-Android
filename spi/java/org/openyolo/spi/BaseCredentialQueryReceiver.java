@@ -57,7 +57,6 @@ public abstract class BaseCredentialQueryReceiver extends BaseBroadcastQueryRece
         try {
             request = new RetrieveRequest.Builder(requestProto).build();
         } catch (NullPointerException | IllegalArgumentException ex) {
-            // respond with no result
             Log.w(mLogTag, "Credential request message failed field validation", ex);
             new QueryResponseSender(context).sendResponse(query, null);
             return;
@@ -66,6 +65,13 @@ public abstract class BaseCredentialQueryReceiver extends BaseBroadcastQueryRece
         // TODO: validate claimed authentication domains
         Set<AuthenticationDomain> requestorDomains =
                 new HashSet<>(AuthenticationDomain.listForPackage(context, query.requestingApp));
+
+        // Ensure the authentication domain of the requesting app can be determined
+        if (requestorDomains.isEmpty()) {
+            Log.w(mLogTag, "Unable to determine the authentication domain of the requesting app");
+            new QueryResponseSender(context).sendResponse(query, null);
+            return;
+        }
 
         processCredentialRequest(context, query, request, requestorDomains);
     }

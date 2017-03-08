@@ -16,41 +16,60 @@
 
 package org.openyolo.api;
 
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.TestCase.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
+import android.net.Uri;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.openyolo.api.internal.CollectionConverter;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.valid4j.errors.RequireViolation;
 
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * Unit tests for {@link AuthenticationDomain}.
+ */
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
 public class AuthenticationDomainTest {
 
-    private static final String SELF_PACKAGE_NAME = "com.example.app";
+    private static final String VALID_PACKAGE_NAME = "com.example.app";
 
-    private byte[] sigBytes = new byte[]
+    private static byte[] VALID_SIGNATURE_BYTES = new byte[]
             { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
-    private String sigSha512HashBase64 =
+    private static final String VALID_FINGERPRINT =
             "2qKVvu1OLulMJAFbVq9ia08h759E8rPUD8QckJAKa_G0hnxDxXzaVNG2_Uhps_I8"
                     + "7V4Lo8BdCxaA307H0HYkAw==";
-    private PackageInfo packageInfo;
+
+    private static final String VALID_AUTHENTICATION_DOMAIN_STRING =
+            "android://" + VALID_FINGERPRINT + "@" + VALID_PACKAGE_NAME;
+
+    private static final PackageInfo VALID_PACKAGE_INFO = makeValidPackageInfo();
+
+    private static PackageInfo makeValidPackageInfo() {
+        PackageInfo packageInfo = new PackageInfo();
+        packageInfo.signatures = new Signature[2];
+        packageInfo.signatures[0] = new Signature(VALID_SIGNATURE_BYTES);
+        packageInfo.signatures[1] = new Signature(new byte[16]);
+
+        return packageInfo;
+    }
 
     @Mock
     PackageManager mockPackageManager;
@@ -60,111 +79,153 @@ public class AuthenticationDomainTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        packageInfo = new PackageInfo();
-        packageInfo.signatures = new Signature[2];
-        packageInfo.signatures[0] = new Signature(sigBytes);
-        packageInfo.signatures[1] = new Signature(new byte[16]);
 
-        when(mockPackageManager.getPackageInfo("com.example.app", PackageManager.GET_SIGNATURES))
-                .thenReturn(packageInfo);
-
-        when(mockContext.getPackageName()).thenReturn(SELF_PACKAGE_NAME);
+        when(mockPackageManager.getPackageInfo(VALID_PACKAGE_NAME, PackageManager.GET_SIGNATURES))
+                .thenReturn(VALID_PACKAGE_INFO);
+        when(mockContext.getPackageName()).thenReturn(VALID_PACKAGE_NAME);
         when(mockContext.getPackageManager()).thenReturn(mockPackageManager);
-
     }
 
     @Test
-    public void testGetSelfAuthDomain() throws Exception {
+    public void getSelfAuthDomain_withValidInput_returnsValidDomain() throws Exception {
         AuthenticationDomain authDomain = AuthenticationDomain.getSelfAuthDomain(mockContext);
+
         assertThat(authDomain).isNotNull();
         assertThat(authDomain.isAndroidAuthDomain()).isTrue();
         assertThat(authDomain.toString())
-                .isEqualTo("android://" + sigSha512HashBase64 + "@com.example.app");
+                .isEqualTo(VALID_AUTHENTICATION_DOMAIN_STRING);
     }
 
     @Test
-    public void testListForPackage() {
-        assertThat(AuthenticationDomain.listForPackage(mockContext, "com.example.app")).contains(
-                new AuthenticationDomain("android://" + sigSha512HashBase64 + "@com.example.app"));
+    public void listForPackage_forValidPackage_containsValidAuthenticationDomain() {
+        assertThat(AuthenticationDomain.listForPackage(mockContext, VALID_PACKAGE_NAME))
+                .contains(new AuthenticationDomain(VALID_AUTHENTICATION_DOMAIN_STRING));
     }
 
     @Test
-    public void testListForPackage_nullPackageName() throws Exception {
-        assertThat(AuthenticationDomain.listForPackage(mockContext, null)).isEmpty();
+    public void listForPackage_forNullPackageName_returnsEmpty() throws Exception {
+        assertThat(AuthenticationDomain.listForPackage(mockContext, null /* package */)).isEmpty();
     }
 
     @Test
-    public void testEquals() throws Exception {
+    public void listForPackage_packageDoesNotExist_returnsEmpty() throws Exception {
+        when(mockPackageManager.getPackageInfo(VALID_PACKAGE_NAME, PackageManager.GET_SIGNATURES))
+                .thenAnswer(new Answer<PackageInfo>() {
+                    @Override
+                    public PackageInfo answer(InvocationOnMock invocation) throws Throwable {
+                        throw new NameNotFoundException();
+                    }
+                });
+
+        assertThat(AuthenticationDomain.listForPackage(mockContext, VALID_PACKAGE_NAME)).isEmpty();
+    }
+
+    @Test
+    public void getUri_returnsExpectedValue() throws Exception{
         AuthenticationDomain authDomain = AuthenticationDomain.getSelfAuthDomain(mockContext);
-        AuthenticationDomain authDomain2 = AuthenticationDomain.getSelfAuthDomain(mockContext);
-        assertTrue(authDomain.equals(authDomain2));
-    }
 
-    @Test
-    public void testEquals_differentType() throws Exception {
-        AuthenticationDomain domain = new AuthenticationDomain("https://www.example.com");
-        assertFalse(domain.equals("https://www.example.com"));
-    }
-
-    @Test
-    public void testGetUri() throws Exception{
-        AuthenticationDomain authDomain = AuthenticationDomain.getSelfAuthDomain(mockContext);
-        String expectedUri = "android://" +
-                "2qKVvu1OLulMJAFbVq9ia08h759E8rPUD8QckJAKa_G0hnxDxXzaVNG2_" +
-                "Uhps_I87V4Lo8BdCxaA307H0HYkAw==@com.example.app";
-        assertEquals(expectedUri, authDomain.getUri().toString());
+        assertThat(authDomain.getUri().toString()).isEqualTo(VALID_AUTHENTICATION_DOMAIN_STRING);
     }
 
     @Test(expected = RequireViolation.class)
-    public void testCreateAndroidAuthDomain_nullDomain() throws Exception{
-        AuthenticationDomain.createAndroidAuthDomain(null, new Signature(""));
+    public void CreateAndroidAuthDomain_withNullDomain_throwsRequireViolation() throws Exception{
+        AuthenticationDomain.createAndroidAuthDomain(null /* authDomain */, mock(Signature.class));
     }
 
     @Test
-    public void testIsWebAuthDomain(){
-        AuthenticationDomain authDomain = AuthenticationDomain.getSelfAuthDomain(mockContext);
-        assertFalse(authDomain.isWebAuthDomain());
-    }
-
-    @Test
-    public void testGetAndroidPackageName(){
-        AuthenticationDomain authDomain = AuthenticationDomain.getSelfAuthDomain(mockContext);
-        assertEquals("com.example.app", authDomain.getAndroidPackageName());
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testGetAndroidPackageName_fromWebDomain() {
+    public void validWebAuthDomain_hasExpectedBehaviour() {
         AuthenticationDomain authDomain = new AuthenticationDomain("https://www.example.com");
-        authDomain.getAndroidPackageName();
+
+        assertThat(authDomain.isAndroidAuthDomain()).isFalse();
+        assertThat(authDomain.isWebAuthDomain()).isTrue();
+
+        try {
+            authDomain.getAndroidPackageName();
+
+            failBecauseExceptionWasNotThrown(IllegalStateException.class);
+        } catch (IllegalStateException ex) {}
     }
 
     @Test
-    public void stringsToAuthDomains() throws Exception {
+    public void validAndroidAuthDomain_hasExpectedBehaviour(){
+        AuthenticationDomain authDomain = AuthenticationDomain.getSelfAuthDomain(mockContext);
+
+        assertThat(authDomain.isAndroidAuthDomain()).isTrue();
+        assertThat(authDomain.isWebAuthDomain()).isFalse();
+
+        assertThat(authDomain.getAndroidPackageName()).isEqualTo(VALID_PACKAGE_NAME);
+    }
+
+    @Test
+    public void getSelfAuthDomain_packageNotFoundException_throwsException() throws Exception {
+        when(mockPackageManager.getPackageInfo(VALID_PACKAGE_NAME, PackageManager.GET_SIGNATURES))
+            .thenAnswer(new Answer<PackageInfo>() {
+                @Override
+                public PackageInfo answer(InvocationOnMock invocation) throws Throwable {
+                    throw new NameNotFoundException();
+                }
+            });
+
+        try {
+            AuthenticationDomain.getSelfAuthDomain(mockContext);
+
+            failBecauseExceptionWasNotThrown(IllegalStateException.class);
+        } catch (IllegalStateException ex) {}
+    }
+
+    @Test
+    public void stringsToAuthDomainsConverter_withValidInput_returnsExpectValues()
+            throws Exception {
         List<String> domains = new ArrayList<>();
         domains.add("https://www.google.com");
         domains.add("https://www.yahoo.com");
         domains.add("https://www.facebook.com");
+
         List<AuthenticationDomain> result =
                 CollectionConverter.toList(
                         domains,
                         AuthenticationDomain.CONVERTER_STRING_TO_DOMAIN);
-        assertEquals(3, result.size());
-        assertEquals(result.get(0).getUri().toString(), domains.get(0));
-        assertEquals(result.get(1).getUri().toString(), domains.get(1));
-        assertEquals(result.get(2).getUri().toString(), domains.get(2));
+
+        assertThat(result.size()).isEqualTo(3);
+
+        assertThat(result.get(0).getUri().toString()).isEqualTo(domains.get(0));
+        assertThat(result.get(1).getUri().toString()).isEqualTo(domains.get(1));
+        assertThat(result.get(2).getUri().toString()).isEqualTo(domains.get(2));
     }
 
     @Test
-    public void testGetHashCode(){
+    public void hashCode_ofAuthDomainAndEquivalentUri_areEqual(){
         AuthenticationDomain authDomain = AuthenticationDomain.getSelfAuthDomain(mockContext);
-        assertEquals(authDomain.getUri().hashCode(), authDomain.hashCode());
+        Uri authDomainUri = authDomain.getUri();
+
+        assertThat(authDomain.hashCode()).isEqualTo(authDomainUri.hashCode());
     }
 
     @Test
-    public void testCompareTo(){
+    public void hashCode_ofAuthDomainAndUnequalUri_areNotEqual(){
         AuthenticationDomain authDomain = AuthenticationDomain.getSelfAuthDomain(mockContext);
-        AuthenticationDomain authDomain1 = AuthenticationDomain.getSelfAuthDomain(mockContext);
+        Uri authDomainUri = authDomain.getUri();
 
-        assertEquals(0, authDomain.compareTo(authDomain1));
+        assertThat(authDomain.hashCode()).isEqualTo(authDomainUri.hashCode());
     }
+
+    @Test
+    public void equals_withEquivalent_returnsTrue() throws Exception {
+        AuthenticationDomain authDomainA = AuthenticationDomain.getSelfAuthDomain(mockContext);
+        AuthenticationDomain authDomainB = AuthenticationDomain.getSelfAuthDomain(mockContext);
+
+        assertThat(authDomainA).isEqualTo(authDomainA);
+        assertThat(authDomainA).isEqualTo(authDomainB);
+
+        assertThat(authDomainA.compareTo(authDomainB)).isEqualTo(0);
+    }
+
+    @Test
+    public void equals_withDifferentType_returnsFalse() throws Exception {
+        final String authenticationDomainString = "https://www.example.com";
+        AuthenticationDomain domain = new AuthenticationDomain(authenticationDomainString);
+
+        assertThat(domain).isNotEqualTo(authenticationDomainString);
+    }
+
 }
