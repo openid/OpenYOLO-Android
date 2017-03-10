@@ -47,8 +47,7 @@ public class RetrieveRequestTest {
 
     @Before
     public void setUp() {
-        request = new RetrieveRequest.Builder()
-                .setAuthenticationMethods(AuthenticationMethods.ID_AND_PASSWORD)
+        request = new RetrieveRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
                 .addAdditionalParameter("a", "b")
                 .addAdditionalParameter("c", testBytes)
                 .build();
@@ -70,6 +69,16 @@ public class RetrieveRequestTest {
         } finally {
             p.recycle();
         }
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderUriSetConstructor_withEmptySet_throwsIllegalArgumentException() {
+        new RetrieveRequest.Builder(new HashSet<Uri>()  /* authenticationMethods */);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderProtoConstructor_withNull_throwsIllegalArgumentException() {
+        new RetrieveRequest.Builder((CredentialRetrieveRequest) null);
     }
 
     @Test

@@ -14,9 +14,12 @@
 
 package org.openyolo.api;
 
+import static java.util.Collections.EMPTY_SET;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.unmodifiableSet;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.everyItem;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.openyolo.api.internal.CollectionConverter.toList;
 import static org.openyolo.api.internal.CollectionConverter.toMap;
@@ -27,7 +30,7 @@ import static org.openyolo.api.internal.KeyValuePairConverters.CONVERTER_ENTRY_T
 import static org.openyolo.api.internal.KeyValuePairConverters.CONVERTER_KVP_TO_PAIR;
 import static org.openyolo.api.internal.UriConverters.CONVERTER_STRING_TO_URI;
 import static org.openyolo.api.internal.UriConverters.CONVERTER_URI_TO_STRING;
-import static org.valid4j.Assertive.require;
+import static org.valid4j.Validation.validate;
 
 import android.net.Uri;
 import android.os.Parcel;
@@ -73,24 +76,19 @@ public class RetrieveRequest implements Parcelable {
      */
     public static RetrieveRequest forAuthenticationMethods(
             @NonNull Set<Uri> authenticationMethods) {
-        return new RetrieveRequest.Builder()
-                .setAuthenticationMethods(authenticationMethods)
-                .build();
+        return new RetrieveRequest.Builder(authenticationMethods).build();
     }
 
     /**
      * Creates a {@link RetrieveRequest} from the given authentication methods.
      */
     public static RetrieveRequest forAuthenticationMethods(@NonNull Uri... authenticationMethods) {
-        return new RetrieveRequest.Builder()
-                .setAuthenticationMethods(authenticationMethods)
-                .build();
+        return new RetrieveRequest.Builder(authenticationMethods).build();
     }
 
     /**
      * The set of authentication methods that the requestor supports. This is used to filter the set
-     * of credentials saved by the provider. If no authentication methods are specified, then no
-     * filtering of saved credentials will occur.
+     * of credentials saved by the provider. At least one authentication method must be specified.
      */
     @NonNull
     public Set<Uri> getAuthenticationMethods() {
@@ -111,7 +109,8 @@ public class RetrieveRequest implements Parcelable {
      */
     @Nullable
     public String getAdditionalParameterAsString(@NonNull String key) {
-        require(key, notNullValue());
+        validate(key, notNullValue(), IllegalArgumentException.class);
+
         if (mAdditionalParams.containsKey(key)) {
             return new String(mAdditionalParams.get(key), Charset.forName("UTF-8"));
         }
@@ -123,7 +122,8 @@ public class RetrieveRequest implements Parcelable {
      */
     @Nullable
     public byte[] getAdditionalParameter(@NonNull String key) {
-        require(key, notNullValue());
+        validate(key, notNullValue(), IllegalArgumentException.class);
+
         return mAdditionalParams.get(key);
     }
 
@@ -162,37 +162,41 @@ public class RetrieveRequest implements Parcelable {
          * provided protocol buffer representation.
          */
         public Builder(@NonNull CredentialRetrieveRequest requestProto) {
-            require(requestProto, notNullValue());
+            validate(requestProto, notNullValue(), IllegalArgumentException.class);
+
             setAuthenticationMethods(toSet(requestProto.authMethods, CONVERTER_STRING_TO_URI));
             setAdditionalParameters(toMap(requestProto.additionalParams, CONVERTER_KVP_TO_PAIR));
         }
 
         /**
-         * Starts the process of describing a retrieve request.
+         * Starts the process of describing a retrieve request. At least one authentication method
+         * must be provided.
          */
-        public Builder() {}
-
-        /**
-         * Specifies the authentication methods supported by the requester. If no values are
-         * specified, then any stored credential matching the set of specified authentication
-         * domains may be returned. All provided values must be non-null.
-         */
-        @NonNull
-        public Builder setAuthenticationMethods(@NonNull Uri... authMethods) {
+        public Builder(@NonNull Uri... authMethods) {
             setAuthenticationMethods(
                     toSet(null, authMethods, NoopValueConverter.<Uri>getInstance()));
-            return this;
         }
 
         /**
-         * Specifies the authentication methods supported by the requester. If no values are
-         * specified, then any stored credential matching the set of specified authentication
-         * domains may be returned. The provided set must be non-null, and contain only non-null
-         * values.
+         * Starts the process of describing a retrieve request. At least one authentication method
+         * must be provided.
          */
-        public Builder setAuthenticationMethods(@NonNull Set<Uri> authMethods) {
-            require(authMethods, notNullValue());
-            require(authMethods, everyItem(isValidAuthenticationMethod()));
+        public Builder(@NonNull Set<Uri> authMethods) {
+            setAuthenticationMethods(authMethods);
+        }
+
+        /**
+         * Specifies the authentication methods supported by the requester. At least one
+         * authentication method must be provided.
+         */
+        private Builder setAuthenticationMethods(@NonNull Set<Uri> authMethods) {
+            validate(authMethods, notNullValue(), IllegalArgumentException.class);
+            validate(authMethods, not(equalTo(EMPTY_SET)), IllegalArgumentException.class);
+            validate(
+                    authMethods,
+                    everyItem(isValidAuthenticationMethod()),
+                    IllegalArgumentException.class);
+
             mAuthMethods = authMethods;
             return this;
         }
@@ -203,9 +207,16 @@ public class RetrieveRequest implements Parcelable {
          */
         public Builder setAdditionalParameters(
                 @NonNull Map<String, byte[]> additionalParams) {
-            require(additionalParams, notNullValue());
-            require(additionalParams.keySet(), everyItem(notNullOrEmptyString()));
-            require(additionalParams.values(), everyItem(notNullValue()));
+            validate(additionalParams, notNullValue(), IllegalArgumentException.class);
+            validate(
+                    additionalParams.keySet(),
+                    everyItem(notNullOrEmptyString()),
+                    IllegalArgumentException.class);
+            validate(
+                    additionalParams.values(),
+                    everyItem(notNullValue()),
+                    IllegalArgumentException.class);
+
             mAdditionalParams = additionalParams;
             return this;
         }
@@ -219,7 +230,8 @@ public class RetrieveRequest implements Parcelable {
         public Builder addAdditionalParameter(
                 @NonNull String name,
                 @NonNull String value) {
-            require(value, notNullValue());
+            validate(value, notNullValue(), IllegalArgumentException.class);
+
             addAdditionalParameter(name, value.getBytes(Charset.forName("UTF-8")));
             return this;
         }
@@ -228,8 +240,9 @@ public class RetrieveRequest implements Parcelable {
          * Adds an additional parameter. Both the parameter name and value must be non-null.
          */
         public Builder addAdditionalParameter(String name, byte[] value) {
-            require(name, notNullOrEmptyString());
-            require(value, notNullValue());
+            validate(name, notNullOrEmptyString(), IllegalArgumentException.class);
+            validate(value, notNullValue(), IllegalArgumentException.class);
+
             mAdditionalParams.put(name, value);
             return this;
         }

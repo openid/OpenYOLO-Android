@@ -64,39 +64,53 @@ public class BaseCredentialQueryReceiverTest {
 
     private static final String CALLING_PACKAGE_NAME = "org.openyolo.supercoolapp";
 
-    private static final BroadcastQuery BROADCAST_QUERY_WITH_NULL_MESSAGE =
-            new BroadcastQuery.Builder()
-                    .requestingApp(CALLING_PACKAGE_NAME)
-                    .dataType("blah")
-                    .requestId(101L)
-                    .responseId(102L)
-                    .queryMessage(null)
-                    .build();
+    private static final BroadcastQuery QUERY_WITH_NULL_MESSAGE =
+            makeQueryFromRequest(null /* request */);
 
-    private static final CredentialRetrieveRequest VALID_CREDENTIAL_RETRIEVE_REQUEST =
-            makeValidCredentialRetrieveRequest();
+    private static final BroadcastQuery QUERY_WITH_INVALID_REQUEST =
+            makeQueryFromRequest(makeInvalidCredentialRetrieveRequest());
 
-    private static final ByteString VALID_CREDENTIAL_RETRIEVE_REQUEST_BYTE_STRING =
-            ByteString.of(
-                    CredentialRetrieveRequest.ADAPTER.encode(VALID_CREDENTIAL_RETRIEVE_REQUEST));
-
-    private static final BroadcastQuery BROADCAST_QUERY_WITH_VALID_MESSAGE =
-            new BroadcastQuery.Builder()
-                    .requestingApp(CALLING_PACKAGE_NAME)
-                    .dataType("blah")
-                    .requestId(101L)
-                    .responseId(102L)
-                    .queryMessage(VALID_CREDENTIAL_RETRIEVE_REQUEST_BYTE_STRING)
-                    .build();
+    private static final BroadcastQuery QUERY_WITH_VALID_REQUEST =
+            makeQueryFromRequest(makeValidCredentialRetrieveRequest());
 
     private static final List<AuthenticationDomain> VALID_AUTHENTICATION_DOMAINS =
             makeValidAuthenticationDomains();
+
+
+    private static final BroadcastQuery makeQueryFromRequest(
+            @Nullable CredentialRetrieveRequest request) {
+        ByteString queryMessage = null;
+        if (null != request) {
+            queryMessage = ByteString.of(CredentialRetrieveRequest.ADAPTER.encode(request));
+        }
+
+        return new BroadcastQuery.Builder()
+                .requestingApp(CALLING_PACKAGE_NAME)
+                .dataType("blah")
+                .requestId(101L)
+                .responseId(102L)
+                .queryMessage(queryMessage)
+                .build();
+    }
 
     private static List<AuthenticationDomain> makeValidAuthenticationDomains() {
         List<AuthenticationDomain> authenticationDomains = new ArrayList<>();
         authenticationDomains.add(mock(AuthenticationDomain.class));
 
         return authenticationDomains;
+    }
+
+    private static CredentialRetrieveRequest makeInvalidCredentialRetrieveRequest() {
+        List<String> authDomains = new ArrayList<>();
+        List<String> authMethods = new ArrayList<>();
+        List<KeyValuePair> additionalParams = new ArrayList<>();
+
+        // Invalid because it does not specify a non-empty set of authentication method
+        return new CredentialRetrieveRequest(
+                authDomains,
+                authMethods,
+                additionalParams,
+                ByteString.EMPTY);
     }
 
     private static CredentialRetrieveRequest makeValidCredentialRetrieveRequest() {
@@ -135,25 +149,33 @@ public class BaseCredentialQueryReceiverTest {
 
     @Test
     public void processQuery_withNullQuery_sendsNullResponse() throws Exception {
-        credentialQueryReceiver.processQuery(mockContext, BROADCAST_QUERY_WITH_NULL_MESSAGE);
+        credentialQueryReceiver.processQuery(mockContext, QUERY_WITH_NULL_MESSAGE);
 
         verifyProcessCredentialRequestWasNotCalled();
         verifyQueryResponseIsSentWith(null /* response */);
     }
 
     @Test
-    public void processQuery_withValidQuery_processesRequest() throws Exception {
-        credentialQueryReceiver.processQuery(mockContext, BROADCAST_QUERY_WITH_VALID_MESSAGE);
+    public void processQuery_withInvalidRequest_sendsNullResponse() throws Exception {
+        credentialQueryReceiver.processQuery(mockContext, QUERY_WITH_INVALID_REQUEST);
+
+        verifyProcessCredentialRequestWasNotCalled();
+        verifyQueryResponseIsSentWith(null /* response */);
+    }
+
+    @Test
+    public void processQuery_withValidRequest_processesRequest() throws Exception {
+        credentialQueryReceiver.processQuery(mockContext, QUERY_WITH_VALID_REQUEST);
 
         verifyProcessCredentialRequestWasCalled();
         verifyQueryResponseIsNotSent();
     }
 
     @Test
-    public void processQuery_withValidQueryAndUnableToDetermineAuthenticationDomain_sendsNullResponse()
+    public void processQuery_withValidRequestAndUnableToDetermineAuthenticationDomain_sendsNullResponse()
             throws Exception {
         ShadowAuthenticationDomain.setListForPackageResponse(Collections.EMPTY_LIST);
-        credentialQueryReceiver.processQuery(mockContext, BROADCAST_QUERY_WITH_VALID_MESSAGE);
+        credentialQueryReceiver.processQuery(mockContext, QUERY_WITH_VALID_REQUEST);
 
         verifyProcessCredentialRequestWasNotCalled();
         verifyQueryResponseIsSentWith(null /* response */);

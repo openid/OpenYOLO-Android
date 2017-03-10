@@ -106,9 +106,7 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
         Set<Uri> authenticationMethods =
                 mAuthenticationMethodsInputView.getEnabledAuthenticationMethods();
 
-        RetrieveRequest request = new RetrieveRequest.Builder()
-                .setAuthenticationMethods(authenticationMethods)
-                .build();
+        RetrieveRequest request = RetrieveRequest.forAuthenticationMethods(authenticationMethods);
 
         mApi.retrieve(request, new HandleRetrieveResult());
     }
