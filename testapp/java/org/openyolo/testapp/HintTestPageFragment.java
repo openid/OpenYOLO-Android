@@ -26,9 +26,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+
 import org.openyolo.api.AuthenticationMethods;
 import org.openyolo.api.Credential;
 import org.openyolo.api.CredentialClient;
@@ -99,7 +101,12 @@ public final class HintTestPageFragment extends TestPageFragment {
     void onHint() {
         mCredentialView.clearFields();
 
-        Uri authMethodUri = Uri.parse(mAuthenticationMethodInput.getText().toString());
+        String uriString = mAuthenticationMethodInput.getText().toString();
+        if (uriString.isEmpty()) {
+            showSnackbar(R.string.authentication_field_required);
+            return;
+        }
+        Uri authMethodUri = Uri.parse(uriString);
 
         HintRequest.Builder requestBuilder = new HintRequest.Builder(authMethodUri);
 

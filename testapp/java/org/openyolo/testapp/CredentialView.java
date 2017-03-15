@@ -24,11 +24,14 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnTextChanged;
+
 import com.bumptech.glide.Glide;
+
 import org.openyolo.api.AuthenticationDomain;
 import org.openyolo.api.AuthenticationMethods;
 import org.openyolo.api.Credential;
@@ -77,17 +80,40 @@ public final class CredentialView extends LinearLayout {
 
     private RandomData mRandomData;
 
-    CredentialView(Context context) {
+    /**
+     * Simple constructor to use when creating a credential view from code.
+     *
+     * @param context The Context the view is running in, through which it can access the current
+     *                theme, resources, etc.
+     */
+    public CredentialView(Context context) {
         super(context);
         initialize(context);
     }
 
-    CredentialView(Context context, AttributeSet attrs) {
+    /**
+     * Constructor that is called when inflating a view from XML.
+     *
+     * @param context The Context the view is running in, through which it can access the current
+     *                theme, resources, etc.
+     * @param attrs   The attributes of the XML tag that is inflating the view.
+     */
+    public CredentialView(Context context, AttributeSet attrs) {
         super(context, attrs);
         initialize(context);
     }
 
-    CredentialView(Context context, AttributeSet attrs, int defStyle) {
+    /**
+     * Perform inflation from XML and apply a class-specific base style from a theme attribute.
+     *
+     * @param context  The Context the view is running in, through which it can access the current
+     *                 theme, resources, etc.
+     * @param attrs    The attributes of the XML tag that is inflating the view.
+     * @param defStyle An attribute in the current theme that contains a reference to a style
+     *                 resource that supplies default values for the view. Can be 0 to not look for
+     *                 defaults.
+     */
+    public CredentialView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         initialize(context);
     }

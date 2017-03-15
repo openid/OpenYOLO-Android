@@ -26,11 +26,14 @@ import android.support.design.widget.Snackbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+
 import org.openyolo.api.Credential;
 import org.openyolo.api.CredentialClient;
 import org.openyolo.api.RetrieveCallback;
@@ -106,6 +109,10 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
         Set<Uri> authenticationMethods =
                 mAuthenticationMethodsInputView.getEnabledAuthenticationMethods();
 
+        if (authenticationMethods.isEmpty()) {
+            showSnackbar(R.string.authentication_field_required);
+            return;
+        }
         RetrieveRequest request = RetrieveRequest.forAuthenticationMethods(authenticationMethods);
 
         mApi.retrieve(request, new HandleRetrieveResult());

@@ -21,10 +21,13 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
+
 import java.util.HashSet;
 import java.util.Set;
+
 import org.openyolo.api.AuthenticationMethods;
 
 public final class AuthenticationMethodsInputView extends LinearLayout {
@@ -44,17 +47,40 @@ public final class AuthenticationMethodsInputView extends LinearLayout {
     @BindView(R.id.custom_authentication_method)
     EditText mCustomAuthenticationMethod;
 
-    AuthenticationMethodsInputView(Context context) {
+    /**
+     * Simple constructor to use when creating an authentication method selection view from code.
+     *
+     * @param context The Context the view is running in, through which it can access the current
+     *                theme, resources, etc.
+     */
+    public AuthenticationMethodsInputView(Context context) {
         super(context);
         initialize(context);
     }
 
-    AuthenticationMethodsInputView(Context context, AttributeSet attrs) {
+    /**
+     * Constructor that is called when inflating a view from XML.
+     *
+     * @param context The Context the view is running in, through which it can access the current
+     *                theme, resources, etc.
+     * @param attrs   The attributes of the XML tag that is inflating the view.
+     */
+    public AuthenticationMethodsInputView(Context context, AttributeSet attrs) {
         super(context, attrs);
         initialize(context);
     }
 
-    AuthenticationMethodsInputView(Context context, AttributeSet attrs, int defStyle) {
+    /**
+     * Perform inflation from XML and apply a class-specific base style from a theme attribute.
+     *
+     * @param context  The Context the view is running in, through which it can access the current
+     *                 theme, resources, etc.
+     * @param attrs    The attributes of the XML tag that is inflating the view.
+     * @param defStyle An attribute in the current theme that contains a reference to a style
+     *                 resource that supplies default values for the view. Can be 0 to not look for
+     *                 defaults.
+     */
+    public AuthenticationMethodsInputView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         initialize(context);
     }
