@@ -119,7 +119,7 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
     }
 
     private void showSnackbar(@StringRes int messageId) {
-        Snackbar.make(getView().getRootView(), messageId, Snackbar.LENGTH_SHORT).show();
+        Snackbar.make(getView(), messageId, Snackbar.LENGTH_SHORT).show();
     }
 
     private class HandleRetrieveResult implements RetrieveCallback, Runnable {
