@@ -14,7 +14,7 @@
 
 package org.openyolo.api;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 
 import android.net.Uri;

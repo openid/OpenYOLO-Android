@@ -70,7 +70,7 @@ public class CredentialPickerActivity extends AppCompatActivity {
 
         Log.i(LOG_TAG, "Picker invoked by " + getCallingPackage());
 
-        setContentView(R.layout.picker_layout);
+        setContentView(R.layout.credential_picker_layout);
         ButterKnife.bind(this);
 
         mCredentialView.setAdapter(new CredentialPickerAdapter(getCredentials()));

@@ -18,7 +18,8 @@
 package org.openyolo.api.internal;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Java6Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

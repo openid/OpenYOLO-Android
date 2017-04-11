@@ -7,10 +7,10 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.3'
+        classpath 'com.android.tools.build:gradle:2.3.1'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
-        classpath 'org.ajoberstar:gradle-git:1.6.0'
+        classpath 'org.ajoberstar:gradle-git:1.7.1'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
     }
 }
@@ -42,7 +42,7 @@ task showVersion << {
 project.ext.minSdkVersion = 15
 project.ext.compileSdkVersion = 25
 project.ext.buildToolsVersion = '25.0.2'
-project.ext.supportLibVersion = '25.1.1'
+project.ext.supportLibVersion = '25.3.1'
 
 subprojects {
     repositories {
@@ -58,5 +58,5 @@ subprojects {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.3'
+    gradleVersion = '3.5'
 }
