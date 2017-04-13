@@ -15,11 +15,9 @@
 package org.openyolo.spi.assetlinks.data;
 
 import android.util.Patterns;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 

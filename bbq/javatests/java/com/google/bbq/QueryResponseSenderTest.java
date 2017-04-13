@@ -18,15 +18,12 @@ package com.google.bbq;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
+
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
-import com.google.bbq.proto.BroadcastQuery;
-import com.google.bbq.proto.BroadcastQueryResponse;
-import com.google.bbq.proto.Parameter;
-import java.util.LinkedList;
-import java.util.List;
-import okio.ByteString;
+import com.google.bbq.Protobufs.BroadcastQuery;
+import com.google.bbq.Protobufs.BroadcastQueryResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -52,8 +49,12 @@ public class QueryResponseSenderTest {
         MockitoAnnotations.initMocks(this);
 
         //set mock values.
-        List<Parameter> additionalArgs = new LinkedList<>();
-        mockQuery = new BroadcastQuery("dataType", "requestingApp", 128L, 256L, ByteString.EMPTY, additionalArgs);
+        mockQuery = BroadcastQuery.newBuilder()
+            .setDataType("dataType")
+            .setRequestingApp("requestingApp")
+            .setRequestId(128L)
+            .setResponseId(256L)
+            .build();
 
         //Create a test object for the QueryResponseSender using the mock
         underTest = new QueryResponseSender(mockContext) {

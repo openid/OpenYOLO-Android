@@ -18,7 +18,10 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import com.google.protobuf.ByteString;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
@@ -28,18 +31,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.TreeSet;
-import okio.BufferedSink;
-import okio.BufferedSource;
-import okio.ByteString;
-import okio.Okio;
-import org.openyolo.api.AuthenticationDomain;
 import org.openyolo.demoprovider.barbican.CredentialQualityScore;
-import org.openyolo.demoprovider.barbican.proto.AccountHint;
-import org.openyolo.demoprovider.barbican.proto.CredentialMeta;
-import org.openyolo.proto.Credential;
-import org.openyolo.proto.CredentialList;
+import org.openyolo.demoprovider.barbican.Protobufs.AccountHint;
+import org.openyolo.demoprovider.barbican.Protobufs.CredentialMeta;
+import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.Protobufs.Credential;
+import org.openyolo.protocol.Protobufs.CredentialList;
 import org.spongycastle.crypto.digests.Blake2bDigest;
 import org.spongycastle.crypto.generators.BCrypt;
+import org.spongycastle.crypto.io.CipherInputStream;
+import org.spongycastle.crypto.io.CipherOutputStream;
 
 /**
  * An encrypted file-system based credential store. Uses bcrypt to derive an encryption key from
@@ -97,7 +98,7 @@ public final class CredentialStorage {
 
         if (mStoreDir.exists()) {
             CredentialMeta credentialMeta = readCredentialMeta();
-            mSalt = credentialMeta.salt.toByteArray();
+            mSalt = credentialMeta.getSalt().toByteArray();
         }
     }
 
@@ -134,7 +135,7 @@ public final class CredentialStorage {
     @Nullable
     public List<String> retrieveNeverSaveList() throws IOException {
         CredentialMeta meta = readCredentialMeta();
-        return meta.neverSave;
+        return meta.getNeverSaveList();
     }
 
     /**
@@ -143,7 +144,7 @@ public final class CredentialStorage {
      */
     public void clearNeverSaveList() throws IOException {
         CredentialMeta meta = readCredentialMeta();
-        writeCredentialMeta(meta.newBuilder().neverSave(new ArrayList<String>()).build());
+        writeCredentialMeta(meta.toBuilder().clearNeverSave().build());
     }
 
     /**
@@ -153,7 +154,7 @@ public final class CredentialStorage {
      */
     public boolean isOnNeverSaveList(List<AuthenticationDomain> authDomains) throws IOException {
         CredentialMeta meta = readCredentialMeta();
-        if (meta.neverSave == null) {
+        if (meta.getNeverSaveCount() < 1) {
             return false;
         }
 
@@ -162,7 +163,7 @@ public final class CredentialStorage {
             authDomainsAsStrings.add(authDomain.toString());
         }
 
-        for (String neverSaveDomain : meta.neverSave) {
+        for (String neverSaveDomain : meta.getNeverSaveList()) {
             if (authDomainsAsStrings.contains(neverSaveDomain)) {
                 return true;
             }
@@ -179,16 +180,17 @@ public final class CredentialStorage {
         CredentialMeta meta = readCredentialMeta();
 
         TreeSet<String> neverSaveDomains = new TreeSet<>();
-        if (meta.neverSave != null) {
-            for (String neverSaveDomain : meta.neverSave) {
-                neverSaveDomains.add(neverSaveDomain);
-            }
+        for (String neverSaveDomain : meta.getNeverSaveList()) {
+            neverSaveDomains.add(neverSaveDomain);
         }
 
         neverSaveDomains.add(authDomain.toString());
 
         writeCredentialMeta(
-                meta.newBuilder().neverSave(new ArrayList<>(neverSaveDomains)).build());
+                meta.toBuilder()
+                    .clearNeverSave()
+                    .addAllNeverSave(neverSaveDomains)
+                    .build());
     }
 
     /**
@@ -199,10 +201,8 @@ public final class CredentialStorage {
         CredentialMeta meta = readCredentialMeta();
 
         TreeSet<String> neverSaveDomains = new TreeSet<>();
-        if (meta.neverSave != null) {
-            for (String neverSaveDomain : meta.neverSave) {
-                neverSaveDomains.add(neverSaveDomain);
-            }
+        for (String neverSaveDomain : meta.getNeverSaveList()) {
+            neverSaveDomains.add(neverSaveDomain);
         }
 
         for (AuthenticationDomain authDomain : authDomains) {
@@ -210,7 +210,10 @@ public final class CredentialStorage {
         }
 
         writeCredentialMeta(
-                meta.newBuilder().neverSave(new ArrayList<>(neverSaveDomains)).build());
+                meta.toBuilder()
+                    .clearNeverSave()
+                    .addAllNeverSave(neverSaveDomains)
+                    .build());
     }
 
     /**
@@ -220,7 +223,7 @@ public final class CredentialStorage {
      */
     public List<AccountHint> getHints() throws IOException {
         CredentialMeta meta = readCredentialMeta();
-        return meta.hints;
+        return meta.getHintsList();
     }
 
     /**
@@ -269,15 +272,15 @@ public final class CredentialStorage {
      */
     public void upsertCredential(Credential credential) throws IOException {
         checkUnlocked();
-        List<Credential> credentials = new ArrayList<>(readCredentials(credential.authDomain));
+        List<Credential> credentials = new ArrayList<>(readCredentials(credential.getAuthDomain()));
 
         // replace any existing equivalent
         ListIterator<Credential> it = credentials.listIterator();
         boolean existingFound = false;
         while (it.hasNext() && !existingFound) {
             Credential existing = it.next();
-            if (credential.id.equals(existing.id)
-                    && eq(credential.authDomain, existing.authDomain)) {
+            if (credential.getId().equals(existing.getId())
+                    && eq(credential.getAuthDomain(), existing.getAuthDomain())) {
                 existingFound = true;
                 it.set(credential);
             }
@@ -287,7 +290,7 @@ public final class CredentialStorage {
             it.add(credential);
         }
 
-        writeCredentials(credential.authDomain, credentials);
+        writeCredentials(credential.getAuthDomain(), credentials);
         upsertHint(credential);
     }
 
@@ -298,7 +301,7 @@ public final class CredentialStorage {
      */
     public void deleteCredential(Credential credential) throws IOException {
         checkUnlocked();
-        List<Credential> credentials = new ArrayList<>(readCredentials(credential.authDomain));
+        List<Credential> credentials = new ArrayList<>(readCredentials(credential.getAuthDomain()));
 
         ListIterator<Credential> it = credentials.listIterator();
         boolean existingFound = false;
@@ -311,7 +314,7 @@ public final class CredentialStorage {
         }
 
         if (existingFound) {
-            writeCredentials(credential.authDomain, credentials);
+            writeCredentials(credential.getAuthDomain(), credentials);
         }
     }
 
@@ -324,9 +327,9 @@ public final class CredentialStorage {
             return false;
         }
 
-        return c1.id.equals(c2.id)
-                && c1.authDomain.equals(c2.authDomain)
-                && c1.authMethod.equals(c2.authMethod);
+        return c1.getId().equals(c2.getId())
+                && c1.getAuthDomain().equals(c2.getAuthDomain())
+                && c1.getAuthMethod().equals(c2.getAuthMethod());
     }
 
     private boolean areEqual(Object o1, Object o2) {
@@ -348,8 +351,8 @@ public final class CredentialStorage {
         CredentialMeta meta = generateCredentialMeta();
         writeCredentialMeta(meta);
 
-        mSalt = meta.salt.toByteArray();
-        mKey = keyFromPassword(password, meta.cost);
+        mSalt = meta.getSalt().toByteArray();
+        mKey = keyFromPassword(password, meta.getCost());
         generateKeyTestFile();
     }
 
@@ -364,8 +367,8 @@ public final class CredentialStorage {
         }
 
         CredentialMeta credentialMeta = readCredentialMeta();
-        mSalt = credentialMeta.salt.toByteArray();
-        mKey = keyFromPassword(password, credentialMeta.cost);
+        mSalt = credentialMeta.getSalt().toByteArray();
+        mKey = keyFromPassword(password, credentialMeta.getCost());
         return verifyKey();
     }
 
@@ -376,43 +379,45 @@ public final class CredentialStorage {
     }
 
     private CredentialMeta generateCredentialMeta() {
-        return new CredentialMeta.Builder()
-                .salt(ByteString.of(generateRandomBytes(SALT_SIZE)))
-                .cost(BCRYPT_COST)
+        return CredentialMeta.newBuilder()
+                .setSalt(ByteString.copyFrom(generateRandomBytes(SALT_SIZE)))
+                .setCost(BCRYPT_COST)
                 .build();
     }
 
     private void writeCredentialMeta(CredentialMeta meta) throws IOException {
-        BufferedSink sink = null;
+        FileOutputStream stream = null;
         try {
-            sink = Okio.buffer(Okio.sink(getCredentialMetaFile()));
-            meta.encode(sink);
+            stream = new FileOutputStream(getCredentialMetaFile());
+            meta.writeTo(stream);
         } finally {
-            IoUtil.closeQuietly(sink, LOG_TAG);
+            IoUtil.closeQuietly(stream, LOG_TAG);
         }
     }
 
     private CredentialMeta readCredentialMeta() throws IOException {
-        BufferedSource src = null;
+        FileInputStream stream = null;
         try {
-            src = Okio.buffer(Okio.source(getCredentialMetaFile()));
-            return CredentialMeta.ADAPTER.decode(src);
+            stream = new FileInputStream(getCredentialMetaFile());
+            return CredentialMeta.parseFrom(stream);
         } finally {
-            IoUtil.closeQuietly(src, LOG_TAG);
+            IoUtil.closeQuietly(stream, LOG_TAG);
         }
     }
 
     private void upsertHint(Credential credential) throws IOException {
         CredentialMeta meta = readCredentialMeta();
-        List<AccountHint> hints = new ArrayList<>(readCredentialMeta().hints);
+
+        // create a copy of the hints list for modification
+        List<AccountHint> hints = new ArrayList<>(readCredentialMeta().getHintsList());
 
         ListIterator<AccountHint> hintIter = hints.listIterator();
         boolean found = false;
         while (!found && hintIter.hasNext()) {
             AccountHint existingHint = hintIter.next();
 
-            if (existingHint.identifier.equals(credential.id)
-                    && existingHint.authMethod.equals(credential.authMethod)
+            if (existingHint.getIdentifier().equals(credential.getId())
+                    && existingHint.getAuthMethod().equals(credential.getAuthMethod())
                     && CredentialQualityScore.getScore(existingHint)
                             <= CredentialQualityScore.getScore(credential)) {
                 hintIter.remove();
@@ -425,15 +430,18 @@ public final class CredentialStorage {
             hintIter.add(convertCredentialToHint(credential));
         }
 
-        writeCredentialMeta(meta.newBuilder().hints(hints).build());
+        writeCredentialMeta(meta.toBuilder()
+                .clearHints()
+                .addAllHints(hints)
+                .build());
     }
 
     private AccountHint convertCredentialToHint(Credential credential) {
-        return new AccountHint.Builder()
-                .identifier(credential.id)
-                .authMethod(credential.authMethod)
-                .name(credential.displayName)
-                .pictureUri(credential.displayPictureUri)
+        return AccountHint.newBuilder()
+                .setIdentifier(credential.getId())
+                .setAuthMethod(credential.getAuthMethod())
+                .setName(credential.getDisplayName())
+                .setPictureUri(credential.getDisplayPictureUri())
                 .build();
     }
 
@@ -444,27 +452,28 @@ public final class CredentialStorage {
     }
 
     private void generateKeyTestFile() throws IOException {
-        BufferedSink sink = null;
+        CipherOutputStream stream = null;
         try {
-            sink = IoUtil.encryptTo(getKeyTestFile(), mKey);
-            sink.write(KEY_VERIFICATION_BYTES);
-            sink.close();
+            stream = IoUtil.encryptTo(getKeyTestFile(), mKey);
+            stream.write(KEY_VERIFICATION_BYTES);
         } finally {
-            IoUtil.closeQuietly(sink, LOG_TAG);
+            IoUtil.closeQuietly(stream, LOG_TAG);
         }
     }
 
     private boolean verifyKey() throws IOException {
-        BufferedSource source = null;
+        CipherInputStream stream = null;
         try {
-            source = IoUtil.decryptFrom(getKeyTestFile(), mKey);
-            byte[] bytes = source.readByteArray();
-            return bytesEqual(KEY_VERIFICATION_BYTES, bytes);
+            stream = IoUtil.decryptFrom(getKeyTestFile(), mKey);
+            byte[] bytes = new byte[KEY_VERIFICATION_BYTES.length];
+            int numRead = stream.read(bytes);
+            return numRead == KEY_VERIFICATION_BYTES.length
+                && bytesEqual(KEY_VERIFICATION_BYTES, bytes);
         } catch (IOException ex) {
             Log.i(LOG_TAG, "Key verification failed");
             return false;
         } finally {
-            IoUtil.closeQuietly(source, LOG_TAG);
+            IoUtil.closeQuietly(stream, LOG_TAG);
         }
     }
 
@@ -519,16 +528,16 @@ public final class CredentialStorage {
         }
 
         initAuthDomainDir(authDomain);
-        BufferedSink credentialsSink = null;
+        CipherOutputStream stream = null;
         try {
-            credentialsSink = IoUtil.encryptTo(
-                    getCredentialsFile(authDomain),
-                    mKey);
+            stream = IoUtil.encryptTo(getCredentialsFile(authDomain), mKey);
+            CredentialList proto = CredentialList.newBuilder()
+                    .addAllCredentials(credentials)
+                    .build();
 
-            CredentialList proto = new CredentialList.Builder().credentials(credentials).build();
-            proto.encode(credentialsSink);
+            proto.writeTo(stream);
         } finally {
-            IoUtil.closeQuietly(credentialsSink, LOG_TAG);
+            IoUtil.closeQuietly(stream, LOG_TAG);
         }
     }
 
@@ -542,13 +551,12 @@ public final class CredentialStorage {
             return Collections.emptyList();
         }
 
-        BufferedSource credentialsSource = null;
+        CipherInputStream stream = null;
         try {
-            credentialsSource = IoUtil.decryptFrom(credentialsFile, mKey);
-            CredentialList proto = CredentialList.ADAPTER.decode(credentialsSource);
-            return proto.credentials;
+            stream = IoUtil.decryptFrom(credentialsFile, mKey);
+            return CredentialList.parseFrom(stream).getCredentialsList();
         } finally {
-            IoUtil.closeQuietly(credentialsSource, LOG_TAG);
+            IoUtil.closeQuietly(stream, LOG_TAG);
         }
     }
 

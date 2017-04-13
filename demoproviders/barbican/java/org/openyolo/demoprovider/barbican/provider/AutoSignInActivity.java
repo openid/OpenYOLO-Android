@@ -27,7 +27,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import java.io.IOException;
 import org.openyolo.demoprovider.barbican.R;
-import org.openyolo.proto.Credential;
+import org.openyolo.protocol.Protobufs.Credential;
 import org.openyolo.spi.RetrieveIntentResultUtil;
 
 /**
@@ -54,7 +54,7 @@ public class AutoSignInActivity extends AppCompatActivity {
      */
     public static Intent createIntent(Context context, Credential credential) {
         Intent intent = new Intent(context, AutoSignInActivity.class);
-        intent.putExtra(EXTRA_CREDENTIAL, credential.encode());
+        intent.putExtra(EXTRA_CREDENTIAL, credential.toByteArray());
         return intent;
     }
 
@@ -66,11 +66,11 @@ public class AutoSignInActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         Credential credential = getCredential();
-        if (credential.displayName != null) {
-            mCredentialPrimary.setText(credential.displayName);
-            mCredentialSecondary.setText(credential.id);
+        if (credential.getDisplayName() != null) {
+            mCredentialPrimary.setText(credential.getDisplayName());
+            mCredentialSecondary.setText(credential.getId());
         } else {
-            mCredentialPrimary.setText(credential.id);
+            mCredentialPrimary.setText(credential.getId());
             mCredentialSecondary.setVisibility(View.GONE);
         }
 
@@ -103,7 +103,7 @@ public class AutoSignInActivity extends AppCompatActivity {
     private Credential getCredential() {
         byte[] credentialBytes = getIntent().getByteArrayExtra(EXTRA_CREDENTIAL);
         try {
-            return Credential.ADAPTER.decode(credentialBytes);
+            return Credential.parseFrom(credentialBytes);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to decode credential");
         }

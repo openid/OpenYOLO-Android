@@ -26,12 +26,12 @@ import android.util.Log;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import org.openyolo.api.AuthenticationDomain;
 import org.openyolo.demoprovider.barbican.CredentialListActivity;
 import org.openyolo.demoprovider.barbican.LockActivity;
+import org.openyolo.demoprovider.barbican.Protobufs.AccountHint;
 import org.openyolo.demoprovider.barbican.R;
-import org.openyolo.demoprovider.barbican.proto.AccountHint;
-import org.openyolo.proto.Credential;
+import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.Protobufs.Credential;
 
 /**
  * A service which retains an instance of {@link CredentialStorage} beyond the lifecycle of the

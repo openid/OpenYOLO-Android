@@ -18,18 +18,16 @@ package org.openyolo.demoprovider.barbican.storage;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
+import com.google.common.io.ByteStreams;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import okio.BufferedSink;
-import okio.BufferedSource;
-import okio.Okio;
-import okio.Sink;
-import okio.Source;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.spongycastle.crypto.io.CipherInputStream;
+import org.spongycastle.crypto.io.CipherOutputStream;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
@@ -73,19 +71,18 @@ public class IoUtilTest {
 
     private byte[] writeAndRead(byte[] data, byte[] key) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        Sink outSink = Okio.sink(baos);
-        BufferedSink cryptoSink = Okio.buffer(IoUtil.encryptTo(outSink, key));
-        cryptoSink.write(data);
-        cryptoSink.close();
+        CipherOutputStream outStream = IoUtil.encryptTo(baos, key);
+        outStream.write(data);
+        outStream.close();
 
         byte[] cipherText = baos.toByteArray();
 
         ByteArrayInputStream bais = new ByteArrayInputStream(cipherText);
-        Source inSource = Okio.source(bais);
-        BufferedSource cryptoSource = Okio.buffer(IoUtil.decryptFrom(inSource, generateTestKey()));
+        CipherInputStream inStream = IoUtil.decryptFrom(bais, key);
 
-        byte[] result = cryptoSource.readByteArray();
-        cryptoSource.close();
+        byte[] result = ByteStreams.toByteArray(inStream);
+
+        inStream.close();
         return result;
     }
 

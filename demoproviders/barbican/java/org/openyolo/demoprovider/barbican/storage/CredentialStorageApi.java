@@ -16,10 +16,9 @@ package org.openyolo.demoprovider.barbican.storage;
 
 import java.io.IOException;
 import java.util.List;
-import org.openyolo.api.AuthenticationDomain;
-import org.openyolo.demoprovider.barbican.proto.AccountHint;
-import org.openyolo.proto.Credential;
-
+import org.openyolo.demoprovider.barbican.Protobufs.AccountHint;
+import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.Protobufs.Credential;
 
 /**
  * Credential storage operations which are available via the service interface.

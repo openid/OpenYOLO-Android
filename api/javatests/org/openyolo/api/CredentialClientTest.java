@@ -25,14 +25,14 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.openyolo.api.AuthenticationMethods.ID_AND_PASSWORD;
-import static org.openyolo.api.CredentialClient.EXTRA_CREDENTIAL;
+import static org.openyolo.protocol.AuthenticationMethods.ID_AND_PASSWORD;
+import static org.openyolo.protocol.ProtocolConstants.EXTRA_CREDENTIAL;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -40,6 +40,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.Credential;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -67,7 +69,6 @@ public class CredentialClientTest {
                 EMAIL_ID,
                 ID_AND_PASSWORD,
                 new AuthenticationDomain("https://www.example.com")).build();
-
     }
 
     @Test
@@ -76,6 +77,7 @@ public class CredentialClientTest {
         assertNotNull(test);
     }
 
+    @SuppressWarnings("WrongConstant")
     @Test
     public void getSaveIntent() throws Exception {
         PackageManager mockPackageManager = mock(PackageManager.class);
@@ -106,7 +108,7 @@ public class CredentialClientTest {
     @Test
     public void getCredentialFromActivityResult_withExtras() throws Exception {
         Intent intent = new Intent();
-        byte[] array = org.openyolo.proto.Credential.ADAPTER.encode(testCredentials.getProto());
+        byte[] array = testCredentials.getProto().toByteArray();
         intent.putExtra(EXTRA_CREDENTIAL, array);
         Credential result = underTest.getCredentialFromActivityResult(intent);
         assertEquals(result.getIdentifier(), "alice@example.com");

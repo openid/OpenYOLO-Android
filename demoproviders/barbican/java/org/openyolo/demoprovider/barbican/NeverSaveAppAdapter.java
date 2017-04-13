@@ -33,8 +33,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.openyolo.api.AuthenticationDomain;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
+import org.openyolo.protocol.AuthenticationDomain;
 
 
 /**

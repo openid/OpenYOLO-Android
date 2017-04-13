@@ -17,9 +17,9 @@ package org.openyolo.demoprovider.barbican;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import java.util.Comparator;
-import org.openyolo.api.AuthenticationMethods;
-import org.openyolo.demoprovider.barbican.proto.AccountHint;
-import org.openyolo.proto.Credential;
+import org.openyolo.demoprovider.barbican.Protobufs.AccountHint;
+import org.openyolo.protocol.AuthenticationMethods;
+import org.openyolo.protocol.Protobufs.Credential;
 
 /**
  * Derives quality scores for credentials and hints that can help to order lists of them based on
@@ -37,7 +37,11 @@ public class CredentialQualityScore {
      * Generates the score for the user data in an account hint.
      */
     public static int getScore(AccountHint hint) {
-        return getQualityScore(hint.identifier, hint.authMethod, hint.name, hint.pictureUri);
+        return getQualityScore(
+            hint.getIdentifier(),
+            hint.getAuthMethod(),
+            hint.getName(),
+            hint.getPictureUri());
     }
 
     /**
@@ -45,10 +49,10 @@ public class CredentialQualityScore {
      */
     public static int getScore(Credential credential) {
         return getQualityScore(
-                credential.id,
-                credential.authMethod,
-                credential.displayName,
-                credential.displayPictureUri);
+                credential.getId(),
+                credential.getAuthMethod(),
+                credential.getDisplayName(),
+                credential.getDisplayPictureUri());
     }
 
     private static int getQualityScore(

@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 
 apply from:'../config/android-common.gradle'
-apply from:'../config/wire-proto.gradle'
+apply from:'../config/protobuf.gradle'
 apply from:'../config/third-party.gradle'
 
 android.defaultConfig.project.archivesBaseName = 'bbq'

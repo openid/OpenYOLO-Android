@@ -22,9 +22,9 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
-import com.google.bbq.proto.BroadcastQuery;
-import com.google.bbq.proto.BroadcastQueryResponse;
-import okio.ByteString;
+import com.google.bbq.Protobufs.BroadcastQuery;
+import com.google.bbq.Protobufs.BroadcastQueryResponse;
+import com.google.protobuf.ByteString;
 
 
 /**
@@ -53,7 +53,7 @@ public class QueryResponseSender {
 
         BroadcastQueryResponse.Builder responseBuilder = createResponseBuilder(query);
         if (responseMessage != null) {
-            responseBuilder.responseMessage = ByteString.of(responseMessage);
+            responseBuilder.setResponseMessage(ByteString.copyFrom(responseMessage));
         }
 
         Intent responseBroadcast = getIntentForQuery(query, responseBuilder);
@@ -66,18 +66,20 @@ public class QueryResponseSender {
     Intent getIntentForQuery(@NonNull BroadcastQuery query,
                              BroadcastQueryResponse.Builder responseBuilder) {
         Intent responseBroadcast =
-                new Intent(QueryUtil.createResponseAction(query.dataType, query.requestId));
+                new Intent(QueryUtil.createResponseAction(
+                        query.getDataType(),
+                        query.getRequestId()));
         responseBroadcast.addCategory(QueryUtil.BBQ_CATEGORY);
-        responseBroadcast.setPackage(query.requestingApp);
+        responseBroadcast.setPackage(query.getRequestingApp());
         responseBroadcast.putExtra(
                 QueryUtil.EXTRA_RESPONSE_MESSAGE,
-                responseBuilder.build().encode());
+                responseBuilder.build().toByteArray());
         return responseBroadcast;
     }
 
     private BroadcastQueryResponse.Builder createResponseBuilder(BroadcastQuery query) {
-        return new BroadcastQueryResponse.Builder()
-                .requestId(query.requestId)
-                .responseId(query.responseId);
+        return BroadcastQueryResponse.newBuilder()
+                .setRequestId(query.getRequestId())
+                .setResponseId(query.getResponseId());
     }
 }

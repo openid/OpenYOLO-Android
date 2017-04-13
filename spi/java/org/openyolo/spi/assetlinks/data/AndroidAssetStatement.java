@@ -18,7 +18,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.valid4j.Assertive.require;
 
 import android.support.annotation.NonNull;
-
 import java.util.List;
 
 /**

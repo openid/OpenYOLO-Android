@@ -26,19 +26,16 @@ import android.support.design.widget.Snackbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-
-import org.openyolo.api.Credential;
 import org.openyolo.api.CredentialClient;
 import org.openyolo.api.RetrieveCallback;
-import org.openyolo.api.RetrieveRequest;
-import org.openyolo.api.RetrieveResult;
+import org.openyolo.protocol.Credential;
+import org.openyolo.protocol.RetrieveRequest;
+import org.openyolo.protocol.RetrieveResult;
 
 /**
  * Fragment which contains a method of testing the OpenYolo credential retrieve flow.

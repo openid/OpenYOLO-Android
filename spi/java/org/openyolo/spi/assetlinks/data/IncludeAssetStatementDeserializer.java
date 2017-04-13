@@ -20,10 +20,8 @@ import static org.valid4j.Assertive.require;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
-
 import java.util.Collections;
 import java.util.List;
-
 import org.json.JSONObject;
 
 /**

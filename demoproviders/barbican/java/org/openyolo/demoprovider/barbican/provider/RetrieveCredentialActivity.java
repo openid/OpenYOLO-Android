@@ -22,10 +22,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import java.io.IOException;
 import java.util.List;
-import org.openyolo.api.AuthenticationDomain;
 import org.openyolo.demoprovider.barbican.UnlockActivity;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
-import org.openyolo.proto.Credential;
+import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.Protobufs.Credential;
 
 /**
  * A UI-less activity that determines how to retrieve a requested credential. If the credential

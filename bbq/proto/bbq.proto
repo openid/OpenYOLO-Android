@@ -14,29 +14,32 @@
  * limitations under the License.
  */
 
-syntax = "proto2";
+syntax = "proto3";
 
 package com.google.bbq;
 
-option java_package = "com.google.bbq.proto";
+option java_package = "com.google.bbq";
+option java_outer_classname = "Protobufs";
 
 message BroadcastQuery {
-	optional string       dataType         = 1; // required
-	optional string       requestingApp    = 2; // required
-	optional sfixed64     requestId        = 3; // required
-	optional sfixed64     responseId       = 4; // required
-	optional bytes        queryMessage     = 5;
-	repeated Parameter    additionalParams = 6;
+    string   dataType      = 1; // required
+    string   requestingApp = 2; // required
+    sfixed64 requestId     = 3; // required
+    sfixed64 responseId    = 4; // required
+    bytes    queryMessage  = 5;
+
+    map<string, bytes> additionalProps = 6;
 }
 
 message BroadcastQueryResponse {
-	optional sfixed64  requestId             = 1; // required
-	optional sfixed64  responseId            = 2; // required
-	optional bytes     responseMessage       = 3;
-	repeated Parameter additionalParams      = 4;
+    sfixed64 requestId       = 1; // required
+    sfixed64 responseId      = 2; // required
+    bytes    responseMessage = 3;
+
+    map<string, bytes> additionalProps = 4;
 }
 
 message Parameter {
-	optional string name  = 1; // required
-	optional bytes  value = 2;
+    string name  = 1; // required
+    bytes  value = 2;
 }

@@ -91,7 +91,7 @@ public class ProviderPickerActivity extends AppCompatActivity {
         List<Intent> retrieveIntents =
                 getIntent().getParcelableArrayListExtra(EXTRA_PROVIDER_INTENTS);
         if (retrieveIntents == null) {
-            retrieveIntents = Collections.EMPTY_LIST;
+            retrieveIntents = Collections.emptyList();
         }
         providerView.setAdapter(new ProviderAdapter(retrieveIntents));
     }

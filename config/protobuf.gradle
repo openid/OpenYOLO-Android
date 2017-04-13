@@ -1,0 +1,101 @@
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermission
+
+/**
+ * Adds simple protocol buffer compilation task that compiles protos from a "proto" folder of the
+ * module, into a "java_gen" folder. Code here is inspired by the Google protobuf gradle plugin,
+ * but is simpler and caused less issues with IDE integration and test execution.
+ */
+
+apply plugin: 'com.google.osdetector'
+
+/**
+ * The protocol buffer compiler and javalite plugin are pulled as dynamic dependencies, so that
+ * they do not need to be pre-installed by the developer.
+ */
+Configuration protoDepsConfig = project.configurations.create("protobufDeps") {
+    visible = false
+    transitive = false
+    extendsFrom = []
+}
+
+Dependency protocDep = project.dependencies.add(protoDepsConfig.name, [
+        group: "com.google.protobuf",
+        name: "protoc",
+        version: "3.2.0",
+        classifier: project.osdetector.classifier,
+        ext: 'exe'
+])
+
+Dependency javaliteDep = project.dependencies.add(protoDepsConfig.name, [
+        group: "com.google.protobuf",
+        name: "protoc-gen-javalite",
+        version: "3.0.0",
+        classifier: project.osdetector.classifier,
+        ext: 'exe'
+])
+
+def makeExecutable = { file ->
+    Files.setPosixFilePermissions(
+            file.toPath(),
+            [
+                    PosixFilePermission.OWNER_EXECUTE,
+                    PosixFilePermission.GROUP_EXECUTE
+            ].toSet())
+}
+
+/**
+ * Compiles the protocol buffers in the "proto" folder of the project, into the "java_gen" folder.
+ */
+task compileProtos {
+    doLast {
+        def protocFile = protoDepsConfig.fileCollection(protocDep).singleFile
+        def javaliteFile = protoDepsConfig.fileCollection(javaliteDep).singleFile
+
+        makeExecutable(protocFile)
+        makeExecutable(javaliteFile)
+
+        def protoFiles = fileTree(dir: "${projectDir}/proto").matching { include "**/*.proto"}.sort()
+        logger.lifecycle("proto files: " + protoFiles)
+
+        def outDir = file("${projectDir}/java_gen")
+        if (!outDir.exists()) {
+            outDir.mkdir()
+        }
+
+        def cmd = [ protocFile ]
+        cmd += "--proto_path=${projectDir}/proto"
+        cmd += "--plugin=protoc-gen-javalite=" + javaliteFile.absolutePath
+        cmd += "--javalite_out=${projectDir}/java_gen"
+        cmd.addAll(protoFiles)
+
+        logger.lifecycle("protoc command: " + cmd.toString())
+
+        def stdout = new StringBuffer()
+        def stderr = new StringBuffer()
+        Process compileProcess = cmd.execute()
+        compileProcess.waitForProcessOutput(stdout, stderr)
+
+        if (compileProcess.exitValue() != 0) {
+            def error = "protobuf compilation failed: stdout: ${stdout}. stderr: ${stderr}"
+            throw new GradleException(error)
+        }
+    }
+}
+
+/**
+ * javalite compiled protos require this runtime dependency.
+ */
+dependencies {
+    compile 'com.google.protobuf:protobuf-lite:3.0.1'
+}
+
+/**
+ * Ensure that the generated code is included in the source set of the library / app
+ */
+android.sourceSets.main.java.srcDirs += 'java_gen'
+
+/**
+ * Ensure that protos are compiled before any other compilation steps.
+ */
+preBuild.dependsOn compileProtos

@@ -19,10 +19,8 @@ import static org.valid4j.Assertive.require;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import org.openyolo.spi.assetlinks.data.AndroidAssetStatement;
 import org.openyolo.spi.assetlinks.data.AssetStatement;
 

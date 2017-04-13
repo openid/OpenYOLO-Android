@@ -1,0 +1,16 @@
+-dontwarn sun.misc.Unsafe
+-dontwarn javax.annotation.**
+-dontwarn java.lang.ClassValue
+-dontwarn com.google.j2objc.annotations.**
+-dontwarn com.google.errorprone.annotations.**
+-dontwarn com.google.appengine.**
+-dontwarn com.google.apphosting.**
+-dontwarn com.google.protobuf.Extension
+-dontwarn com.google.protobuf.ExtensionRegistry
+-dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
+
+# ignore dynamic accesses in guava code
+-dontnote com.google.common.**
+
+# ignore dynamic accesses in javalite proto
+-dontnote com.google.protobuf.GeneratedMessageLite

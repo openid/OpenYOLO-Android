@@ -19,14 +19,15 @@ package org.openyolo.spi;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.openyolo.api.AuthenticationMethods.ID_AND_PASSWORD;
+import static org.openyolo.protocol.AuthenticationMethods.ID_AND_PASSWORD;
+
 import android.content.Intent;
 import android.util.Base64;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.openyolo.api.AuthenticationDomain;
-import org.openyolo.api.Credential;
-import org.openyolo.api.CredentialClient;
+import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.Credential;
+import org.openyolo.protocol.ProtocolConstants;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -44,7 +45,7 @@ public class RetrieveIntentResultUtilTest {
         Credential cr = new Credential.Builder( EMAIL_ID, ID_AND_PASSWORD,
         new AuthenticationDomain("https://www.example.com")).build();
         Intent reposnse = RetrieveIntentResultUtil.createResponseData(cr.getProto());
-        byte[] bytes = reposnse.getExtras().getByteArray(CredentialClient.EXTRA_CREDENTIAL);
+        byte[] bytes = reposnse.getExtras().getByteArray(ProtocolConstants.EXTRA_CREDENTIAL);
         assertEquals(bytes.length, 72);
         String data = Base64.encodeToString(bytes, Base64.DEFAULT);
         assertEquals(base64string, data);

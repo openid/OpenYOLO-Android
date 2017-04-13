@@ -28,9 +28,9 @@ import android.widget.TextView;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import org.openyolo.api.AuthenticationDomain;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
-import org.openyolo.proto.Credential;
+import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.Protobufs.Credential;
 
 /**
  * RecyclerView adapter for displaying stored credentials.
@@ -87,10 +87,10 @@ class CredentialAdapter
         }
 
         void bind(final Credential credential) {
-            String appLabel = credential.authDomain;
+            String appLabel = credential.getAuthDomain();
             Drawable appIcon = null;
 
-            AuthenticationDomain domain = new AuthenticationDomain(credential.authDomain);
+            AuthenticationDomain domain = new AuthenticationDomain(credential.getAuthDomain());
             if (domain.isAndroidAuthDomain()) {
                 String packageName = domain.getAndroidPackageName();
                 PackageManager pm = itemView.getContext().getPackageManager();
@@ -104,7 +104,7 @@ class CredentialAdapter
             }
 
             mAuthorityView.setText(appLabel);
-            mIdView.setText(credential.id);
+            mIdView.setText(credential.getId());
 
             if (appIcon != null) {
                 mAuthorityIconView.setImageDrawable(appIcon);

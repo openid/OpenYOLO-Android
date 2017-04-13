@@ -16,10 +16,9 @@
 
 package org.openyolo.spi.assetlinks.data;
 
+import java.util.Arrays;
 import org.junit.Test;
 import org.valid4j.errors.RequireViolation;
-
-import java.util.Arrays;
 
 /**
  * Test for {@link WebSiteAssetStatement}

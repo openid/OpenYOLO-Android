@@ -26,13 +26,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
-
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.openyolo.spi.AssetStatementsUtil;
 import org.openyolo.spi.assetlinks.data.AndroidAssetStatement;
 import org.openyolo.spi.assetlinks.data.AssetStatement;

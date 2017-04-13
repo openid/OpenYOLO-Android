@@ -18,14 +18,14 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import com.google.bbq.BaseBroadcastQueryReceiver;
+import com.google.bbq.Protobufs.BroadcastQuery;
 import com.google.bbq.QueryResponseSender;
-import com.google.bbq.proto.BroadcastQuery;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-import org.openyolo.api.AuthenticationDomain;
-import org.openyolo.api.RetrieveRequest;
-import org.openyolo.proto.CredentialRetrieveRequest;
+import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.Protobufs.CredentialRetrieveRequest;
+import org.openyolo.protocol.RetrieveRequest;
 
 /**
  * Partial implementation of an OpenYOLO request receiver, that should be extended by providers.
@@ -45,8 +45,9 @@ public abstract class BaseCredentialQueryReceiver extends BaseBroadcastQueryRece
     @Override
     protected void processQuery(@NonNull Context context, @NonNull BroadcastQuery query) {
         CredentialRetrieveRequest requestProto;
+
         try {
-            requestProto = CredentialRetrieveRequest.ADAPTER.decode(query.queryMessage);
+            requestProto = CredentialRetrieveRequest.parseFrom(query.getQueryMessage());
         } catch (NullPointerException | IOException ex) {
             Log.w(mLogTag, "Failed to parse credential request message", ex);
             new QueryResponseSender(context).sendResponse(query, null);
@@ -64,7 +65,9 @@ public abstract class BaseCredentialQueryReceiver extends BaseBroadcastQueryRece
 
         // TODO: validate claimed authentication domains
         Set<AuthenticationDomain> requestorDomains =
-                new HashSet<>(AuthenticationDomain.listForPackage(context, query.requestingApp));
+                new HashSet<>(AuthenticationDomain.listForPackage(
+                    context,
+                    query.getRequestingApp()));
 
         // Ensure the authentication domain of the requesting app can be determined
         if (requestorDomains.isEmpty()) {

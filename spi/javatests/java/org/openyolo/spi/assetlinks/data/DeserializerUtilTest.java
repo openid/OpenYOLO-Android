@@ -16,6 +16,10 @@
 
 package org.openyolo.spi.assetlinks.data;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,10 +27,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-
-import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * Tests for {@link DeserializerUtil}.

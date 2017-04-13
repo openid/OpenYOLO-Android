@@ -17,11 +17,11 @@
 
 package org.openyolo.spi.assetlinks.data;
 
-import org.junit.Test;
-
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
+
+import org.junit.Test;
 
 /**
  * Tests for {@link NamespaceType}.

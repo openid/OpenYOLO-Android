@@ -27,8 +27,8 @@ import android.view.ViewGroup;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import org.openyolo.api.Credential;
 import org.openyolo.api.CredentialClient;
+import org.openyolo.protocol.Credential;
 
 /**
  * Fragment which contains a method of testing the OpenYolo credential save flow.

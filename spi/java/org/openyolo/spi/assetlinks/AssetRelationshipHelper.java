@@ -21,18 +21,16 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import org.openyolo.api.AuthenticationDomain;
+import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.spi.assetlinks.data.AndroidAssetStatement;
 import org.openyolo.spi.assetlinks.data.AssetStatement;
 
 /**
  * <p>
- * This class loads the {@link org.openyolo.api.AuthenticationDomain}s for the 'source'
+ * This class loads the {@link AuthenticationDomain}s for the 'source'
  * (client) and 'target' asset statements and finds the ones that are bidirectional.  That is,
  * where the source and target apps grant the same relations to each other.
  * </p>

@@ -43,10 +43,10 @@ import butterknife.OnTextChanged;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import org.openyolo.api.AuthenticationDomain;
-import org.openyolo.api.AuthenticationMethods;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
-import org.openyolo.proto.Credential;
+import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.AuthenticationMethods;
+import org.openyolo.protocol.Protobufs.Credential;
 
 /**
  * Creates credentials from manual user input for storage.
@@ -190,11 +190,11 @@ public class CreateCredentialActivity
                     mPackageName)
                     .get(0);
 
-            Credential credential = new Credential.Builder()
-                    .id(mUsername)
-                    .authDomain(domain.toString())
-                    .authMethod(AuthenticationMethods.ID_AND_PASSWORD.toString())
-                    .password(mPassword)
+            Credential credential = Credential.newBuilder()
+                    .setId(mUsername)
+                    .setAuthDomain(domain.toString())
+                    .setAuthMethod(AuthenticationMethods.ID_AND_PASSWORD.toString())
+                    .setPassword(mPassword)
                     .build();
             try {
                 mStorageClient.upsertCredential(credential);

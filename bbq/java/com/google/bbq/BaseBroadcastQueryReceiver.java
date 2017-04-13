@@ -20,7 +20,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import com.google.bbq.proto.BroadcastQuery;
+import com.google.bbq.Protobufs.BroadcastQuery;
 import java.io.IOException;
 
 /**
@@ -50,16 +50,16 @@ public abstract class BaseBroadcastQueryReceiver extends BroadcastReceiver {
 
         final BroadcastQuery query;
         try {
-            query = BroadcastQuery.ADAPTER.decode(queryBytes);
+            query = BroadcastQuery.parseFrom(queryBytes);
         } catch (IOException e) {
             Log.w(mLogTag, "Unable to decode query data");
             return;
         }
 
         try {
-            context.getPackageManager().getPackageInfo(query.requestingApp, 0);
+            context.getPackageManager().getPackageInfo(query.getRequestingApp(), 0);
         } catch (PackageManager.NameNotFoundException ex) {
-            Log.w(mLogTag, "Received query from non-existent app: " + query.requestingApp);
+            Log.w(mLogTag, "Received query from non-existent app: " + query.getRequestingApp());
             return;
         }
 

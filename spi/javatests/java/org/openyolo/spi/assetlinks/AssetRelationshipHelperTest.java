@@ -17,7 +17,8 @@
 package org.openyolo.spi.assetlinks;
 
 import android.content.Context;
-
+import java.util.Collections;
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -25,9 +26,6 @@ import org.openyolo.spi.assetlinks.data.AssetStatement;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.valid4j.errors.RequireViolation;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Tests for {@link AssetRelationshipHelper}.

@@ -19,14 +19,13 @@ package org.openyolo.spi.assetlinks.data;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 
+import java.util.List;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.valid4j.errors.RequireViolation;
-
-import java.util.List;
 
 /**
  * Tests for {@link AndroidAssetStatementDeserializer}.

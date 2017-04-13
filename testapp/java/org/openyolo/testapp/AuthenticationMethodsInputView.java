@@ -21,14 +21,11 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
-
 import java.util.HashSet;
 import java.util.Set;
-
-import org.openyolo.api.AuthenticationMethods;
+import org.openyolo.protocol.AuthenticationMethods;
 
 public final class AuthenticationMethodsInputView extends LinearLayout {
 

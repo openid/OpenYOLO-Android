@@ -4,8 +4,8 @@ import static org.mockito.Mockito.mock;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import com.google.bbq.Protobufs.BroadcastQuery;
 import com.google.bbq.QueryResponseSender;
-import com.google.bbq.proto.BroadcastQuery;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 

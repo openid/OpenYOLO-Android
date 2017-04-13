@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.util.List;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient.ConnectedCallback;
-import org.openyolo.proto.Credential;
+import org.openyolo.protocol.Protobufs.Credential;
 
 /**
  * Displays the user's stored credentials.

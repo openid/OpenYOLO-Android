@@ -20,8 +20,8 @@ import android.support.annotation.NonNull;
 import android.util.Patterns;
 import java.util.Collection;
 import java.util.regex.Pattern;
-import org.openyolo.api.IdentifierTypes;
-import org.openyolo.proto.Credential;
+import org.openyolo.protocol.IdentifierTypes;
+import org.openyolo.protocol.Protobufs.Credential;
 
 /**
  * Heuristically identifies the "type" of a password credential based on the ID value.
@@ -34,7 +34,7 @@ public final class CredentialClassifier {
      * Determines whether the credential identifier is an email address.
      */
     public static boolean isEmailCredential(Credential credential) {
-        return isEmailIdentifier(credential.id);
+        return isEmailIdentifier(credential.getId());
     }
 
     /**
@@ -48,7 +48,7 @@ public final class CredentialClassifier {
      * Determines whether the credential identifier is a phone number.
      */
     public static boolean isPhoneCredential(Credential credential) {
-        return isPhoneIdentifier(credential.id);
+        return isPhoneIdentifier(credential.getId());
     }
 
     /**

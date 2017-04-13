@@ -28,21 +28,20 @@ import static org.mockito.Mockito.verify;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import com.google.bbq.proto.BroadcastQuery;
+import com.google.bbq.Protobufs.BroadcastQuery;
+import com.google.protobuf.ByteString;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import okio.ByteString;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.openyolo.api.AuthenticationDomain;
-import org.openyolo.api.RetrieveRequest;
-import org.openyolo.proto.CredentialRetrieveRequest;
-import org.openyolo.proto.KeyValuePair;
+import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.Protobufs.CredentialRetrieveRequest;
+import org.openyolo.protocol.RetrieveRequest;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -77,20 +76,19 @@ public class BaseCredentialQueryReceiverTest {
             makeValidAuthenticationDomains();
 
 
-    private static final BroadcastQuery makeQueryFromRequest(
+    private static BroadcastQuery makeQueryFromRequest(
             @Nullable CredentialRetrieveRequest request) {
-        ByteString queryMessage = null;
-        if (null != request) {
-            queryMessage = ByteString.of(CredentialRetrieveRequest.ADAPTER.encode(request));
+        BroadcastQuery.Builder builder = BroadcastQuery.newBuilder()
+                .setRequestingApp(CALLING_PACKAGE_NAME)
+                .setDataType("blah")
+                .setRequestId(101L)
+                .setResponseId(102L);
+
+        if (request != null) {
+            builder.setQueryMessage(ByteString.copyFrom(request.toByteArray()));
         }
 
-        return new BroadcastQuery.Builder()
-                .requestingApp(CALLING_PACKAGE_NAME)
-                .dataType("blah")
-                .requestId(101L)
-                .responseId(102L)
-                .queryMessage(queryMessage)
-                .build();
+        return builder.build();
     }
 
     private static List<AuthenticationDomain> makeValidAuthenticationDomains() {
@@ -101,30 +99,15 @@ public class BaseCredentialQueryReceiverTest {
     }
 
     private static CredentialRetrieveRequest makeInvalidCredentialRetrieveRequest() {
-        List<String> authDomains = new ArrayList<>();
-        List<String> authMethods = new ArrayList<>();
-        List<KeyValuePair> additionalParams = new ArrayList<>();
-
         // Invalid because it does not specify a non-empty set of authentication method
-        return new CredentialRetrieveRequest(
-                authDomains,
-                authMethods,
-                additionalParams,
-                ByteString.EMPTY);
+        return CredentialRetrieveRequest.newBuilder().build();
     }
 
     private static CredentialRetrieveRequest makeValidCredentialRetrieveRequest() {
-        List<String> authDomains = new ArrayList<>();
-        List<String> authMethods = new ArrayList<>();
-        authMethods.add("custom://one");
-        authMethods.add("custom://two");
-        List<KeyValuePair> additionalParams = new ArrayList<>();
-
-        return new CredentialRetrieveRequest(
-                authDomains,
-                authMethods,
-                additionalParams,
-                ByteString.EMPTY);
+        return CredentialRetrieveRequest.newBuilder()
+            .addAuthMethods("custom://one")
+            .addAuthMethods("custom://two")
+            .build();
     }
 
     @Before

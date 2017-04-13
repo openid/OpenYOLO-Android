@@ -26,15 +26,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-
-import org.openyolo.api.AuthenticationMethods;
-import org.openyolo.api.Credential;
 import org.openyolo.api.CredentialClient;
-import org.openyolo.api.HintRequest;
+import org.openyolo.protocol.AuthenticationMethods;
+import org.openyolo.protocol.Credential;
+import org.openyolo.protocol.HintRequest;
 
 /**
  * Fragment which contains a method of testing the OpenYolo credential hint flow.

@@ -39,8 +39,8 @@ import java.util.List;
 import org.openyolo.demoprovider.barbican.CredentialClassifier;
 import org.openyolo.demoprovider.barbican.CredentialQualityScore;
 import org.openyolo.demoprovider.barbican.R;
-import org.openyolo.proto.Credential;
-import org.openyolo.proto.CredentialList;
+import org.openyolo.protocol.Protobufs.Credential;
+import org.openyolo.protocol.Protobufs.CredentialList;
 import org.openyolo.spi.RetrieveIntentResultUtil;
 
 /**
@@ -60,7 +60,11 @@ public class CredentialPickerActivity extends AppCompatActivity {
      */
     public static Intent createIntent(Context context, List<Credential> credentials) {
         Intent intent = new Intent(context, CredentialPickerActivity.class);
-        intent.putExtra(EXTRA_CREDENTIALS, new CredentialList(credentials).encode());
+        intent.putExtra(EXTRA_CREDENTIALS,
+                CredentialList.newBuilder()
+                        .addAllCredentials(credentials)
+                        .build()
+                        .toByteArray());
         return intent;
     }
 
@@ -92,7 +96,7 @@ public class CredentialPickerActivity extends AppCompatActivity {
         byte[] credentialBytes = getIntent().getByteArrayExtra(EXTRA_CREDENTIALS);
         try {
             List<Credential> credentials =
-                    new ArrayList<>(CredentialList.ADAPTER.decode(credentialBytes).credentials);
+                    new ArrayList<>(CredentialList.parseFrom(credentialBytes).getCredentialsList());
             Collections.sort(credentials, CredentialQualityScore.QUALITY_SORT);
             return credentials;
         } catch (IOException ex) {
@@ -145,8 +149,8 @@ public class CredentialPickerActivity extends AppCompatActivity {
 
             int iconId = CredentialClassifier.getDefaultIconForCredential(credential);
 
-            if (credential.displayPictureUri != null) {
-                Uri displayPictureUri = Uri.parse(credential.displayPictureUri);
+            if (credential.getDisplayPictureUri() != null) {
+                Uri displayPictureUri = Uri.parse(credential.getDisplayPictureUri());
                 Glide.with(CredentialPickerActivity.this)
                         .load(displayPictureUri)
                         .fitCenter()
@@ -156,12 +160,12 @@ public class CredentialPickerActivity extends AppCompatActivity {
                 mProfileIcon.setImageResource(iconId);
             }
 
-            if (credential.displayName != null) {
-                mPrimaryLabel.setText(credential.displayName);
-                mSecondaryLabel.setText(credential.id);
+            if (credential.getDisplayName() != null) {
+                mPrimaryLabel.setText(credential.getDisplayName());
+                mSecondaryLabel.setText(credential.getId());
                 mSecondaryLabel.setVisibility(View.VISIBLE);
             } else {
-                mPrimaryLabel.setText(credential.id);
+                mPrimaryLabel.setText(credential.getId());
                 mSecondaryLabel.setVisibility(View.GONE);
             }
 

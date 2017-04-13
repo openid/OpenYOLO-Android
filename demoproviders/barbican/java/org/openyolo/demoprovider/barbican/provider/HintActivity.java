@@ -26,14 +26,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import org.openyolo.api.AuthenticationDomain;
-import org.openyolo.api.AuthenticationMethods;
-import org.openyolo.api.CredentialClient;
-import org.openyolo.api.HintRequest;
 import org.openyolo.demoprovider.barbican.CredentialClassifier;
-import org.openyolo.demoprovider.barbican.proto.AccountHint;
+import org.openyolo.demoprovider.barbican.Protobufs.AccountHint;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
-import org.openyolo.proto.Credential;
+import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.AuthenticationMethods;
+import org.openyolo.protocol.HintRequest;
+import org.openyolo.protocol.Protobufs.Credential;
+import org.openyolo.protocol.ProtocolConstants;
 
 public class HintActivity
         extends AppCompatActivity
@@ -49,7 +49,7 @@ public class HintActivity
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (!getIntent().hasExtra(CredentialClient.EXTRA_HINT_REQUEST)) {
+        if (!getIntent().hasExtra(ProtocolConstants.EXTRA_HINT_REQUEST)) {
             Log.w(LOG_TAG, "No hint request object found in the intent");
             finish(RESULT_CANCELED);
             return;
@@ -57,7 +57,7 @@ public class HintActivity
 
         try {
             mRequest = HintRequest.fromProtoBytes(
-                    getIntent().getByteArrayExtra(CredentialClient.EXTRA_HINT_REQUEST));
+                    getIntent().getByteArrayExtra(ProtocolConstants.EXTRA_HINT_REQUEST));
         } catch (IOException ex) {
             Log.w(LOG_TAG, "Failed to decode hint request from intent", ex);
             finish(RESULT_CANCELED);
@@ -105,28 +105,28 @@ public class HintActivity
         ArrayList<Credential> filteredHints = new ArrayList<>();
         for (AccountHint hint : hints) {
             Set<Uri> authMethods = mRequest.getAuthenticationMethods();
-            if (!authMethods.contains(Uri.parse(hint.authMethod))) {
+            if (!authMethods.contains(Uri.parse(hint.getAuthMethod()))) {
                 continue;
             }
 
             Set<Uri> identifierTypes = mRequest.getIdentifierTypes();
             if (!identifierTypes.isEmpty()
                     && !CredentialClassifier.identifierMatchesOneOf(
-                            hint.identifier,
+                            hint.getIdentifier(),
                             identifierTypes)) {
                 continue;
             }
 
-            Credential.Builder hintCredentialBuilder = new Credential.Builder()
-                    .id(hint.identifier)
-                    .authMethod(hint.authMethod)
-                    .authDomain(mCallerAuthDomain.toString())
-                    .displayName(hint.name)
-                    .displayPictureUri(hint.pictureUri);
+            Credential.Builder hintCredentialBuilder = Credential.newBuilder()
+                    .setId(hint.getIdentifier())
+                    .setAuthMethod(hint.getAuthMethod())
+                    .setAuthDomain(mCallerAuthDomain.toString())
+                    .setDisplayName(hint.getName())
+                    .setDisplayPictureUri(hint.getPictureUri());
 
             // include a generated password if appropriate
-            if (hint.authMethod.equals(AuthenticationMethods.ID_AND_PASSWORD.toString())) {
-                hintCredentialBuilder.password(mRequest.getPasswordSpecification().generate());
+            if (hint.getAuthMethod().equals(AuthenticationMethods.ID_AND_PASSWORD.toString())) {
+                hintCredentialBuilder.setPassword(mRequest.getPasswordSpecification().generate());
             }
 
             filteredHints.add(hintCredentialBuilder.build());

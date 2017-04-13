@@ -16,13 +16,13 @@ package org.openyolo.api;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import org.openyolo.protocol.AuthenticationDomain;
 
 /**
  * Manages a list of known providers, identified by their package name and a hash of their

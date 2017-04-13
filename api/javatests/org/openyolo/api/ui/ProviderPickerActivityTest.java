@@ -18,6 +18,7 @@
 package org.openyolo.api.ui;
 
 import static junit.framework.TestCase.assertNotNull;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;

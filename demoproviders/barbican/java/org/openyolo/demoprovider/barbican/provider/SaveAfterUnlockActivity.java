@@ -22,7 +22,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import java.io.IOException;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
-import org.openyolo.proto.Credential;
+import org.openyolo.protocol.Protobufs.Credential;
 
 
 /**
@@ -40,7 +40,7 @@ public class SaveAfterUnlockActivity extends AppCompatActivity {
      */
     public static Intent createIntent(Context context, Credential credentialProto) {
         Intent intent = new Intent(context, SaveAfterUnlockActivity.class);
-        intent.putExtra(EXTRA_CREDENTIAL, credentialProto.encode());
+        intent.putExtra(EXTRA_CREDENTIAL, credentialProto.toByteArray());
         return intent;
     }
 
@@ -50,8 +50,7 @@ public class SaveAfterUnlockActivity extends AppCompatActivity {
 
         byte[] credentialBytes = getIntent().getByteArrayExtra(EXTRA_CREDENTIAL);
         try {
-            mCredential =
-                    org.openyolo.proto.Credential.ADAPTER.decode(credentialBytes);
+            mCredential = Credential.parseFrom(credentialBytes);
         } catch (IOException e) {
             Log.w(LOG_TAG, "Failed to decode credential to save");
         }

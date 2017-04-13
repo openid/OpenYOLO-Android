@@ -24,18 +24,15 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnTextChanged;
-
 import com.bumptech.glide.Glide;
-
-import org.openyolo.api.AuthenticationDomain;
-import org.openyolo.api.AuthenticationMethods;
-import org.openyolo.api.Credential;
-import org.openyolo.api.PasswordSpecification;
+import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.AuthenticationMethods;
+import org.openyolo.protocol.Credential;
+import org.openyolo.protocol.PasswordSpecification;
 
 public final class CredentialView extends LinearLayout {
 

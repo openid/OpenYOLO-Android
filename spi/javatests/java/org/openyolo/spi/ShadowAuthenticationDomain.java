@@ -5,7 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
-import org.openyolo.api.AuthenticationDomain;
+import org.openyolo.protocol.AuthenticationDomain;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 

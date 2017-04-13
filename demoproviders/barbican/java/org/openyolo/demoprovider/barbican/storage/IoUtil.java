@@ -14,29 +14,29 @@
 
 package org.openyolo.demoprovider.barbican.storage;
 
-import static okio.Okio.buffer;
-import static okio.Okio.sink;
-import static okio.Okio.source;
-
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import okio.BlockCipherSink;
-import okio.BlockCipherSource;
-import okio.BufferedSink;
-import okio.BufferedSource;
-import okio.Sink;
-import okio.Source;
-import org.spongycastle.crypto.engines.TwofishEngine;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.SecureRandom;
+import org.spongycastle.crypto.engines.AESEngine;
+import org.spongycastle.crypto.io.CipherInputStream;
+import org.spongycastle.crypto.io.CipherOutputStream;
+import org.spongycastle.crypto.modes.SICBlockCipher;
 import org.spongycastle.crypto.paddings.PKCS7Padding;
+import org.spongycastle.crypto.paddings.PaddedBufferedBlockCipher;
 import org.spongycastle.crypto.params.KeyParameter;
+import org.spongycastle.crypto.params.ParametersWithIV;
 
 /**
- * Utilities for reading and writing encrypted data to disk.
+ * Utilities for reading and writing encrypted data to disk. The cipher used for Barbican
+ * is AES-128/CTR/PKCS7Padding.
  */
 class IoUtil {
 
@@ -44,24 +44,45 @@ class IoUtil {
 
     static final int BLOCK_SIZE = 16;
 
-    static Sink encryptTo(Sink sink, byte[] key) {
-        TwofishEngine engine = new TwofishEngine();
-        engine.init(true, new KeyParameter(key));
-        return new BlockCipherSink(engine, new PKCS7Padding(), sink);
+    static final SecureRandom RANDOM = new SecureRandom();
+
+    static CipherOutputStream encryptTo(OutputStream stream, byte[] key) throws IOException {
+        byte[] randomIv = new byte[BLOCK_SIZE];
+        RANDOM.nextBytes(randomIv);
+
+        stream.write(randomIv);
+        return new CipherOutputStream(
+                stream,
+                createAes128CtrPkcs7PaddingCipher(true, randomIv, key));
     }
 
-    static BufferedSink encryptTo(File file, byte[] key) throws FileNotFoundException {
-        return buffer(encryptTo(buffer(sink(file)), key));
+    static CipherOutputStream encryptTo(File file, byte[] key) throws IOException {
+        return encryptTo(new FileOutputStream(file), key);
     }
 
-    static Source decryptFrom(Source source, byte[] key) {
-        TwofishEngine engine = new TwofishEngine();
-        engine.init(false, new KeyParameter(key));
-        return new BlockCipherSource(engine, new PKCS7Padding(), source);
+    static CipherInputStream decryptFrom(InputStream stream, byte[] key) throws IOException {
+        byte[] iv = new byte[BLOCK_SIZE];
+        if (stream.read(iv) != BLOCK_SIZE) {
+            throw new IOException("Failed to read IV");
+        }
+        return new CipherInputStream(stream, createAes128CtrPkcs7PaddingCipher(false, iv, key));
     }
 
-    static BufferedSource decryptFrom(File file, byte[] key) throws FileNotFoundException {
-        return buffer(decryptFrom(buffer(source(file)), key));
+    static CipherInputStream decryptFrom(File file, byte[] key) throws IOException {
+        return decryptFrom(new FileInputStream(file), key);
+    }
+
+    static PaddedBufferedBlockCipher createAes128CtrPkcs7PaddingCipher(
+            boolean encrypting,
+            byte[] iv,
+            byte[] key) {
+        AESEngine aes = new AESEngine();
+        SICBlockCipher aesCtr = new SICBlockCipher(aes);
+        PaddedBufferedBlockCipher aesCtrPkcs7 =
+                new PaddedBufferedBlockCipher(aesCtr, new PKCS7Padding());
+        aesCtrPkcs7.init(encrypting, new ParametersWithIV(new KeyParameter(key), iv));
+
+        return aesCtrPkcs7;
     }
 
     static void closeQuietly(@Nullable Closeable resource, @NonNull String logTag) {

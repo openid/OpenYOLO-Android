@@ -18,17 +18,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import com.google.bbq.Protobufs.BroadcastQuery;
 import com.google.bbq.QueryResponseSender;
-import com.google.bbq.proto.BroadcastQuery;
+import com.google.protobuf.ByteString;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Set;
-import okio.ByteString;
-import org.openyolo.api.AuthenticationDomain;
-import org.openyolo.api.RetrieveRequest;
-import org.openyolo.api.internal.IntentUtil;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorage;
-import org.openyolo.proto.CredentialRetrieveResponse;
+import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.Protobufs.CredentialRetrieveResponse;
+import org.openyolo.protocol.RetrieveRequest;
+import org.openyolo.protocol.internal.IntentUtil;
 import org.openyolo.spi.BaseCredentialQueryReceiver;
 
 /**
@@ -62,7 +62,7 @@ public class CredentialQueryReceiver extends BaseCredentialQueryReceiver {
         // domains (such as affiliated apps and sites). This potentially larger list would then be
         // matched against the requested set of domains.
 
-        Log.i(LOG_TAG, "Processing query for " + query.requestingApp);
+        Log.i(LOG_TAG, "Processing query for " + query.getRequestingApp());
 
         CredentialStorage storage;
         try {
@@ -81,14 +81,16 @@ public class CredentialQueryReceiver extends BaseCredentialQueryReceiver {
             credentialsFound = storage.hasCredentialFor(authDomainIter.next().toString());
         }
 
-        Log.d(LOG_TAG, "Credentials found for " + query.requestingApp + ": " + credentialsFound);
+        Log.d(LOG_TAG, "Credentials found for "
+                + query.getRequestingApp() + ": "
+                + credentialsFound);
 
         if (credentialsFound) {
             Intent retrieveIntent = RetrieveCredentialActivity.createIntent(context);
-            CredentialRetrieveResponse response = new CredentialRetrieveResponse.Builder()
-                    .retrieveIntent(ByteString.of(IntentUtil.toBytes(retrieveIntent)))
+            CredentialRetrieveResponse response = CredentialRetrieveResponse.newBuilder()
+                    .setRetrieveIntent(ByteString.copyFrom(IntentUtil.toBytes(retrieveIntent)))
                     .build();
-            responseBytes = response.encode();
+            responseBytes = response.toByteArray();
         }
 
         responseSender.sendResponse(query, responseBytes);

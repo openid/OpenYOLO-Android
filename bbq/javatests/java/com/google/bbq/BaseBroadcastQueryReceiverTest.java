@@ -19,10 +19,11 @@ package com.google.bbq;
 
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
-import com.google.bbq.proto.BroadcastQuery;
+import com.google.bbq.Protobufs.BroadcastQuery;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

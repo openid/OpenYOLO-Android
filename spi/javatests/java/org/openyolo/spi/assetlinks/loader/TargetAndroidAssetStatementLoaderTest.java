@@ -17,6 +17,13 @@
 
 package org.openyolo.spi.assetlinks.loader;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.openyolo.spi.assetlinks.data.RelationType.GetLoginCreds;
+import static org.openyolo.spi.assetlinks.data.RelationType.HandleAllUrls;
+
+import java.util.Arrays;
+import java.util.List;
 import org.junit.Test;
 import org.openyolo.spi.assetlinks.data.AndroidAssetStatement;
 import org.openyolo.spi.assetlinks.data.AndroidTarget;
@@ -24,14 +31,6 @@ import org.openyolo.spi.assetlinks.data.AssetStatement;
 import org.openyolo.spi.assetlinks.data.RelationType;
 import org.openyolo.spi.assetlinks.data.WebSiteAssetStatement;
 import org.openyolo.spi.assetlinks.data.WebTarget;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.Assert.*;
-import static org.openyolo.spi.assetlinks.data.RelationType.GetLoginCreds;
-import static org.openyolo.spi.assetlinks.data.RelationType.HandleAllUrls;
 
 /**
  * Tests for {@link TargetAndroidAssetStatementLoader}.

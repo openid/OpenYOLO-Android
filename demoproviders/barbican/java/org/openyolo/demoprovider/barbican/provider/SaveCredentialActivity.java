@@ -23,10 +23,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import java.io.IOException;
 import java.util.List;
-import org.openyolo.api.AuthenticationDomain;
-import org.openyolo.api.Credential;
-import org.openyolo.api.CredentialClient;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
+import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.Credential;
+import org.openyolo.protocol.ProtocolConstants;
 
 /**
  * Verifies the rights to save a credential, before proceeding to
@@ -46,7 +46,7 @@ public class SaveCredentialActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (!getIntent().hasExtra(CredentialClient.EXTRA_CREDENTIAL)) {
+        if (!getIntent().hasExtra(ProtocolConstants.EXTRA_CREDENTIAL)) {
             Log.w(LOG_TAG, "No credential included in request");
             finish(RESULT_CANCELED);
             return;
@@ -54,7 +54,7 @@ public class SaveCredentialActivity extends AppCompatActivity {
 
         try {
             mCredential = Credential.fromProtoBytes(
-                    getIntent().getByteArrayExtra(CredentialClient.EXTRA_CREDENTIAL));
+                    getIntent().getByteArrayExtra(ProtocolConstants.EXTRA_CREDENTIAL));
         } catch (IOException ex) {
             Log.w(LOG_TAG, "Failed to decode credential for save request");
             finish(RESULT_CANCELED);

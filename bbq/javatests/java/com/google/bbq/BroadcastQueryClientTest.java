@@ -23,6 +23,7 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -58,6 +59,7 @@ public class BroadcastQueryClientTest {
     @org.junit.Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+        when(mockContext.getPackageName()).thenReturn("com.example.app");
         underTest = new BroadcastQueryClient(mockContext);
         when(mockContext.getPackageManager()).thenReturn(mockPackageManager);
 

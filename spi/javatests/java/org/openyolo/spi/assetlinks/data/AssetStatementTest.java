@@ -19,13 +19,12 @@ package org.openyolo.spi.assetlinks.data;
 import static junit.framework.Assert.assertTrue;
 import static org.openyolo.spi.assetlinks.data.RelationType.GetLoginCreds;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 /**
  * Tests for {@link AssetStatement}

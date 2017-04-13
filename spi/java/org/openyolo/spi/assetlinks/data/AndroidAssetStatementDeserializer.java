@@ -21,11 +21,9 @@ import static org.valid4j.Assertive.require;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 

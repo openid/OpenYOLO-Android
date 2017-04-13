@@ -14,6 +14,8 @@
 
 package org.openyolo.api;
 
+import org.openyolo.protocol.RetrieveResult;
+
 /**
  * Asyncronous callback type for credential retrieval.
  */

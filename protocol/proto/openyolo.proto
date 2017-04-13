@@ -1,0 +1,99 @@
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+package org.openyolo;
+
+option java_package = "org.openyolo.protocol";
+option java_outer_classname = "Protobufs";
+
+message CredentialRetrieveRequest {
+    // at least one authMethod required
+    repeated string authMethods = 1;
+    map<string, TokenRequestInfo> supportedTokenProviders = 2;
+    map<string, bytes> additionalProps = 3;
+}
+
+message CredentialRetrieveResponse {
+    bytes retrieveIntent = 1;
+    map<string, bytes> additionalProps = 2;
+}
+
+message CredentialRetrieveResponseList {
+    repeated CredentialRetrieveResponse responses = 1;
+}
+
+message HintRetrieveRequest {
+    // at least one authMethod required
+    repeated string authMethods = 1;
+
+    // at least one idType required
+    repeated string idTypes = 2;
+
+    PasswordSpecification passwordSpec = 3;
+    map<string, TokenRequestInfo> supportedTokenProviders = 4;
+    map<string, bytes> additionalProps = 5;
+}
+
+message HintRetrieveResponse {
+    bytes retrieveIntent = 1; // required
+    map<string, bytes> additionalProps = 2;
+}
+
+message HintRetrieveResponseList {
+    repeated HintRetrieveResponse responses = 1;
+}
+
+message TokenRequestInfo {
+    string clientId = 1;
+    string nonce = 2;
+    map<string, bytes> additionalProps = 3;
+}
+
+message Credential {
+    // required fields:
+    string id = 1;
+    string authDomain = 2;
+    string authMethod = 3;
+
+    // optional fields:
+    string displayName = 4;
+    string displayPictureUri = 5;
+    string password = 6;
+    string idToken = 7;
+    map<string, bytes> additionalProps = 8;
+}
+
+message CredentialList {
+    repeated Credential credentials = 1;
+}
+
+message PasswordSpecification {
+    // required fields:
+    string allowed = 1;
+    uint32 minSize = 2;
+    uint32 maxSize = 3;
+
+    // optional:
+    repeated RequiredCharSet requiredSets = 4;
+}
+
+message RequiredCharSet {
+    // all fields required
+    string chars = 1;
+    uint32 count = 2;
+}

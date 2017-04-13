@@ -25,9 +25,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
-import com.google.bbq.proto.BroadcastQuery;
-import com.google.bbq.proto.BroadcastQueryResponse;
-import com.squareup.wire.Message;
+import com.google.bbq.Protobufs.BroadcastQuery;
+import com.google.bbq.Protobufs.BroadcastQueryResponse;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.MessageLite;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -43,7 +44,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import okio.ByteString;
 
 /**
  * Dispatches broadcast queries to available data providers.
@@ -107,7 +107,7 @@ public final class BroadcastQueryClient {
      */
     public void queryFor(
             @NonNull String dataType,
-            @Nullable Message queryMessage,
+            @Nullable MessageLite queryMessage,
             @NonNull QueryCallback callback) {
         queryFor(dataType,
                 queryMessage,
@@ -121,11 +121,11 @@ public final class BroadcastQueryClient {
      */
     public void queryFor(
             @NonNull String dataType,
-            @Nullable Message queryMessage,
+            @Nullable MessageLite queryMessage,
             long timeoutInMs,
             @NonNull QueryCallback callback) {
         queryFor(dataType,
-                queryMessage != null ? queryMessage.encode() : null,
+                queryMessage != null ? queryMessage.toByteArray() : null,
                 timeoutInMs,
                 callback);
     }
@@ -185,16 +185,16 @@ public final class BroadcastQueryClient {
         Intent queryIntent = QueryUtil.createEmptyQueryIntent(pendingQuery.mDataType);
         queryIntent.setPackage(responderPackage);
         queryIntent.putExtra(QueryUtil.EXTRA_QUERY_MESSAGE,
-                new BroadcastQuery.Builder()
-                        .requestingApp(mContext.getPackageName())
-                        .dataType(pendingQuery.mDataType)
-                        .requestId(pendingQuery.mQueryId)
-                        .responseId(responseId)
-                        .queryMessage(pendingQuery.mQueryMessage != null
-                                ? ByteString.of(pendingQuery.mQueryMessage)
+                BroadcastQuery.newBuilder()
+                        .setRequestingApp(mContext.getPackageName())
+                        .setDataType(pendingQuery.mDataType)
+                        .setRequestId(pendingQuery.mQueryId)
+                        .setResponseId(responseId)
+                        .setQueryMessage(pendingQuery.mQueryMessage != null
+                                ? ByteString.copyFrom(pendingQuery.mQueryMessage)
                                 : null)
                         .build()
-                        .encode());
+                        .toByteArray());
         return queryIntent;
     }
 
@@ -330,28 +330,28 @@ public final class BroadcastQueryClient {
 
             BroadcastQueryResponse response;
             try {
-                response = BroadcastQueryResponse.ADAPTER.decode(responseBytes);
+                response = BroadcastQueryResponse.parseFrom(responseBytes);
             } catch (IOException e) {
                 Log.w(LOG_TAG, "Unable to parse query response message");
                 return;
             }
 
-            String responder = mPendingQuery.mRespondersById.get(response.responseId);
+            String responder = mPendingQuery.mRespondersById.get(response.getResponseId());
             if (responder == null) {
                 Log.w(LOG_TAG, "Received response from unknown responder");
                 return;
             }
 
-            if (!mPendingQuery.mPendingResponses.remove(response.responseId)) {
+            if (!mPendingQuery.mPendingResponses.remove(response.getResponseId())) {
                 Log.w(LOG_TAG, "Duplicate response received; ignoring");
                 return;
             }
 
-            if (response.responseMessage != null) {
+            if (response.getResponseMessage() != null) {
                 QueryResponse queryResponse = new QueryResponse(
                         responder,
-                        response.responseId,
-                        response.responseMessage.toByteArray());
+                        response.getResponseId(),
+                        response.getResponseMessage().toByteArray());
                 mPendingQuery.mResponses.put(responder, queryResponse);
             }
 

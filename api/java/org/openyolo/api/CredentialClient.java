@@ -14,6 +14,13 @@
 
 package org.openyolo.api;
 
+import static org.openyolo.protocol.ProtocolConstants.CREDENTIAL_DATA_TYPE;
+import static org.openyolo.protocol.ProtocolConstants.EXTRA_CREDENTIAL;
+import static org.openyolo.protocol.ProtocolConstants.EXTRA_HINT_REQUEST;
+import static org.openyolo.protocol.ProtocolConstants.HINT_CREDENTIAL_ACTION;
+import static org.openyolo.protocol.ProtocolConstants.OPENYOLO_CATEGORY;
+import static org.openyolo.protocol.ProtocolConstants.SAVE_CREDENTIAL_ACTION;
+
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -31,44 +38,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-import org.openyolo.api.internal.IntentUtil;
 import org.openyolo.api.ui.ProviderPickerActivity;
-import org.openyolo.proto.CredentialRetrieveResponse;
+import org.openyolo.protocol.Credential;
+import org.openyolo.protocol.HintRequest;
+import org.openyolo.protocol.Protobufs;
+import org.openyolo.protocol.RetrieveRequest;
+import org.openyolo.protocol.RetrieveResult;
+import org.openyolo.protocol.internal.IntentUtil;
 
 /**
  * Interact with credential providers on the device which support OpenYOLO.
  */
 public class CredentialClient {
-
-    /**
-     * The data type used for credential queries using the BBQ protocol.
-     */
-    public static final String CREDENTIAL_DATA_TYPE = "org.openyolo.credential";
-
-    /**
-     * The extra value key used to store the credential in a retrieve intent response.
-     */
-    public static final String EXTRA_CREDENTIAL = "org.openyolo.retrieve.credential";
-
-    /**
-     * The extra key value used to carry a hint request to a credential provider.
-     */
-    public static final String EXTRA_HINT_REQUEST = "org.openyolo.hint.request";
-
-    /**
-     * The category used for all OpenYOLO-related intents.
-     */
-    public static final String OPENYOLO_CATEGORY = "org.openyolo";
-
-    /**
-     * The action used for hint intents.
-     */
-    public static final String HINT_CREDENTIAL_ACTION = "org.openyolo.hint";
-
-    /**
-     * The action used for save intents.
-     */
-    public static final String SAVE_CREDENTIAL_ACTION = "org.openyolo.save";
 
     private static final String LOG_TAG = "CredentialClient";
 
@@ -110,7 +91,7 @@ public class CredentialClient {
             return null;
         }
 
-        byte[] encodedRequest = request.toProtocolBuffer().encode();
+        byte[] encodedRequest = request.toProtocolBuffer().toByteArray();
 
         // TODO: if a preferred credential provider is set, directly invoke it.
         ArrayList<Intent> hintIntents = new ArrayList<>();
@@ -158,7 +139,7 @@ public class CredentialClient {
         // TODO: if a preferred password manager is set, directly invoke it if it is in the list,
         // otherwise return no intent.
 
-        byte[] encodedCredential = credentialToSave.getProto().encode();
+        byte[] encodedCredential = credentialToSave.getProto().toByteArray();
 
         ArrayList<Intent> saveIntents = new ArrayList<>(saveProviders.size());
         for (ComponentName providerActivity : saveProviders) {
@@ -186,9 +167,9 @@ public class CredentialClient {
      * after a credential retrieve intent completes.
      */
     @Nullable
-    public Credential getCredentialFromActivityResult(@NonNull Intent resultData) {
+    public Credential getCredentialFromActivityResult(@Nullable Intent resultData) {
         if (resultData == null) {
-            Log.e(LOG_TAG, "resultData is null, exiting (returning null)");
+            Log.i(LOG_TAG, "resultData is null, exiting (returning null)");
             return null;
         }
 
@@ -203,9 +184,9 @@ public class CredentialClient {
             return null;
         }
 
-        org.openyolo.proto.Credential credentialProto;
+        Protobufs.Credential credentialProto;
         try {
-            credentialProto = org.openyolo.proto.Credential.ADAPTER.decode(credentialBytes);
+            credentialProto = Protobufs.Credential.parseFrom(credentialBytes);
         } catch (IOException ex) {
             Log.e(LOG_TAG, "failed to decode credential from response data");
             return null;
@@ -252,11 +233,11 @@ public class CredentialClient {
         @Override
         public void onResponse(long queryId, List<QueryResponse> queryResponses) {
             ArrayList<Intent> retrieveIntents = new ArrayList<>();
-            Map<String, CredentialRetrieveResponse> protoResponses = new HashMap<>();
+            Map<String, Protobufs.CredentialRetrieveResponse> protoResponses = new HashMap<>();
             for (QueryResponse queryResponse : queryResponses) {
-                CredentialRetrieveResponse response;
+                Protobufs.CredentialRetrieveResponse response;
                 try {
-                    response = CredentialRetrieveResponse.ADAPTER.decode(
+                    response = Protobufs.CredentialRetrieveResponse.parseFrom(
                             queryResponse.responseMessage);
                 } catch (IOException e) {
                     Log.w(LOG_TAG, "Failed to decode credential retrieve response");
@@ -265,11 +246,11 @@ public class CredentialClient {
 
                 protoResponses.put(queryResponse.responderPackage, response);
 
-                if (response.retrieveIntent != null) {
+                if (!response.getRetrieveIntent().isEmpty()) {
                     // TODO: handle failure to decode retrieve intent gracefully
                     // (i.e. ignore the response)
                     Intent retrieveIntent =
-                            IntentUtil.fromBytes(response.retrieveIntent.toByteArray());
+                            IntentUtil.fromBytes(response.getRetrieveIntent().toByteArray());
 
                     if (!queryResponse.responderPackage.equals(
                             retrieveIntent.getComponent().getPackageName())) {

@@ -12,6 +12,8 @@ buildscript {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
         classpath 'org.ajoberstar:gradle-git:1.7.1'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.1'
+        classpath 'com.google.protobuf:protoc-gen-javalite:3.0.0'
     }
 }
 
@@ -33,10 +35,12 @@ try {
     project.ext.versionName = 'DEV'
 }
 
-task showVersion << {
-    logger.lifecycle("Version ID: " + project.versionNum)
-    logger.lifecycle("Version Date: " + project.versionDate)
-    logger.lifecycle("Version Name: " + project.versionName)
+task showVersion {
+    doLast {
+        logger.lifecycle("Version ID: " + project.versionNum)
+        logger.lifecycle("Version Date: " + project.versionDate)
+        logger.lifecycle("Version Name: " + project.versionName)
+    }
 }
 
 project.ext.minSdkVersion = 15

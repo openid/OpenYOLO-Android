@@ -15,9 +15,9 @@
 package org.openyolo.testapp;
 
 import android.support.annotation.NonNull;
+import com.google.common.io.BaseEncoding;
 import java.util.Locale;
 import java.util.Random;
-import okio.ByteString;
 
 /**
  * Generates random data useful for populating credentials.
@@ -294,18 +294,15 @@ public class RandomData {
     }
 
     /**
-     * Generates a hexadecimal string from a random byte array of the provided length.
-     */
-    public String generateHexString(int numBytes) {
-        byte[] bytes = new byte[numBytes];
-        mRandom.nextBytes(bytes);
-        return ByteString.of(bytes).hex();
-    }
-
-    /**
      * Generates a profile picture URI.
      */
     public String generateProfilePictureUri() {
-        return "https://robohash.org/" + generateHexString(ROBOHASH_LENGTH) + "?set=set3";
+        return "https://robohash.org/" + generateRandomHexString(ROBOHASH_LENGTH) + "?set=set3";
+    }
+
+    private String generateRandomHexString(int length) {
+        byte[] randomBytes = new byte[length / 2];
+        mRandom.nextBytes(randomBytes);
+        return BaseEncoding.base16().encode(randomBytes);
     }
 }

@@ -24,9 +24,9 @@ import android.text.TextWatcher;
 import android.util.Log;
 import java.util.TreeSet;
 import me.philio.pinentry.PinEntryView;
-import org.openyolo.api.AuthenticationDomain;
-import org.openyolo.api.AuthenticationMethods;
-import org.openyolo.proto.Credential;
+import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.AuthenticationMethods;
+import org.openyolo.protocol.Protobufs.Credential;
 import org.openyolo.spi.RetrieveIntentResultUtil;
 
 /**
@@ -85,11 +85,11 @@ public class RetrieveActivity extends AppCompatActivity {
                     pin.toString(),
                     mDomain.toString());
 
-            Credential credential = new Credential.Builder()
-                    .authMethod(AuthenticationMethods.ID_AND_PASSWORD.toString())
-                    .authDomain(mDomain.toString())
-                    .id(UserDataStore.getUserName(RetrieveActivity.this))
-                    .password(password)
+            Credential credential = Credential.newBuilder()
+                    .setAuthMethod(AuthenticationMethods.ID_AND_PASSWORD.toString())
+                    .setAuthDomain(mDomain.toString())
+                    .setId(UserDataStore.getUserName(RetrieveActivity.this))
+                    .setPassword(password)
                     .build();
 
             setResult(RESULT_OK, RetrieveIntentResultUtil.createResponseData(credential));

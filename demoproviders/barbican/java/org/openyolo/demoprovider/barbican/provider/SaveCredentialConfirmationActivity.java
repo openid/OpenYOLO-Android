@@ -30,10 +30,10 @@ import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import org.openyolo.api.Credential;
 import org.openyolo.demoprovider.barbican.R;
 import org.openyolo.demoprovider.barbican.UnlockActivity;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
+import org.openyolo.protocol.Credential;
 
 /**
  * Confirms with the user whether they want to save a credential provided by the
@@ -65,7 +65,7 @@ public class SaveCredentialConfirmationActivity extends AppCompatActivity {
             Credential credential) {
         Intent intent = new Intent(context, SaveCredentialConfirmationActivity.class);
         intent.putExtra(EXTRA_CALLING_PACKAGE, callingPackage);
-        intent.putExtra(EXTRA_CREDENTIAL, credential.getProto().encode());
+        intent.putExtra(EXTRA_CREDENTIAL, credential.getProto().toByteArray());
         return intent;
     }
 
