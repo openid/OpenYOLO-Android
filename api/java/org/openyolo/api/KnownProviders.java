@@ -32,9 +32,6 @@ import org.openyolo.protocol.AuthenticationDomain;
  */
 public class KnownProviders {
 
-    private Context mApplicationContext;
-    private Set<AuthenticationDomain> mKnownProviders;
-
     /**
      * The known package name and certificate hash for
      * <a href="https://www.dashlane.com">Dashlane</a>.
@@ -124,6 +121,27 @@ public class KnownProviders {
         return providers;
     }
 
+    /**
+     * FOR TESTING ONLY - Overrides the KnownProvider instance. It is *strongly discouraged*
+     * to use this method in anything other than unit tests, as it can compromise the security
+     * of your app and the user's credentials.
+     */
+    @VisibleForTesting
+    static void setApplicationBoundInstance(KnownProviders instance) {
+        INSTANCE_REF.set(instance);
+    }
+
+    /**
+     * FOR TESTING ONLY - Clears the current instance of KnownProvider.
+     */
+    @VisibleForTesting
+    static void clearApplicationBoundInstance() {
+        INSTANCE_REF.set(null);
+    }
+
+    private final Context mApplicationContext;
+    private Set<AuthenticationDomain> mKnownProviders;
+
     private KnownProviders(Context context) {
         mApplicationContext = context.getApplicationContext();
 
@@ -134,7 +152,7 @@ public class KnownProviders {
     }
 
     public Set<AuthenticationDomain> getKnownProviders() {
-        return mKnownProviders;
+        return new HashSet<>(mKnownProviders);
     }
 
     /**

@@ -35,6 +35,7 @@ import com.google.bbq.QueryResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -93,12 +94,16 @@ public class CredentialClient {
 
         byte[] encodedRequest = request.toProtocolBuffer().toByteArray();
 
-        // TODO: if a preferred credential provider is set, directly invoke it.
+        // if there is a preferred provider, directly invoke it.
+        ComponentName preferredProviderActivity = getPreferredProvider(hintProviders);
+        if (preferredProviderActivity != null) {
+            return createHintIntent(preferredProviderActivity, encodedRequest);
+        }
+
+        // otherwise, display a picker for all the providers.
         ArrayList<Intent> hintIntents = new ArrayList<>();
         for (ComponentName providerActivity : hintProviders) {
-            Intent hintIntent = createIntent(providerActivity, HINT_CREDENTIAL_ACTION);
-            hintIntent.putExtra(EXTRA_HINT_REQUEST, encodedRequest);
-            hintIntents.add(hintIntent);
+            hintIntents.add(createHintIntent(providerActivity, encodedRequest));
         }
 
         return ProviderPickerActivity.createHintIntent(mApplicationContext, hintIntents);
@@ -136,17 +141,24 @@ public class CredentialClient {
             return null;
         }
 
-        // TODO: if a preferred password manager is set, directly invoke it if it is in the list,
-        // otherwise return no intent.
-
         byte[] encodedCredential = credentialToSave.getProto().toByteArray();
 
+        // if there is a preferred provider, directly invoke it.
+        ComponentName preferredSaveActivity = getPreferredProvider(saveProviders);
+        if (preferredSaveActivity != null) {
+            return createSaveIntent(
+                    preferredSaveActivity,
+                    credentialToSave.getAuthenticationMethod(),
+                    encodedCredential);
+        }
+
+        // otherwise, display a picker for all the providers.
         ArrayList<Intent> saveIntents = new ArrayList<>(saveProviders.size());
         for (ComponentName providerActivity : saveProviders) {
-            Intent saveIntent = createIntent(providerActivity, SAVE_CREDENTIAL_ACTION);
-            saveIntent.setData(credentialToSave.getAuthenticationMethod());
-            saveIntent.putExtra(EXTRA_CREDENTIAL, encodedCredential);
-            saveIntents.add(saveIntent);
+            saveIntents.add(createSaveIntent(
+                    providerActivity,
+                    credentialToSave.getAuthenticationMethod(),
+                    encodedCredential));
         }
 
         return ProviderPickerActivity.createSaveIntent(mApplicationContext, saveIntents);
@@ -159,6 +171,22 @@ public class CredentialClient {
                 component.getClassName());
         intent.addCategory(OPENYOLO_CATEGORY);
         return intent;
+    }
+
+    private Intent createHintIntent(ComponentName providerActivity, byte[] hintRequest) {
+        Intent hintIntent = createIntent(providerActivity, HINT_CREDENTIAL_ACTION);
+        hintIntent.putExtra(EXTRA_HINT_REQUEST, hintRequest);
+        return hintIntent;
+    }
+
+    private Intent createSaveIntent(
+            ComponentName providerActivity,
+            Uri authenticationMethod,
+            byte[] saveRequest) {
+        Intent saveIntent = createIntent(providerActivity, SAVE_CREDENTIAL_ACTION);
+        saveIntent.setData(authenticationMethod);
+        saveIntent.putExtra(EXTRA_CREDENTIAL, saveRequest);
+        return saveIntent;
     }
 
     /**
@@ -220,6 +248,71 @@ public class CredentialClient {
         }
 
         return responders;
+    }
+
+    @Nullable
+    private ComponentName getPreferredProvider(@NonNull List<ComponentName> providers) {
+        // In the future, the user will be able to explicitly set their preferred provider in
+        // their device settings. For now, we heuristically determine the preferred provider based
+        // on the following rules:
+
+        // 1. If there are any unknown providers on the device, there is no preferred provider.
+        List<ComponentName> knownProviders = filterToKnownProviders(providers);
+        if (knownProviders.size() != providers.size()) {
+            return null;
+        }
+
+        // 2. If there are no known providers, then there is no preferred provider. Unknown
+        // providers are not trusted for automatic usage.
+        if (knownProviders.isEmpty()) {
+            return null;
+        }
+
+        // 3. If there is exactly one provider on the device and it is known,
+        // it is the preferred provider.
+        if (knownProviders.size() == 1) {
+            return knownProviders.get(0);
+        }
+
+        // 3. If there are exactly two known providers on the device, and one of them is Google,
+        // choose the other one.
+        // This reflects the reality that Google is pre-installed on most devices, whereas a second
+        // provider would likely have been explicitly installed by the user - it is likely that
+        // their intent is to use this other provider.
+        providers = filterOutGoogle(knownProviders);
+        if (providers.size() == 1) {
+            return knownProviders.get(0);
+        }
+
+        // 4. Otherwise, there is no preferred provider.
+        return null;
+    }
+
+    private List<ComponentName> filterToKnownProviders(List<ComponentName> providers) {
+        KnownProviders knownProviders =
+                KnownProviders.getApplicationBoundInstance(mApplicationContext);
+
+        ArrayList<ComponentName> filteredProviders = new ArrayList<>();
+        for (ComponentName provider : providers) {
+            if (knownProviders.isKnown(provider.getPackageName())) {
+                filteredProviders.add(provider);
+            }
+        }
+
+        return filteredProviders;
+    }
+
+    private List<ComponentName> filterOutGoogle(List<ComponentName> providers) {
+        Iterator<ComponentName> providerIter = providers.iterator();
+        while (providerIter.hasNext()) {
+            ComponentName provider = providerIter.next();
+            if (provider.getPackageName().equals(
+                    KnownProviders.GOOGLE_PROVIDER.getAndroidPackageName())) {
+                providerIter.remove();
+            }
+        }
+
+        return providers;
     }
 
     private class CredentialRetrieveQueryCallback implements QueryCallback {
