@@ -17,7 +17,7 @@
 package org.openyolo.protocol;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.openyolo.protocol.AuthenticationMethods.ID_AND_PASSWORD;
+import static org.openyolo.protocol.AuthenticationMethods.EMAIL;
 
 import android.net.Uri;
 import android.os.Parcel;
@@ -42,7 +42,7 @@ public class CredentialTest {
     @Test(expected = RequireViolation.class)
     @SuppressWarnings("ConstantConditions")
     public void testBuilder_nullIdentifier() {
-        new Credential.Builder(null, ID_AND_PASSWORD, AUTH_DOMAIN);
+        new Credential.Builder(null, EMAIL, AUTH_DOMAIN);
     }
 
     @Test(expected = RequireViolation.class)
@@ -54,12 +54,12 @@ public class CredentialTest {
     @Test(expected = RequireViolation.class)
     @SuppressWarnings("ConstantConditions")
     public void testBuilder_nullAuthDomain() {
-        new Credential.Builder(EMAIL_ID, ID_AND_PASSWORD, null);
+        new Credential.Builder(EMAIL_ID, EMAIL, null);
     }
 
     @Test(expected = RequireViolation.class)
     public void testBuilder_emptyIdentifier() {
-        new Credential.Builder("", ID_AND_PASSWORD, AUTH_DOMAIN);
+        new Credential.Builder("", EMAIL, AUTH_DOMAIN);
     }
 
     @Test(expected = RequireViolation.class)
@@ -91,11 +91,11 @@ public class CredentialTest {
     public void testBuilder_mandatoryPropsOnly() {
         Credential cr = new Credential.Builder(
                 EMAIL_ID,
-                ID_AND_PASSWORD,
+                EMAIL,
                 AUTH_DOMAIN).build();
         assertThat(cr).isNotNull();
         assertThat(cr.getIdentifier()).isEqualTo(EMAIL_ID);
-        assertThat(cr.getAuthenticationMethod()).isEqualTo(ID_AND_PASSWORD);
+        assertThat(cr.getAuthenticationMethod()).isEqualTo(EMAIL);
         assertThat(cr.getAuthenticationDomain()).isEqualTo(AUTH_DOMAIN);
         assertThat(cr.getDisplayName()).isNull();
         assertThat(cr.getDisplayPicture()).isNull();
@@ -104,7 +104,7 @@ public class CredentialTest {
 
     @Test
     public void testBuilder_setIdentifier() {
-        Credential cr = new Credential.Builder(EMAIL_ID, ID_AND_PASSWORD, AUTH_DOMAIN)
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
                 .setIdentifier("bob@example.com")
                 .build();
         assertThat(cr.getIdentifier()).isEqualTo("bob@example.com");
@@ -113,21 +113,21 @@ public class CredentialTest {
     @Test(expected = RequireViolation.class)
     @SuppressWarnings("ConstantConditions")
     public void testBuilder_setIdentifier_toNull() {
-        new Credential.Builder(EMAIL_ID, ID_AND_PASSWORD, AUTH_DOMAIN)
+        new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
             .setIdentifier(null)
             .build();
     }
 
     @Test(expected = RequireViolation.class)
     public void testBuilder_setIdentifier_toEmpty() {
-        new Credential.Builder(EMAIL_ID, ID_AND_PASSWORD, AUTH_DOMAIN)
+        new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
                 .setIdentifier("")
                 .build();
     }
 
     @Test
     public void testBuilder_setPassword() {
-        Credential cr = new Credential.Builder(EMAIL_ID, ID_AND_PASSWORD, AUTH_DOMAIN)
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
                 .setPassword("CorrectHorseBatteryStaple")
                 .build();
         assertThat(cr.getPassword()).isEqualTo("CorrectHorseBatteryStaple");
@@ -135,7 +135,7 @@ public class CredentialTest {
 
     @Test
     public void testBuilder_setPassword_twice() {
-        Credential cr = new Credential.Builder(EMAIL_ID, ID_AND_PASSWORD, AUTH_DOMAIN)
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
                 .setPassword("CorrectHorseBatteryStaple")
                 .setPassword("password1")
                 .build();
@@ -144,7 +144,7 @@ public class CredentialTest {
 
     @Test
     public void testBuilder_setPassword_toNull() {
-        Credential cr = new Credential.Builder(EMAIL_ID, ID_AND_PASSWORD, AUTH_DOMAIN)
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
                 .setPassword("CorrectHorseBatteryStaple")
                 .setPassword(null)
                 .build();
@@ -153,7 +153,7 @@ public class CredentialTest {
 
     @Test
     public void testBuilder_setPassword_toEmpty() {
-        Credential cr = new Credential.Builder(EMAIL_ID, ID_AND_PASSWORD, AUTH_DOMAIN)
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
                 .setPassword("")
                 .build();
 
@@ -162,7 +162,7 @@ public class CredentialTest {
 
     @Test
     public void testBuilder_setDisplayName() {
-        Credential cr = new Credential.Builder(EMAIL_ID, ID_AND_PASSWORD, AUTH_DOMAIN)
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
                 .setDisplayName("Alice")
                 .build();
         assertThat(cr.getDisplayName()).isEqualTo("Alice");
@@ -170,7 +170,7 @@ public class CredentialTest {
 
     @Test
     public void testBuilder_setDisplayName_twice() {
-        Credential cr = new Credential.Builder(EMAIL_ID, ID_AND_PASSWORD, AUTH_DOMAIN)
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
                 .setDisplayName("Alice")
                 .setDisplayName("Alicia")
                 .build();
@@ -179,7 +179,7 @@ public class CredentialTest {
 
     @Test
     public void testBuilder_setDisplayName_toNull() {
-        Credential cr = new Credential.Builder(EMAIL_ID, ID_AND_PASSWORD, AUTH_DOMAIN)
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
                 .setDisplayName("Alice")
                 .setDisplayName(null)
                 .build();
@@ -188,7 +188,7 @@ public class CredentialTest {
 
     @Test
     public void testBuilder_setDisplayName_toEmpty() {
-        Credential cr = new Credential.Builder(EMAIL_ID, ID_AND_PASSWORD, AUTH_DOMAIN)
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
                 .setDisplayName("")
                 .build();
 
@@ -197,7 +197,7 @@ public class CredentialTest {
 
     public void testBuilder_setDisplayPicture() {
         Uri pictureUri = Uri.parse("https://robohash.org/alice@example.com");
-        Credential cr = new Credential.Builder(EMAIL_ID, ID_AND_PASSWORD, AUTH_DOMAIN)
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
                 .setDisplayPicture(pictureUri)
                 .build();
 
@@ -207,7 +207,7 @@ public class CredentialTest {
     public void testBuilder_setDisplayPicture_twice() {
         Uri first = Uri.parse("https://robohash.org/alice@example.com");
         Uri second = Uri.parse("https://robohash.org/bob@example.com");
-        Credential cr = new Credential.Builder(EMAIL_ID, ID_AND_PASSWORD, AUTH_DOMAIN)
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
                 .setDisplayPicture(first)
                 .setDisplayPicture(second)
                 .build();
@@ -216,7 +216,7 @@ public class CredentialTest {
     }
 
     public void testBuilder_setDisplayPicture_toNull() {
-        Credential cr = new Credential.Builder(EMAIL_ID, ID_AND_PASSWORD, AUTH_DOMAIN)
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
                 .setDisplayPicture(Uri.parse("https://robohash.org/alice@example.com"))
                 .setDisplayPicture((Uri)null)
                 .build();
@@ -226,7 +226,7 @@ public class CredentialTest {
 
     @Test
     public void testBuilder_setAuthenticationMethod() {
-        Credential cr = new Credential.Builder(EMAIL_ID, ID_AND_PASSWORD, AUTH_DOMAIN)
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
                 .setAuthenticationMethod(AuthenticationMethods.GOOGLE)
                 .build();
 
@@ -237,7 +237,7 @@ public class CredentialTest {
     public void testGetProto() {
         Credential cr = new Credential.Builder(
                 EMAIL_ID,
-                ID_AND_PASSWORD,
+                EMAIL,
                 new AuthenticationDomain("https://www.example.com")).build();
         Protobufs.Credential proto = cr.getProto();
         assertThat(proto).isNotNull();
@@ -247,7 +247,7 @@ public class CredentialTest {
     public void testWriteAndRead(){
         Credential cr = new Credential.Builder(
                 EMAIL_ID,
-                ID_AND_PASSWORD,
+                EMAIL,
                 new AuthenticationDomain("https://www.example.com"))
                 .setDisplayName("Alice")
                 .setPassword("h4ckm3")

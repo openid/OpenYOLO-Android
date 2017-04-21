@@ -36,9 +36,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.openyolo.demoprovider.barbican.CredentialClassifier;
 import org.openyolo.demoprovider.barbican.CredentialQualityScore;
 import org.openyolo.demoprovider.barbican.R;
+import org.openyolo.protocol.AuthenticationMethods;
 import org.openyolo.protocol.Protobufs.Credential;
 import org.openyolo.protocol.Protobufs.CredentialList;
 import org.openyolo.spi.RetrieveIntentResultUtil;
@@ -147,7 +147,14 @@ public class CredentialPickerActivity extends AppCompatActivity {
 
         void bind(final Credential credential) {
 
-            int iconId = CredentialClassifier.getDefaultIconForCredential(credential);
+            int iconId;
+            if (AuthenticationMethods.EMAIL.toString().equals(credential.getAuthMethod())) {
+                iconId = R.drawable.email;
+            } else if (AuthenticationMethods.PHONE.toString().equals(credential.getAuthMethod())) {
+                iconId = R.drawable.phone;
+            } else {
+                iconId = R.drawable.person;
+            }
 
             if (credential.getDisplayPictureUri() != null) {
                 Uri displayPictureUri = Uri.parse(credential.getDisplayPictureUri());

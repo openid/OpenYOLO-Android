@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import org.openyolo.demoprovider.barbican.CredentialClassifier;
 import org.openyolo.demoprovider.barbican.Protobufs.AccountHint;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
 import org.openyolo.protocol.AuthenticationDomain;
@@ -109,14 +108,6 @@ public class HintActivity
                 continue;
             }
 
-            Set<Uri> identifierTypes = mRequest.getIdentifierTypes();
-            if (!identifierTypes.isEmpty()
-                    && !CredentialClassifier.identifierMatchesOneOf(
-                            hint.getIdentifier(),
-                            identifierTypes)) {
-                continue;
-            }
-
             Credential.Builder hintCredentialBuilder = Credential.newBuilder()
                     .setId(hint.getIdentifier())
                     .setAuthMethod(hint.getAuthMethod())
@@ -125,7 +116,7 @@ public class HintActivity
                     .setDisplayPictureUri(hint.getPictureUri());
 
             // include a generated password if appropriate
-            if (hint.getAuthMethod().equals(AuthenticationMethods.ID_AND_PASSWORD.toString())) {
+            if (hint.getAuthMethod().equals(AuthenticationMethods.EMAIL.toString())) {
                 hintCredentialBuilder.setPassword(mRequest.getPasswordSpecification().generate());
             }
 

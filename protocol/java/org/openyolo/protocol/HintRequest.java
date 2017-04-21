@@ -20,7 +20,6 @@ import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.openyolo.protocol.internal.CustomMatchers.isValidAuthenticationDomain;
 import static org.openyolo.protocol.internal.CustomMatchers.isValidAuthenticationMethod;
-import static org.openyolo.protocol.internal.CustomMatchers.isValidIdentifierType;
 import static org.openyolo.protocol.internal.CustomMatchers.notNullOrEmptyString;
 import static org.openyolo.protocol.internal.UriConverters.CONVERTER_STRING_TO_URI;
 import static org.openyolo.protocol.internal.UriConverters.CONVERTER_URI_TO_STRING;
@@ -59,9 +58,6 @@ public class HintRequest implements Parcelable {
     private final Set<Uri> mAuthMethods;
 
     @NonNull
-    private final Set<Uri> mIdTypes;
-
-    @NonNull
     private final PasswordSpecification mPasswordSpec;
 
     @NonNull
@@ -71,8 +67,7 @@ public class HintRequest implements Parcelable {
      * Creates a hint request for email and password based accounts.
      */
     public static HintRequest forEmailAndPasswordAccount() {
-        return new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
-                .setIdentifierTypes(IdentifierTypes.EMAIL)
+        return new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .build();
     }
 
@@ -95,11 +90,9 @@ public class HintRequest implements Parcelable {
 
     private HintRequest(
             @NonNull Set<Uri> authMethods,
-            @NonNull Set<Uri> idTypes,
             @NonNull PasswordSpecification passwordSpec,
             @NonNull Map<String, byte[]> additionalParams) {
         mAuthMethods = authMethods;
-        mIdTypes = idTypes;
         mPasswordSpec = passwordSpec;
         mAdditionalProperties = additionalParams;
     }
@@ -110,16 +103,6 @@ public class HintRequest implements Parcelable {
     @NonNull
     public Set<Uri> getAuthenticationMethods() {
         return mAuthMethods;
-    }
-
-    /**
-     * The set of identifier types that the requester uses. This is used to filter the
-     * set of hints to just those which are potentially usable. If no identifier type is
-     * specified, then any identifier string can be returned.
-     */
-    @NonNull
-    public Set<Uri> getIdentifierTypes() {
-        return mIdTypes;
     }
 
     /**
@@ -183,7 +166,6 @@ public class HintRequest implements Parcelable {
         return Protobufs.HintRetrieveRequest.newBuilder()
                 .addAllAuthMethods(
                         CollectionConverter.toList(mAuthMethods, CONVERTER_URI_TO_STRING))
-                .addAllIdTypes(CollectionConverter.toList(mIdTypes, CONVERTER_URI_TO_STRING))
                 .putAllAdditionalProps(
                     CollectionConverter.convertMapValues(
                             mAdditionalProperties,
@@ -211,9 +193,6 @@ public class HintRequest implements Parcelable {
             require(requestProto, notNullValue());
             setAuthenticationMethods(CollectionConverter.toSet(
                     requestProto.getAuthMethodsList(),
-                    CONVERTER_STRING_TO_URI));
-            setIdentifierTypes(CollectionConverter.toSet(
-                    requestProto.getIdTypesList(),
                     CONVERTER_STRING_TO_URI));
             setPasswordSpecification(
                     new PasswordSpecification.Builder(requestProto.getPasswordSpec()).build());
@@ -328,72 +307,6 @@ public class HintRequest implements Parcelable {
         }
 
         /**
-         * Specifies the identifier types that the requester supports. If no identifier types
-         * are specified, then credentials with any form of identifier can be returned.
-         *
-         * @see IdentifierTypes
-         */
-        @NonNull
-        public Builder setIdentifierTypes(@NonNull String... idTypes) {
-            setIdentifierTypes(
-                    CollectionConverter.toSet(
-                            idTypes,
-                            UriConverters.CONVERTER_STRING_TO_URI));
-            return this;
-        }
-
-        /**
-         * Specifies the identifier types that the requester supports. If no identifier types
-         * are specified, then credentials with any form of identifier can be returned.
-         *
-         * @see IdentifierTypes
-         */
-        @NonNull
-        public Builder setIdentifierTypes(@NonNull Uri... idTypes) {
-            setIdentifierTypes(
-                    CollectionConverter.toSet(idTypes, NoopValueConverter.<Uri>getInstance()));
-            return this;
-        }
-
-        /**
-         * Specifies the identifier types that the requester supports. If no identifier types
-         * are specified, then credentials with any form of identifier can be returned.
-         *
-         * @see IdentifierTypes
-         */
-        @NonNull
-        public Builder setIdentifierTypes(@NonNull Set<Uri> identifierTypes) {
-            require(identifierTypes, notNullValue());
-            require(identifierTypes, everyItem(isValidIdentifierType()));
-            mIdTypes = identifierTypes;
-            return this;
-        }
-
-        /**
-         * Adds a supported identifier type to the hint request.
-         *
-         * @see IdentifierTypes
-         */
-        @NonNull
-        public Builder addIdentifierType(@NonNull String identifierTypeStr) {
-            require(identifierTypeStr, notNullOrEmptyString());
-            addIdentifierType(Uri.parse(identifierTypeStr));
-            return this;
-        }
-
-        /**
-         * Adds a supported identifier type to the hint request.
-         *
-         * @see IdentifierTypes
-         */
-        @NonNull
-        public Builder addIdentifierType(@NonNull Uri identifierType) {
-            require(identifierType, isValidIdentifierType());
-            mIdTypes.add(identifierType);
-            return this;
-        }
-
-        /**
          * Specifies additional, non-standard hint request parameters. The provided map
          * must be non-null, and contain only non-empty keys and non-null values.
          */
@@ -449,7 +362,6 @@ public class HintRequest implements Parcelable {
         public HintRequest build() {
             return new HintRequest(
                     unmodifiableSet(mAuthMethods),
-                    unmodifiableSet(mIdTypes),
                     mPasswordSpec,
                     unmodifiableMap(mAdditionalProps));
         }

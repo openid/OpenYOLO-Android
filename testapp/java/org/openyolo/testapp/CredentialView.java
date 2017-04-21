@@ -42,8 +42,8 @@ public final class CredentialView extends LinearLayout {
     @BindView(R.id.generate_password_button)
     ImageButton mGeneratePasswordButton;
 
-    @BindView(R.id.openyolo_id_and_password_provider_button)
-    ImageButton mIdAndPasswordProviderButton;
+    @BindView(R.id.openyolo_email_provider_button)
+    ImageButton mEmailProviderButton;
 
     @BindView(R.id.google_provider_button)
     ImageButton mGenerateProviderButton;
@@ -134,7 +134,7 @@ public final class CredentialView extends LinearLayout {
         mGenerateIdButton.setVisibility(visibility);
         mGeneratePasswordButton.setVisibility(visibility);
         mGenerateProviderButton.setVisibility(visibility);
-        mIdAndPasswordProviderButton.setVisibility(visibility);
+        mEmailProviderButton.setVisibility(visibility);
         mFacebookProviderButton.setVisibility(visibility);
         mGenerateDisplayNameButton.setVisibility(visibility);
         mGenerateProfilePictureButton.setVisibility(visibility);
@@ -150,9 +150,9 @@ public final class CredentialView extends LinearLayout {
         mPasswordField.setText(PasswordSpecification.DEFAULT.generate());
     }
 
-    @OnClick(R.id.openyolo_id_and_password_provider_button)
-    void setIdAndPasswordAuthenticationMethod() {
-        mAuthenticationMethodField.setText(AuthenticationMethods.ID_AND_PASSWORD.toString());
+    @OnClick(R.id.openyolo_email_provider_button)
+    void setEmailAuthenticationMethod() {
+        mAuthenticationMethodField.setText(AuthenticationMethods.EMAIL.toString());
     }
 
     @OnClick(R.id.google_provider_button)
@@ -226,7 +226,7 @@ public final class CredentialView extends LinearLayout {
                 .setDisplayName(convertEmptyToNull(mDisplayNameField.getText().toString()))
                 .setDisplayPicture(convertEmptyToNull(mProfilePictureField.getText().toString()));
 
-        if (authMethodUri.equals(AuthenticationMethods.ID_AND_PASSWORD)) {
+        if (authMethodUri.equals(AuthenticationMethods.EMAIL)) {
             credentialBuilder.setPassword(mPasswordField.getText().toString());
         }
 

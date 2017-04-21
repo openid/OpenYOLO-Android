@@ -25,11 +25,6 @@ import java.util.HashSet;
 import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.openyolo.protocol.AuthenticationMethods;
-import org.openyolo.protocol.HintRequest;
-import org.openyolo.protocol.IdentifierTypes;
-import org.openyolo.protocol.PasswordSpecification;
-import org.openyolo.protocol.Protobufs;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.valid4j.errors.RequireViolation;
@@ -50,11 +45,9 @@ public class HintRequestTest {
                 .build();
 
         HintRequest request = new HintRequest.Builder(
-                AuthenticationMethods.ID_AND_PASSWORD,
+                AuthenticationMethods.EMAIL,
                 AuthenticationMethods.GOOGLE)
                 .addAuthenticationMethod(AuthenticationMethods.FACEBOOK)
-                .setIdentifierTypes(IdentifierTypes.EMAIL)
-                .addIdentifierType(IdentifierTypes.PHONE)
                 .addAdditionalProperty("a", new byte[] { 1, 2, 3})
                 .addAdditionalProperty("b", "hello")
                 .setPasswordSpecification(originalSpec)
@@ -62,14 +55,10 @@ public class HintRequestTest {
 
         assertThat(request.getAuthenticationMethods())
                 .containsOnly(
-                        AuthenticationMethods.ID_AND_PASSWORD,
+                        AuthenticationMethods.EMAIL,
                         AuthenticationMethods.GOOGLE,
                         AuthenticationMethods.FACEBOOK);
 
-        assertThat(request.getIdentifierTypes())
-                .containsOnly(
-                        IdentifierTypes.EMAIL,
-                        IdentifierTypes.PHONE);
 
         assertThat(request.getAdditionalProperties())
                 .containsOnly(
@@ -87,7 +76,7 @@ public class HintRequestTest {
 
     @Test
     public void testBuild_overwriteAuthenticationMethods() {
-        HintRequest request = new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        HintRequest request = new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .setAuthenticationMethods(
                         AuthenticationMethods.GOOGLE,
                         AuthenticationMethods.FACEBOOK)
@@ -98,23 +87,10 @@ public class HintRequestTest {
     }
 
     @Test
-    public void testBuild_overwriteIdentityTypes() {
-        HintRequest request = new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
-                .setIdentifierTypes(IdentifierTypes.PHONE)
-                .setIdentifierTypes(IdentifierTypes.EMAIL, IdentifierTypes.ALPHANUMERIC)
-                .build();
-
-        assertThat(request.getIdentifierTypes())
-                .containsOnly(IdentifierTypes.EMAIL, IdentifierTypes.ALPHANUMERIC);
-    }
-
-    @Test
     public void testForEmailAndPasswordAccount() {
         HintRequest request = HintRequest.forEmailAndPasswordAccount();
         assertThat(request.getAuthenticationMethods())
-                .containsOnly(AuthenticationMethods.ID_AND_PASSWORD);
-        assertThat(request.getIdentifierTypes())
-                .containsOnly(IdentifierTypes.EMAIL);
+                .containsOnly(AuthenticationMethods.EMAIL);
         assertThat(request.getPasswordSpecification())
                 .isEqualTo(PasswordSpecification.DEFAULT);
         assertThat(request.getAdditionalProperties()).isEmpty();
@@ -123,9 +99,8 @@ public class HintRequestTest {
     @Test
     public void testSerialize() {
         HintRequest request = new HintRequest.Builder(
-                AuthenticationMethods.ID_AND_PASSWORD,
+                AuthenticationMethods.EMAIL,
                 AuthenticationMethods.FACEBOOK)
-                .setIdentifierTypes(IdentifierTypes.EMAIL, IdentifierTypes.ALPHANUMERIC)
                 .setPasswordSpecification(
                         new PasswordSpecification.Builder()
                                 .ofLength(10, 100)
@@ -142,8 +117,6 @@ public class HintRequestTest {
 
             assertThat(read.getAuthenticationMethods())
                     .containsOnlyElementsOf(request.getAuthenticationMethods());
-            assertThat(read.getIdentifierTypes())
-                    .containsOnlyElementsOf(request.getIdentifierTypes());
             assertThat(read.getPasswordSpecification())
                     .isEqualTo(request.getPasswordSpecification());
         } finally {
@@ -180,7 +153,7 @@ public class HintRequestTest {
     @Test(expected = RequireViolation.class)
     public void testBuild_constructor_nullUriInVarargs() {
         new HintRequest.Builder(
-                AuthenticationMethods.ID_AND_PASSWORD,
+                AuthenticationMethods.EMAIL,
                 null,
                 AuthenticationMethods.GOOGLE).build();
     }
@@ -214,7 +187,7 @@ public class HintRequestTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
     public void testBuild_setAuthenticationMethods_nullUri() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .setAuthenticationMethods((Uri) null)
                 .build();
     }
@@ -222,9 +195,9 @@ public class HintRequestTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
     public void testBuild_setAuthenticationMethods_nullUriInVarargs() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .setAuthenticationMethods(
-                        AuthenticationMethods.ID_AND_PASSWORD,
+                        AuthenticationMethods.EMAIL,
                         null,
                         AuthenticationMethods.GOOGLE)
                 .build();
@@ -233,7 +206,7 @@ public class HintRequestTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
     public void testBuild_setAuthenticationMethods_nullString() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .setAuthenticationMethods((String) null)
                 .build();
     }
@@ -241,7 +214,7 @@ public class HintRequestTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
     public void testBuild_setAuthenticationMethods_nullStringInVarargs() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .setAuthenticationMethods(
                         "custom://auth-method",
                         null,
@@ -252,7 +225,7 @@ public class HintRequestTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
     public void testBuild_setAuthenticationMethods_nullSet() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .setAuthenticationMethods((Set<Uri>) null)
                 .build();
     }
@@ -260,7 +233,7 @@ public class HintRequestTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
     public void testBuild_setAuthenticationMethods_emptySet() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .setAuthenticationMethods(new HashSet<Uri>())
                 .build();
     }
@@ -269,7 +242,7 @@ public class HintRequestTest {
     public void testBuild_setAuthenticationMethods_setContainingNull() {
         HashSet<Uri> authMethods = new HashSet<>();
         authMethods.add(null);
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .setAuthenticationMethods(authMethods)
                 .build();
     }
@@ -277,7 +250,7 @@ public class HintRequestTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
     public void testBuild_addAuthenticationMethod_nullUri() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .addAuthenticationMethod((Uri) null)
                 .build();
     }
@@ -285,7 +258,7 @@ public class HintRequestTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
     public void testBuild_addAuthenticationMethod_nullString() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .addAuthenticationMethod((String) null)
                 .build();
     }
@@ -293,7 +266,7 @@ public class HintRequestTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
     public void testBuild_addAuthenticationMethod_emptyString() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .addAuthenticationMethod("")
                 .build();
     }
@@ -301,110 +274,15 @@ public class HintRequestTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
     public void testBuild_addAuthenticationMethod_invalidString() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .addAuthenticationMethod("notAnAuthMethod")
                 .build();
     }
 
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
-    public void testBuild_setIdentifierTypes_nullUri() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
-                .setIdentifierTypes((Uri) null)
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_setIdentifierTypes_nullUriInVarargs() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
-                .setIdentifierTypes(
-                        IdentifierTypes.EMAIL,
-                        null,
-                        IdentifierTypes.PHONE)
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_setIdentifierTypes_nullString() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
-                .setIdentifierTypes((String) null)
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_setIdentifierTypes_nullStringInVarargs() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
-                .setIdentifierTypes(
-                        "custom://id-type",
-                        null,
-                        "custom://another-id-type")
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_setIdentifierTypes_nullSet() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
-                .setIdentifierTypes((Set<Uri>) null)
-                .build();
-    }
-
-    public void testBuild_setIdentifierTypes_emptySet() {
-        HintRequest request = new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
-                .setIdentifierTypes(new HashSet<Uri>())
-                .build();
-
-        assertThat(request.getIdentifierTypes()).isEmpty();
-    }
-
-    @Test(expected = RequireViolation.class)
-    public void testBuild_setIdentifierTypes_setContainingNull() {
-        HashSet<Uri> idTypes = new HashSet<>();
-        idTypes.add(null);
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
-                .setIdentifierTypes(idTypes)
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_addIdentifierType_nullUri() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
-                .addIdentifierType((Uri) null)
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_addIdentifierType_nullString() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
-                .addIdentifierType((String) null)
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_addIdentifierType_emptyString() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
-                .addIdentifierType("")
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_addIdentifierType_invalidString() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
-                .addIdentifierType("notAnIdTpye")
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
     public void testBuild_setAdditionalProperties_nullMap() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .setAdditionalProperties(null)
                 .build();
     }
@@ -413,7 +291,7 @@ public class HintRequestTest {
     public void testBuild_setAdditionalProperties_nullKey() {
         HashMap<String, byte[]> additionalProps = new HashMap<>();
         additionalProps.put(null, new byte[0]);
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .setAdditionalProperties(additionalProps)
                 .build();
     }
@@ -423,7 +301,7 @@ public class HintRequestTest {
     public void testBuild_setAdditionalProperty_nullValue() {
         HashMap<String, byte[]> additionalProps = new HashMap<>();
         additionalProps.put("a", null);
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .setAdditionalProperties(additionalProps)
                 .build();
     }
@@ -431,7 +309,7 @@ public class HintRequestTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
     public void testBuild_addAdditionalProperty_nullKey() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .addAdditionalProperty(null, "value")
                 .build();
     }
@@ -439,7 +317,7 @@ public class HintRequestTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
     public void testBuild_addAdditionalProperty_emptyKey() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .addAdditionalProperty("", "value")
                 .build();
     }
@@ -447,7 +325,7 @@ public class HintRequestTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
     public void testBuild_addAdditionalProperty_nullByteArrayValue() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .addAdditionalProperty("key", (byte[]) null)
                 .build();
     }
@@ -455,7 +333,7 @@ public class HintRequestTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
     public void testBuild_addAdditionalProperty_nullStringValue() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .addAdditionalProperty("key", (String) null)
                 .build();
     }
@@ -463,7 +341,7 @@ public class HintRequestTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
     public void testBuild_setPasswordSpecification_null() {
-        new HintRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .setPasswordSpecification(null)
                 .build();
     }

@@ -14,6 +14,7 @@
 
 package org.openyolo.demoprovider.barbican;
 
+import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import java.util.Comparator;
@@ -64,12 +65,12 @@ public class CredentialQualityScore {
         int score = 1;
 
         // email identifiers are recognisable and useful for ID token acquisition
-        if (CredentialClassifier.isEmailIdentifier(id)) {
+        if (AuthenticationMethods.EMAIL.toString().equals(authMethod)) {
             score <<= 1;
         }
 
-        // prefer credentials that don't use passwords
-        if (!AuthenticationMethods.ID_AND_PASSWORD.equals(authMethod)) {
+        // prefer federated authentication methods, which generally have an HTTPS scheme
+        if ("https".equals(Uri.parse(authMethod).getScheme())) {
             score <<= 1;
         }
 

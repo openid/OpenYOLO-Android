@@ -35,8 +35,8 @@ public final class AuthenticationMethodsInputView extends LinearLayout {
     @BindView(R.id.google_authentication_method_checkbox)
     CheckBox mGoogleCheckBox;
 
-    @BindView(R.id.id_and_password_authentication_method_checkbox)
-    CheckBox mIdAndPasswordCheckBox;
+    @BindView(R.id.email_authentication_method_checkbox)
+    CheckBox mEmailCheckBox;
 
     @BindView(R.id.custom_authentication_method_checkbox)
     CheckBox mCustomAuthenticationMethodCheckBox;
@@ -102,8 +102,8 @@ public final class AuthenticationMethodsInputView extends LinearLayout {
             authenticationMethods.add(AuthenticationMethods.GOOGLE);
         }
 
-        if (mIdAndPasswordCheckBox.isChecked()) {
-            authenticationMethods.add(AuthenticationMethods.ID_AND_PASSWORD);
+        if (mEmailCheckBox.isChecked()) {
+            authenticationMethods.add(AuthenticationMethods.EMAIL);
         }
 
         if (mCustomAuthenticationMethodCheckBox.isChecked()) {

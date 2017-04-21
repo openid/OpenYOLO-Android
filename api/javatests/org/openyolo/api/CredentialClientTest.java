@@ -25,7 +25,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.openyolo.protocol.AuthenticationMethods.ID_AND_PASSWORD;
+import static org.openyolo.protocol.AuthenticationMethods.EMAIL;
 import static org.openyolo.protocol.ProtocolConstants.EXTRA_CREDENTIAL;
 
 import android.content.Context;
@@ -41,6 +41,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.AuthenticationMethods;
 import org.openyolo.protocol.Credential;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -67,7 +68,7 @@ public class CredentialClientTest {
         when(mockContext.getApplicationContext()).thenReturn(mockContext);
         testCredentials = new Credential.Builder(
                 EMAIL_ID,
-                ID_AND_PASSWORD,
+                EMAIL,
                 new AuthenticationDomain("https://www.example.com")).build();
     }
 
@@ -112,7 +113,7 @@ public class CredentialClientTest {
         intent.putExtra(EXTRA_CREDENTIAL, array);
         Credential result = underTest.getCredentialFromActivityResult(intent);
         assertEquals(result.getIdentifier(), "alice@example.com");
-        assertEquals(result.getAuthenticationMethod().toString(), "openyolo://id-and-password");
-        assertEquals(result.getAuthenticationDomain().toString(), "https://www.example.com");
+        assertEquals(result.getAuthenticationMethod(), AuthenticationMethods.EMAIL);
+        assertEquals(result.getAuthenticationDomain(), AUTH_DOMAIN);
     }
 }

@@ -41,21 +41,9 @@ message HintRetrieveRequest {
     // at least one authMethod required
     repeated string authMethods = 1;
 
-    // at least one idType required
-    repeated string idTypes = 2;
-
-    PasswordSpecification passwordSpec = 3;
-    map<string, TokenRequestInfo> supportedTokenProviders = 4;
-    map<string, bytes> additionalProps = 5;
-}
-
-message HintRetrieveResponse {
-    bytes retrieveIntent = 1; // required
-    map<string, bytes> additionalProps = 2;
-}
-
-message HintRetrieveResponseList {
-    repeated HintRetrieveResponse responses = 1;
+    PasswordSpecification passwordSpec = 2;
+    map<string, TokenRequestInfo> supportedTokenProviders = 3;
+    map<string, bytes> additionalProps = 4;
 }
 
 message TokenRequestInfo {

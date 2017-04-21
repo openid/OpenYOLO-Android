@@ -15,10 +15,10 @@
     android:layout_height="wrap_content"
     android:text="@string/google_authentication_method_checkbox_text"/>
   <android.support.v7.widget.AppCompatCheckBox
-    android:id="@+id/id_and_password_authentication_method_checkbox"
+    android:id="@+id/email_authentication_method_checkbox"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:text="@string/id_and_password_authentication_method_checkbox_text"/>
+    android:text="@string/email_authentication_method_checkbox_text"/>
 
   <LinearLayout
     android:layout_width="match_parent"

@@ -193,7 +193,7 @@ public class CreateCredentialActivity
             Credential credential = Credential.newBuilder()
                     .setId(mUsername)
                     .setAuthDomain(domain.toString())
-                    .setAuthMethod(AuthenticationMethods.ID_AND_PASSWORD.toString())
+                    .setAuthMethod(AuthenticationMethods.EMAIL.toString())
                     .setPassword(mPassword)
                     .build();
             try {

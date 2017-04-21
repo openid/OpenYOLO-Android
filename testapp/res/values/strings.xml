@@ -12,7 +12,7 @@
 
     <string name="facebook_authentication_method_checkbox_text">https://facebook.com</string>
     <string name="google_authentication_method_checkbox_text">https://accounts.google.com</string>
-    <string name="id_and_password_authentication_method_checkbox_text">openyolo://id-and-password</string>
+    <string name="email_authentication_method_checkbox_text">openyolo://email</string>
 
     <!-- Save Test -->
     <string name="save_button_label">Save Credential</string>
@@ -45,7 +45,7 @@
     <string name="authentication_method_field_hint">Authentication Method</string>
     <string name="google_provider_button_content_description">Set federation provider to Google</string>
     <string name="facebook_provider_button_content_description">Set federation provider to Facebook</string>
-    <string name="open_yolo_id_and_password_button_content_description">Set authentication method to Id and password</string>
+    <string name="open_yolo_email_button_content_description">Set authentication method to Email</string>
 
     <!-- Misc -->
     <string name="authentication_field_required">Must select authentication method</string>

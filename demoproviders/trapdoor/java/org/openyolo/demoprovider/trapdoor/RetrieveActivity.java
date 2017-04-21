@@ -86,7 +86,7 @@ public class RetrieveActivity extends AppCompatActivity {
                     mDomain.toString());
 
             Credential credential = Credential.newBuilder()
-                    .setAuthMethod(AuthenticationMethods.ID_AND_PASSWORD.toString())
+                    .setAuthMethod(AuthenticationMethods.EMAIL.toString())
                     .setAuthDomain(mDomain.toString())
                     .setId(UserDataStore.getUserName(RetrieveActivity.this))
                     .setPassword(password)

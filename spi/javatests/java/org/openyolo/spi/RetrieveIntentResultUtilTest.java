@@ -17,12 +17,8 @@
 
 package org.openyolo.spi;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.openyolo.protocol.AuthenticationMethods.ID_AND_PASSWORD;
-
 import android.content.Intent;
-import android.util.Base64;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.openyolo.protocol.AuthenticationDomain;
@@ -31,6 +27,10 @@ import org.openyolo.protocol.ProtocolConstants;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.junit.Assert.assertNull;
+import static org.openyolo.protocol.AuthenticationMethods.EMAIL;
+
 /**
  * Battery of tests for RetrieveIntentResultUtil
  */
@@ -38,23 +38,27 @@ import org.robolectric.annotation.Config;
 @Config(manifest = Config.NONE)
 public class RetrieveIntentResultUtilTest {
     public static final String EMAIL_ID = "alice@example.com";
-    private String base64string = "ChFhbGljZUBleGFtcGxlLmNvbRIXaHR0cHM6Ly93d3cuZXhhbXBsZS5jb20aGm9wZW55b2xvOi8v\naWQtYW5kLXBhc3N3b3Jk\n";
 
     @Test
     public void testCreateResponseData() throws Exception {
-        Credential cr = new Credential.Builder( EMAIL_ID, ID_AND_PASSWORD,
-        new AuthenticationDomain("https://www.example.com")).build();
-        Intent reposnse = RetrieveIntentResultUtil.createResponseData(cr.getProto());
-        byte[] bytes = reposnse.getExtras().getByteArray(ProtocolConstants.EXTRA_CREDENTIAL);
-        assertEquals(bytes.length, 72);
-        String data = Base64.encodeToString(bytes, Base64.DEFAULT);
-        assertEquals(base64string, data);
+        Credential cr = new Credential.Builder(
+                EMAIL_ID,
+                EMAIL,
+                new AuthenticationDomain("https://www.example.com"))
+                .build();
+        Intent response = RetrieveIntentResultUtil.createResponseData(cr.getProto());
+
+        assertThat(response.hasExtra(ProtocolConstants.EXTRA_CREDENTIAL)).isTrue();
+        byte[] bytes = response.getExtras().getByteArray(ProtocolConstants.EXTRA_CREDENTIAL);
+        Credential credential = Credential.fromProtoBytes(bytes);
+        assertThat(credential.getIdentifier()).isEqualTo(EMAIL_ID);
+        assertThat(credential.getAuthenticationMethod()).isEqualTo(EMAIL);
     }
 
     @Test
     public void testCreateResponseData_withNull() throws Exception {
-        Intent reposnse = RetrieveIntentResultUtil.createResponseData(null);
-        assertNull(reposnse.getExtras());
+        Intent response = RetrieveIntentResultUtil.createResponseData(null);
+        assertNull(response.getExtras());
     }
 
 }

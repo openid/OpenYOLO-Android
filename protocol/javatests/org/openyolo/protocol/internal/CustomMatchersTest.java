@@ -109,7 +109,7 @@ public class CustomMatchersTest {
     @Test
     public void isValidAuthenticationMethod_builtIn() throws Exception {
         assertTrue(CustomMatchers.isValidAuthenticationMethod().matches(
-                AuthenticationMethods.ID_AND_PASSWORD));
+                AuthenticationMethods.EMAIL));
     }
 
     @Test

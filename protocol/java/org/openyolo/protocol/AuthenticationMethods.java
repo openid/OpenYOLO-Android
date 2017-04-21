@@ -24,9 +24,29 @@ import org.openyolo.protocol.Credential.Builder;
 public final class AuthenticationMethods {
 
     /**
-     * Identifier and password based authentication.
+     * Email address based authentication, optionally with a password. This authentication type
+     * is typically for accounts which have an email address as the primary (user facing)
+     * identifier. Authentication typically occurs using the email address and a password, but
+     * is also possible using the email address as a recovery method.
      */
-    public static final Uri ID_AND_PASSWORD = Uri.parse("openyolo://id-and-password");
+    public static final Uri EMAIL = Uri.parse("openyolo://email");
+
+    /**
+     * Phone number based authentication, optionally with a password. This authentication type
+     * is typically for accounts which have a phone number as the primary (user facing)
+     * identifier. Authentication typically occurs by sending a code to the phone number, and
+     * possible also requiring the entry of a password or pin.
+     *
+     * <p>When used to request a hint, OpenYOLO providers _MUST_ return the selected phone number
+     * in E.164 format.
+     */
+    public static final Uri PHONE = Uri.parse("openyolo://phone");
+
+    /**
+     * User name and password based authentication. This authentication type requires the entry
+     * of a unicode identifier string and a password.
+     */
+    public static final Uri USER_NAME = Uri.parse("openyolo://username");
 
     /**
      * Google Sign-in authentication.
@@ -44,32 +64,7 @@ public final class AuthenticationMethods {
      */
     public static final Uri FACEBOOK = Uri.parse("https://www.facebook.com");
 
-    /**
-     * LinkedIn OAuth2 authentication.
-     *
-     * @see <a href="https://developer.linkedin.com/docs/oauth2">"Authenticating with OAuth2"</a>
-     * @see <a href="https://developer.linkedin.com/docs/android-sdk-auth">Authenticating with
-     *     the Mobile SDK for Android</a>
-     */
-    public static final Uri LINKEDIN = Uri.parse("https://www.linkedin.com");
-
-    /**
-     * Microsoft OpenID Connect authentication.
-     */
-    public static final Uri MICROSOFT = Uri.parse("https://login.live.com");
-
-    /**
-     * Paypal OpenID Connect authentication.
-     *
-     * @see <a href="https://developer.paypal.com/docs/integration/direct/identity/log-in-with-paypal/">
-     *     Integrate login with Paypal</a>
-     */
-    public static final Uri PAYPAL = Uri.parse("https://www.paypal.com");
-
-    /**
-     * Yahoo OAuth2 authentication.
-     *
-     * @see <a href="https://developer.yahoo.com/oauth2/guide/">Yahoo OAuth 2.0 Guide</a>
-     */
-    public static final Uri YAHOO = Uri.parse("https://login.yahoo.com");
+    private AuthenticationMethods() {
+        throw new IllegalStateException("not intended to be constructed");
+    }
 }

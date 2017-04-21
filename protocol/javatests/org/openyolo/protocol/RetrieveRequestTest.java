@@ -29,9 +29,6 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.openyolo.protocol.AuthenticationMethods;
-import org.openyolo.protocol.Protobufs;
-import org.openyolo.protocol.RetrieveRequest;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -49,7 +46,7 @@ public class RetrieveRequestTest {
 
     @Before
     public void setUp() {
-        request = new RetrieveRequest.Builder(AuthenticationMethods.ID_AND_PASSWORD)
+        request = new RetrieveRequest.Builder(AuthenticationMethods.EMAIL)
                 .addAdditionalProperty("a", "b")
                 .addAdditionalProperty("c", testBytes)
                 .build();
@@ -118,7 +115,7 @@ public class RetrieveRequestTest {
     public void testGetAuthMethods() {
         assertThat(request.getAuthenticationMethods()).hasSize(1);
         assertThat(request.getAuthenticationMethods())
-                .containsOnly(AuthenticationMethods.ID_AND_PASSWORD);
+                .containsOnly(AuthenticationMethods.EMAIL);
     }
 
     @Test(expected = NullPointerException.class)

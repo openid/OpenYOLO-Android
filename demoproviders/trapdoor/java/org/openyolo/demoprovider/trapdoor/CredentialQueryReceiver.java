@@ -32,8 +32,8 @@ import org.openyolo.spi.BaseCredentialQueryReceiver;
 /**
  * Handles OpenYOLO credential retrieve broadcasts. As trapdoor does not store any credentials,
  * we respond to all requests with an intent as long as the
- * {@link org.openyolo.protocol.AuthenticationMethods#ID_AND_PASSWORD id and password}
- * authentication method is supported.
+ * {@link org.openyolo.protocol.AuthenticationMethods#EMAIL email} authentication method is
+ * supported.
  */
 public class CredentialQueryReceiver extends BaseCredentialQueryReceiver {
 
@@ -59,8 +59,8 @@ public class CredentialQueryReceiver extends BaseCredentialQueryReceiver {
         final Context applicationContext = context.getApplicationContext();
         final QueryResponseSender responseSender = new QueryResponseSender(applicationContext);
 
-        // Ensure the caller supports the Id and Password authentication method
-        if (!request.getAuthenticationMethods().contains(AuthenticationMethods.ID_AND_PASSWORD)) {
+        // Ensure the caller supports the email authentication method
+        if (!request.getAuthenticationMethods().contains(AuthenticationMethods.EMAIL)) {
             responseSender.sendResponse(query,  null /* response */);
             return;
         }

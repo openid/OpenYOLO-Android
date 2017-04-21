@@ -117,9 +117,9 @@ public final class HintTestPageFragment extends TestPageFragment {
         startActivityForResult(hintIntent, RC_HINT);
     }
 
-    @OnClick(R.id.openyolo_id_and_password_provider_button)
-    void onIdAndPasswordAuthenticationMethod() {
-        mAuthenticationMethodInput.setText(AuthenticationMethods.ID_AND_PASSWORD.toString());
+    @OnClick(R.id.openyolo_email_provider_button)
+    void onEmailAuthenticationMethod() {
+        mAuthenticationMethodInput.setText(AuthenticationMethods.EMAIL.toString());
     }
 
     @OnClick(R.id.google_provider_button)
