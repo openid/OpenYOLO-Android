@@ -1,5 +1,0 @@
-* [English](en)
-
-<!--
-* [French](fr)
--->

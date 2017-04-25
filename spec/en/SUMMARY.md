@@ -1,8 +1,0 @@
-* [OpenYOLO overview](openyolo-overview.md)
-* [BBQ protocol](bbq-protocol.md)
-* [Retrieving credentials](retrieving-credentials.md)
-* [Assisting sign-up](assisting-sign-up.md)
-* [Saving credentials](saving-credentials.md)
-* [Protecting users from malicious providers](protecting-users.md)
-* [OpenYOLO API](api-overview.md)
-* [OpenYOLO SPI](spi-overview.md)
