@@ -272,7 +272,8 @@ public final class CredentialStorage {
      */
     public void upsertCredential(Credential credential) throws IOException {
         checkUnlocked();
-        List<Credential> credentials = new ArrayList<>(readCredentials(credential.getAuthDomain()));
+        List<Credential> credentials = new ArrayList<>(
+                readCredentials(credential.getAuthDomain().getUri()));
 
         // replace any existing equivalent
         ListIterator<Credential> it = credentials.listIterator();
@@ -290,7 +291,7 @@ public final class CredentialStorage {
             it.add(credential);
         }
 
-        writeCredentials(credential.getAuthDomain(), credentials);
+        writeCredentials(credential.getAuthDomain().getUri(), credentials);
         upsertHint(credential);
     }
 
@@ -301,7 +302,8 @@ public final class CredentialStorage {
      */
     public void deleteCredential(Credential credential) throws IOException {
         checkUnlocked();
-        List<Credential> credentials = new ArrayList<>(readCredentials(credential.getAuthDomain()));
+        List<Credential> credentials = new ArrayList<>(readCredentials(
+                credential.getAuthDomain().getUri()));
 
         ListIterator<Credential> it = credentials.listIterator();
         boolean existingFound = false;
@@ -314,7 +316,7 @@ public final class CredentialStorage {
         }
 
         if (existingFound) {
-            writeCredentials(credential.getAuthDomain(), credentials);
+            writeCredentials(credential.getAuthDomain().getUri(), credentials);
         }
     }
 
@@ -439,7 +441,7 @@ public final class CredentialStorage {
     private AccountHint convertCredentialToHint(Credential credential) {
         return AccountHint.newBuilder()
                 .setIdentifier(credential.getId())
-                .setAuthMethod(credential.getAuthMethod())
+                .setAuthMethod(credential.getAuthMethod().getUri())
                 .setName(credential.getDisplayName())
                 .setPictureUri(credential.getDisplayPictureUri())
                 .build();

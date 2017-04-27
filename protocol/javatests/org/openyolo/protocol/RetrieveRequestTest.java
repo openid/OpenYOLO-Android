@@ -72,7 +72,7 @@ public class RetrieveRequestTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void builderUriSetConstructor_withEmptySet_throwsIllegalArgumentException() {
-        new RetrieveRequest.Builder(new HashSet<Uri>()  /* authenticationMethods */);
+        new RetrieveRequest.Builder(new HashSet<AuthenticationMethod>());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -91,7 +91,7 @@ public class RetrieveRequestTest {
 
     @Test
     public void forAuthenticationMethods_withValidAuthenticationMethodUsingSet_returnsValidRequest() {
-        Set<Uri> authenticationMethods = new HashSet<>();
+        Set<AuthenticationMethod> authenticationMethods = new HashSet<>();
         Collections.addAll(
             authenticationMethods,
             AuthenticationMethods.GOOGLE,

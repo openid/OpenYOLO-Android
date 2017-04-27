@@ -50,6 +50,8 @@ import org.valid4j.errors.RequireViolation;
 @Config(manifest = Config.NONE)
 public class AuthenticationDomainTest {
 
+    private static final String WEB_AUTH_DOMAIN_STR = "https://www.example.com";
+
     private static final String VALID_PACKAGE_NAME = "com.example.app";
 
     private static byte[] VALID_SIGNATURE_BYTES = new byte[]
@@ -122,13 +124,6 @@ public class AuthenticationDomainTest {
         assertThat(AuthenticationDomain.listForPackage(mockContext, VALID_PACKAGE_NAME)).isEmpty();
     }
 
-    @Test
-    public void getUri_returnsExpectedValue() throws Exception{
-        AuthenticationDomain authDomain = AuthenticationDomain.getSelfAuthDomain(mockContext);
-
-        assertThat(authDomain.getUri().toString()).isEqualTo(VALID_AUTHENTICATION_DOMAIN_STRING);
-    }
-
     @Test(expected = RequireViolation.class)
     public void CreateAndroidAuthDomain_withNullDomain_throwsRequireViolation() throws Exception{
         AuthenticationDomain.createAndroidAuthDomain(null /* authDomain */, mock(Signature.class));
@@ -190,25 +185,9 @@ public class AuthenticationDomainTest {
 
         assertThat(result.size()).isEqualTo(3);
 
-        assertThat(result.get(0).getUri().toString()).isEqualTo(domains.get(0));
-        assertThat(result.get(1).getUri().toString()).isEqualTo(domains.get(1));
-        assertThat(result.get(2).getUri().toString()).isEqualTo(domains.get(2));
-    }
-
-    @Test
-    public void hashCode_ofAuthDomainAndEquivalentUri_areEqual(){
-        AuthenticationDomain authDomain = AuthenticationDomain.getSelfAuthDomain(mockContext);
-        Uri authDomainUri = authDomain.getUri();
-
-        assertThat(authDomain.hashCode()).isEqualTo(authDomainUri.hashCode());
-    }
-
-    @Test
-    public void hashCode_ofAuthDomainAndUnequalUri_areNotEqual(){
-        AuthenticationDomain authDomain = AuthenticationDomain.getSelfAuthDomain(mockContext);
-        Uri authDomainUri = authDomain.getUri();
-
-        assertThat(authDomain.hashCode()).isEqualTo(authDomainUri.hashCode());
+        assertThat(result.get(0).toString()).isEqualTo(domains.get(0));
+        assertThat(result.get(1).toString()).isEqualTo(domains.get(1));
+        assertThat(result.get(2).toString()).isEqualTo(domains.get(2));
     }
 
     @Test
@@ -224,10 +203,16 @@ public class AuthenticationDomainTest {
 
     @Test
     public void equals_withDifferentType_returnsFalse() throws Exception {
-        final String authenticationDomainString = "https://www.example.com";
-        AuthenticationDomain domain = new AuthenticationDomain(authenticationDomainString);
+        AuthenticationDomain domain = new AuthenticationDomain(WEB_AUTH_DOMAIN_STR);
+        assertThat(domain).isNotEqualTo(WEB_AUTH_DOMAIN_STR);
+    }
 
-        assertThat(domain).isNotEqualTo(authenticationDomainString);
+    @Test
+    public void testHashCode_equivalent() throws Exception {
+        AuthenticationDomain authDomainA = new AuthenticationDomain(WEB_AUTH_DOMAIN_STR);
+        AuthenticationDomain authDomainB = new AuthenticationDomain(WEB_AUTH_DOMAIN_STR);
+
+        assertThat(authDomainA.hashCode()).isEqualTo(authDomainB.hashCode());
     }
 
 }

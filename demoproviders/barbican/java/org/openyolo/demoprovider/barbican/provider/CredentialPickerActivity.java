@@ -97,7 +97,7 @@ public class CredentialPickerActivity extends AppCompatActivity {
         try {
             List<Credential> credentials =
                     new ArrayList<>(CredentialList.parseFrom(credentialBytes).getCredentialsList());
-            Collections.sort(credentials, CredentialQualityScore.QUALITY_SORT);
+            Collections.sort(credentials, CredentialQualityScore.PROTO_QUALITY_SORT);
             return credentials;
         } catch (IOException ex) {
             throw new IllegalStateException("Failed to decode credentials from intent", ex);

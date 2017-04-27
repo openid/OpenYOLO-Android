@@ -26,7 +26,7 @@ import java.util.Iterator;
 import java.util.Set;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorage;
 import org.openyolo.protocol.AuthenticationDomain;
-import org.openyolo.protocol.Protobufs.CredentialRetrieveResponse;
+import org.openyolo.protocol.Protobufs.CredentialRetrieveBbqResponse;
 import org.openyolo.protocol.RetrieveRequest;
 import org.openyolo.protocol.internal.IntentUtil;
 import org.openyolo.spi.BaseCredentialQueryReceiver;
@@ -87,7 +87,7 @@ public class CredentialQueryReceiver extends BaseCredentialQueryReceiver {
 
         if (credentialsFound) {
             Intent retrieveIntent = RetrieveCredentialActivity.createIntent(context);
-            CredentialRetrieveResponse response = CredentialRetrieveResponse.newBuilder()
+            CredentialRetrieveBbqResponse response = CredentialRetrieveBbqResponse.newBuilder()
                     .setRetrieveIntent(ByteString.copyFrom(IntentUtil.toBytes(retrieveIntent)))
                     .build();
             responseBytes = response.toByteArray();

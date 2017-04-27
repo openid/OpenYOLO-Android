@@ -15,6 +15,7 @@
 package org.openyolo.protocol.internal;
 
 import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.Protobufs;
 
 /**
  * Implementations of {@link ValueConverter} related to {@link AuthenticationDomain}.
@@ -32,6 +33,18 @@ public final class AuthenticationDomainConverters {
      */
     public static final ValueConverter<AuthenticationDomain, String> DOMAIN_TO_STRING =
             new AuthenticationDomainToStringConverter();
+
+    /**
+     * Creates {@link AuthenticationDomain} instances from their protocol buffer form.
+     */
+    public static final ValueConverter<AuthenticationDomain, Protobufs.AuthenticationDomain>
+            OBJECT_TO_PROTOBUF = new ObjectToProtobufConverter();
+
+    /**
+     * Creates protocol buffers from {@link AuthenticationDomain} instances.
+     */
+    public static final ValueConverter<Protobufs.AuthenticationDomain, AuthenticationDomain>
+            PROTOBUF_TO_OBJECT = new ProtobufToObjectConverter();
 
     private AuthenticationDomainConverters() {
         throw new IllegalStateException("not intended to be constructed");
@@ -51,6 +64,25 @@ public final class AuthenticationDomainConverters {
         @Override
         public String convert(AuthenticationDomain value) {
             return value.toString();
+        }
+    }
+
+    private static final class ObjectToProtobufConverter
+            implements ValueConverter<AuthenticationDomain, Protobufs.AuthenticationDomain> {
+
+
+        @Override
+        public Protobufs.AuthenticationDomain convert(AuthenticationDomain value) {
+            return value.toProtobuf();
+        }
+    }
+
+    private static final class ProtobufToObjectConverter
+            implements ValueConverter<Protobufs.AuthenticationDomain, AuthenticationDomain> {
+
+        @Override
+        public AuthenticationDomain convert(Protobufs.AuthenticationDomain value) {
+            return AuthenticationDomain.fromProtobuf(value);
         }
     }
 }

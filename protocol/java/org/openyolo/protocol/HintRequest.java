@@ -18,14 +18,9 @@ import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.unmodifiableSet;
 import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.openyolo.protocol.internal.CustomMatchers.isValidAuthenticationDomain;
-import static org.openyolo.protocol.internal.CustomMatchers.isValidAuthenticationMethod;
 import static org.openyolo.protocol.internal.CustomMatchers.notNullOrEmptyString;
-import static org.openyolo.protocol.internal.UriConverters.CONVERTER_STRING_TO_URI;
-import static org.openyolo.protocol.internal.UriConverters.CONVERTER_URI_TO_STRING;
 import static org.valid4j.Assertive.require;
 
-import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
@@ -36,10 +31,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.openyolo.protocol.internal.AuthenticationMethodConverters;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.CollectionConverter;
 import org.openyolo.protocol.internal.NoopValueConverter;
-import org.openyolo.protocol.internal.UriConverters;
 
 /**
  * A request for a login hint, to be sent to credential providers on the device. Hints provide
@@ -55,7 +50,7 @@ public class HintRequest implements Parcelable {
     public static final Creator<HintRequest> CREATOR = new HintRequestCreator();
 
     @NonNull
-    private final Set<Uri> mAuthMethods;
+    private final Set<AuthenticationMethod> mAuthMethods;
 
     @NonNull
     private final PasswordSpecification mPasswordSpec;
@@ -89,7 +84,7 @@ public class HintRequest implements Parcelable {
     }
 
     private HintRequest(
-            @NonNull Set<Uri> authMethods,
+            @NonNull Set<AuthenticationMethod> authMethods,
             @NonNull PasswordSpecification passwordSpec,
             @NonNull Map<String, byte[]> additionalParams) {
         mAuthMethods = authMethods;
@@ -101,7 +96,7 @@ public class HintRequest implements Parcelable {
      * The set of authentication methods supported by the client for login.
      */
     @NonNull
-    public Set<Uri> getAuthenticationMethods() {
+    public Set<AuthenticationMethod> getAuthenticationMethods() {
         return mAuthMethods;
     }
 
@@ -165,11 +160,13 @@ public class HintRequest implements Parcelable {
     public Protobufs.HintRetrieveRequest toProtocolBuffer() {
         return Protobufs.HintRetrieveRequest.newBuilder()
                 .addAllAuthMethods(
-                        CollectionConverter.toList(mAuthMethods, CONVERTER_URI_TO_STRING))
+                        CollectionConverter.toList(
+                                mAuthMethods,
+                                AuthenticationMethodConverters.OBJECT_TO_PROTOBUF))
                 .putAllAdditionalProps(
                     CollectionConverter.convertMapValues(
                             mAdditionalProperties,
-                        ByteStringConverters.BYTE_ARRAY_TO_BYTE_STRING))
+                            ByteStringConverters.BYTE_ARRAY_TO_BYTE_STRING))
                 .setPasswordSpec(mPasswordSpec.toProtocolBuffer())
                 .build();
     }
@@ -179,8 +176,7 @@ public class HintRequest implements Parcelable {
      */
     public static final class Builder {
 
-        private Set<Uri> mAuthMethods = new HashSet<>();
-        private Set<Uri> mIdTypes = new HashSet<>();
+        private Set<AuthenticationMethod> mAuthMethods = new HashSet<>();
         private Map<String, byte[]> mAdditionalProps = new HashMap<>();
         private PasswordSpecification mPasswordSpec = PasswordSpecification.DEFAULT;
 
@@ -193,7 +189,7 @@ public class HintRequest implements Parcelable {
             require(requestProto, notNullValue());
             setAuthenticationMethods(CollectionConverter.toSet(
                     requestProto.getAuthMethodsList(),
-                    CONVERTER_STRING_TO_URI));
+                    AuthenticationMethodConverters.PROTOBUF_TO_OBJECT));
             setPasswordSpecification(
                     new PasswordSpecification.Builder(requestProto.getPasswordSpec()).build());
             setAdditionalProperties(
@@ -208,7 +204,9 @@ public class HintRequest implements Parcelable {
          *
          * @see AuthenticationMethods
          */
-        public Builder(@NonNull Uri authMethod, @NonNull Uri... additionalAuthMethods) {
+        public Builder(
+                @NonNull AuthenticationMethod authMethod,
+                @NonNull AuthenticationMethod... additionalAuthMethods) {
             setAuthenticationMethods(authMethod, additionalAuthMethods);
         }
 
@@ -218,17 +216,7 @@ public class HintRequest implements Parcelable {
          *
          * @see AuthenticationMethods
          */
-        public Builder(@NonNull String authMethod, @NonNull String... additionalAuthMethods) {
-            setAuthenticationMethods(authMethod, additionalAuthMethods);
-        }
-
-        /**
-         * Starts the process of defining a hint request, specifying at least one supported
-         * authentication method in string form.
-         *
-         * @see AuthenticationMethods
-         */
-        public Builder(@NonNull Set<Uri> authMethods) {
+        public Builder(@NonNull Set<AuthenticationMethod> authMethods) {
             setAuthenticationMethods(authMethods);
         }
 
@@ -240,30 +228,13 @@ public class HintRequest implements Parcelable {
          */
         @NonNull
         public Builder setAuthenticationMethods(
-                @NonNull Uri authMethod,
-                Uri... additionalAuthMethods) {
+                @NonNull AuthenticationMethod authMethod,
+                AuthenticationMethod... additionalAuthMethods) {
             setAuthenticationMethods(
                     CollectionConverter.toSet(
                             authMethod,
                             additionalAuthMethods,
-                            NoopValueConverter.<Uri>getInstance()));
-            return this;
-        }
-
-        /**
-         * Specifies the authentication methods supported by the requester, in string form. At
-         * least one authentication method must be specified.
-         *
-         * @see AuthenticationMethods
-         */
-        public Builder setAuthenticationMethods(
-                @NonNull String authMethod,
-                @NonNull String... additionalAuthMethods) {
-            setAuthenticationMethods(
-                    CollectionConverter.toSet(
-                            authMethod,
-                            additionalAuthMethods,
-                            UriConverters.CONVERTER_STRING_TO_URI));
+                            NoopValueConverter.<AuthenticationMethod>getInstance()));
             return this;
         }
 
@@ -274,23 +245,11 @@ public class HintRequest implements Parcelable {
          * @see AuthenticationMethods
          */
         @NonNull
-        public Builder setAuthenticationMethods(@NonNull Set<Uri> authMethods) {
+        public Builder setAuthenticationMethods(@NonNull Set<AuthenticationMethod> authMethods) {
             require(authMethods, notNullValue());
+            require(!authMethods.contains(null), "every authentication methods must be non-null");
             require(!authMethods.isEmpty(), "At least one authentication method must be specified");
-            require(authMethods, everyItem(isValidAuthenticationMethod()));
             mAuthMethods = authMethods;
-            return this;
-        }
-
-        /**
-         * Adds an authentication method (in string form) supported by the requester.
-         *
-         * @see AuthenticationMethods
-         */
-        @NonNull
-        public Builder addAuthenticationMethod(@NonNull String authMethodStr) {
-            require(authMethodStr, notNullOrEmptyString());
-            addAuthenticationMethod(Uri.parse(authMethodStr));
             return this;
         }
 
@@ -300,8 +259,8 @@ public class HintRequest implements Parcelable {
          * @see AuthenticationMethods
          */
         @NonNull
-        public Builder addAuthenticationMethod(@NonNull Uri authenticationMethod) {
-            require(authenticationMethod, isValidAuthenticationDomain());
+        public Builder addAuthenticationMethod(@NonNull AuthenticationMethod authenticationMethod) {
+            require(authenticationMethod, notNullValue());
             mAuthMethods.add(authenticationMethod);
             return this;
         }

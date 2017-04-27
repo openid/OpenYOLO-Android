@@ -27,7 +27,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import org.openyolo.protocol.Protobufs.CredentialRetrieveResponse;
+import org.openyolo.protocol.Protobufs.CredentialRetrieveBbqResponse;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.CollectionConverter;
 import org.openyolo.protocol.internal.IntentUtil;
@@ -47,11 +47,11 @@ public class RetrieveResult implements Parcelable {
     private final Intent mRetrieveIntent;
 
     @NonNull
-    private final Map<String, CredentialRetrieveResponse> mResponses;
+    private final Map<String, CredentialRetrieveBbqResponse> mResponses;
 
     private RetrieveResult(
             @Nullable Intent retrieveIntent,
-            @NonNull Map<String, CredentialRetrieveResponse> responses) {
+            @NonNull Map<String, CredentialRetrieveBbqResponse> responses) {
         mRetrieveIntent = retrieveIntent;
         mResponses = responses;
     }
@@ -83,7 +83,7 @@ public class RetrieveResult implements Parcelable {
     @NonNull
     public Intent getRetrieveIntentForResponder(@NonNull String responderPackageName) {
         require(responderPackageName, notNullValue());
-        CredentialRetrieveResponse response = mResponses.get(responderPackageName);
+        CredentialRetrieveBbqResponse response = mResponses.get(responderPackageName);
         if (response == null) {
             throw new IllegalArgumentException(responderPackageName + " is not a responder");
         }
@@ -97,7 +97,7 @@ public class RetrieveResult implements Parcelable {
      */
     @NonNull
     public Map<String, byte[]> getAdditionalPropsForResponder(String responderPackageName) {
-        CredentialRetrieveResponse response = mResponses.get(responderPackageName);
+        CredentialRetrieveBbqResponse response = mResponses.get(responderPackageName);
         if (response == null) {
             throw new IllegalArgumentException(responderPackageName + " is not a responder");
         }
@@ -116,7 +116,7 @@ public class RetrieveResult implements Parcelable {
         private Intent mIntent;
 
         @NonNull
-        private Map<String, CredentialRetrieveResponse> mProtoResponses;
+        private Map<String, CredentialRetrieveBbqResponse> mProtoResponses;
 
         /**
          * Starts the process of describing a credential retrieve result.
@@ -132,9 +132,9 @@ public class RetrieveResult implements Parcelable {
          */
         @NonNull
         public Builder setProtoResponses(
-                @NonNull Map<String, CredentialRetrieveResponse> protoResponses) {
+                @NonNull Map<String, CredentialRetrieveBbqResponse> protoResponses) {
             require(protoResponses, notNullValue());
-            for (CredentialRetrieveResponse value : protoResponses.values()) {
+            for (CredentialRetrieveBbqResponse value : protoResponses.values()) {
                 require(value, notNullValue());
             }
             mProtoResponses = protoResponses;
@@ -184,16 +184,16 @@ public class RetrieveResult implements Parcelable {
             Intent retrieveIntent = in.readParcelable(Intent.class.getClassLoader());
             int numResponses = in.readInt();
 
-            Map<String, CredentialRetrieveResponse> responses = new HashMap<>(numResponses);
+            Map<String, CredentialRetrieveBbqResponse> responses = new HashMap<>(numResponses);
             for (int i = 0; i < numResponses; i++) {
                 String key = in.readString();
                 int responseSize = in.readInt();
                 byte[] responseBytes = new byte[responseSize];
                 in.readByteArray(responseBytes);
 
-                CredentialRetrieveResponse response;
+                CredentialRetrieveBbqResponse response;
                 try {
-                    response = CredentialRetrieveResponse.parseFrom(responseBytes);
+                    response = CredentialRetrieveBbqResponse.parseFrom(responseBytes);
                 } catch (InvalidProtocolBufferException ex) {
                     throw new IllegalArgumentException("Unable to parse response proto");
                 }

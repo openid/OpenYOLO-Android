@@ -24,7 +24,7 @@ import com.google.protobuf.ByteString;
 import java.util.Set;
 import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.AuthenticationMethods;
-import org.openyolo.protocol.Protobufs.CredentialRetrieveResponse;
+import org.openyolo.protocol.Protobufs.CredentialRetrieveBbqResponse;
 import org.openyolo.protocol.RetrieveRequest;
 import org.openyolo.protocol.internal.IntentUtil;
 import org.openyolo.spi.BaseCredentialQueryReceiver;
@@ -66,7 +66,7 @@ public class CredentialQueryReceiver extends BaseCredentialQueryReceiver {
         }
 
         Intent retrieveIntent = RetrieveActivity.createIntent(applicationContext);
-        CredentialRetrieveResponse response = CredentialRetrieveResponse.newBuilder()
+        CredentialRetrieveBbqResponse response = CredentialRetrieveBbqResponse.newBuilder()
                 .setRetrieveIntent(ByteString.copyFrom(IntentUtil.toBytes(retrieveIntent)))
                 .build();
 

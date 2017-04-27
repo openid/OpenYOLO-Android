@@ -23,42 +23,41 @@ option java_outer_classname = "Protobufs";
 
 message CredentialRetrieveRequest {
     // at least one authMethod required
-    repeated string authMethods = 1;
-    map<string, TokenRequestInfo> supportedTokenProviders = 2;
-    map<string, bytes> additionalProps = 3;
+    repeated AuthenticationMethod authMethods = 1;
+
+    map<string, TokenRequestInfo> supportedTokenProviders = 3;
+    map<string, bytes> additionalProps = 4;
 }
 
-message CredentialRetrieveResponse {
+message CredentialRetrieveBbqResponse {
     bytes retrieveIntent = 1;
     map<string, bytes> additionalProps = 2;
 }
 
-message CredentialRetrieveResponseList {
-    repeated CredentialRetrieveResponse responses = 1;
-}
-
 message HintRetrieveRequest {
     // at least one authMethod required
-    repeated string authMethods = 1;
+    repeated AuthenticationMethod authMethods = 1;
 
     PasswordSpecification passwordSpec = 2;
     map<string, TokenRequestInfo> supportedTokenProviders = 3;
     map<string, bytes> additionalProps = 4;
 }
 
-message TokenRequestInfo {
-    string clientId = 1;
-    string nonce = 2;
-    map<string, bytes> additionalProps = 3;
+message HintRetrieveResult {
+    Credential credential = 1;
+    map<string, bytes> additionalProps = 2;
 }
 
 message Credential {
-    // required fields:
+    // required
     string id = 1;
-    string authDomain = 2;
-    string authMethod = 3;
 
-    // optional fields:
+    // required
+    AuthenticationDomain authDomain = 2;
+
+    // required
+    AuthenticationMethod authMethod = 3;
+
     string displayName = 4;
     string displayPictureUri = 5;
     string password = 6;
@@ -70,18 +69,39 @@ message CredentialList {
     repeated Credential credentials = 1;
 }
 
+message AuthenticationMethod {
+    // required
+    string uri = 1;
+}
+
+message AuthenticationDomain {
+    // required
+    string uri = 1;
+}
+
 message PasswordSpecification {
-    // required fields:
+    // required
     string allowed = 1;
+
+    // required
     uint32 minSize = 2;
+
+    // required
     uint32 maxSize = 3;
 
-    // optional:
     repeated RequiredCharSet requiredSets = 4;
 }
 
 message RequiredCharSet {
-    // all fields required
+    // required
     string chars = 1;
+
+    // required
     uint32 count = 2;
+}
+
+message TokenRequestInfo {
+    string clientId = 1;
+    string nonce = 2;
+    map<string, bytes> additionalProps = 3;
 }

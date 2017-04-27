@@ -14,13 +14,14 @@
 
 package org.openyolo.demoprovider.barbican;
 
-import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import java.util.Comparator;
 import org.openyolo.demoprovider.barbican.Protobufs.AccountHint;
+import org.openyolo.protocol.AuthenticationMethod;
 import org.openyolo.protocol.AuthenticationMethods;
-import org.openyolo.protocol.Protobufs.Credential;
+import org.openyolo.protocol.Credential;
+import org.openyolo.protocol.Protobufs;
 
 /**
  * Derives quality scores for credentials and hints that can help to order lists of them based on
@@ -35,14 +36,32 @@ public class CredentialQualityScore {
     public static final Comparator<Credential> QUALITY_SORT = new CredentialQualityComparator();
 
     /**
+     * A comparator which orders credential protocol buffers in descending order of quality score,
+     * i.e. those with the highest quality score first.
+     */
+    public static final Comparator<Protobufs.Credential> PROTO_QUALITY_SORT =
+            new CredentialProtoQualityComparator();
+
+    /**
      * Generates the score for the user data in an account hint.
      */
     public static int getScore(AccountHint hint) {
         return getQualityScore(
-            hint.getIdentifier(),
-            hint.getAuthMethod(),
-            hint.getName(),
-            hint.getPictureUri());
+                hint.getIdentifier(),
+                new AuthenticationMethod(hint.getAuthMethod()),
+                hint.getName(),
+                hint.getPictureUri());
+    }
+
+    /**
+     * Generates the score for the user data in a credential protocol buffer.
+     */
+    public static int getScore(Protobufs.Credential credential) {
+        return getQualityScore(
+                credential.getId(),
+                AuthenticationMethod.fromProtobuf(credential.getAuthMethod()),
+                credential.getDisplayName(),
+                credential.getDisplayPictureUri());
     }
 
     /**
@@ -50,27 +69,24 @@ public class CredentialQualityScore {
      */
     public static int getScore(Credential credential) {
         return getQualityScore(
-                credential.getId(),
-                credential.getAuthMethod(),
+                credential.getIdentifier(),
+                credential.getAuthenticationMethod(),
                 credential.getDisplayName(),
-                credential.getDisplayPictureUri());
+                credential.getDisplayPicture() != null
+                        ? credential.getDisplayPicture().toString()
+                        : null);
     }
 
     private static int getQualityScore(
             @Nullable String id,
-            @Nullable String authMethod,
+            @Nullable AuthenticationMethod authMethod,
             @Nullable String name,
             @Nullable String pictureUri) {
 
         int score = 1;
 
         // email identifiers are recognisable and useful for ID token acquisition
-        if (AuthenticationMethods.EMAIL.toString().equals(authMethod)) {
-            score <<= 1;
-        }
-
-        // prefer federated authentication methods, which generally have an HTTPS scheme
-        if ("https".equals(Uri.parse(authMethod).getScheme())) {
+        if (AuthenticationMethods.EMAIL.equals(authMethod)) {
             score <<= 1;
         }
 
@@ -80,7 +96,7 @@ public class CredentialQualityScore {
         }
 
         // prefer credentials that have a profile picture
-        if (!TextUtils.isEmpty(pictureUri)) {
+        if (pictureUri != null) {
             score <<= 1;
         }
 
@@ -91,6 +107,25 @@ public class CredentialQualityScore {
 
         @Override
         public int compare(Credential c1, Credential c2) {
+            int c1Score = getScore(c1);
+            int c2Score = getScore(c2);
+
+            // higher scores (more information) come first
+            if (c1Score > c2Score) {
+                return -1;
+            } else if (c1Score == c2Score) {
+                return 0;
+            }
+
+            return 1;
+        }
+    }
+
+    private static final class CredentialProtoQualityComparator
+            implements Comparator<Protobufs.Credential> {
+
+        @Override
+        public int compare(Protobufs.Credential c1, Protobufs.Credential c2) {
             int c1Score = getScore(c1);
             int c2Score = getScore(c2);
 

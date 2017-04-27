@@ -14,9 +14,10 @@
 
 package org.openyolo.protocol;
 
+import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.openyolo.protocol.internal.CustomMatchers.isValidAuthenticationMethod;
 import static org.openyolo.protocol.internal.CustomMatchers.isWebUri;
+import static org.openyolo.protocol.internal.CustomMatchers.notNullOrEmptyString;
 import static org.openyolo.protocol.internal.CustomMatchers.nullOr;
 import static org.openyolo.protocol.internal.StringUtil.nullifyEmptyString;
 import static org.valid4j.Assertive.require;
@@ -27,8 +28,12 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import com.google.protobuf.ByteString;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
+import org.openyolo.protocol.internal.AuthenticationDomainConverters;
+import org.openyolo.protocol.internal.AuthenticationMethodConverters;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.CollectionConverter;
 
@@ -49,29 +54,92 @@ public final class Credential implements Parcelable {
      */
     public static final Creator<Credential> CREATOR = new CredentialCreator();
 
-    @NonNull
-    private final Protobufs.Credential mProto;
-
     /**
-     * Deserializes and validates a credential protocol buffer.
-     * @throws IOException if the credential is invalid.
+     * Creates a credential from its protocol buffer equivalent, in byte form.
+     * @throws IOException if the protocol buffer cannot be parsed.
      */
     public static Credential fromProtoBytes(byte[] credentialProtoBytes) throws IOException {
-        return new Credential.Builder(
-                Protobufs.Credential.parseFrom(credentialProtoBytes))
-                .build();
-    }
-
-    private Credential(@NonNull Protobufs.Credential proto) {
-        mProto = proto;
+        return fromProtobuf(Protobufs.Credential.parseFrom(credentialProtoBytes));
     }
 
     /**
-     * The underlying protocol buffer form of the credential.
+     * Creates a credential from its protocol buffer equivalent.
+     */
+    public static Credential fromProtobuf(Protobufs.Credential credential) {
+        return new Credential.Builder(credential).build();
+    }
+
+    @NonNull
+    private final String mId;
+
+    @NonNull
+    private final AuthenticationDomain mAuthDomain;
+
+    @NonNull
+    private final AuthenticationMethod mAuthMethod;
+
+    @Nullable
+    private final String mDisplayName;
+
+    @Nullable
+    private final Uri mDisplayPicture;
+
+    @Nullable
+    private final String mPassword;
+
+    @Nullable
+    private final String mIdToken;
+
+    @NonNull
+    private final Map<String, ByteString> mAdditionalProps;
+
+    private Credential(
+            @NonNull String id,
+            @NonNull AuthenticationDomain authDomain,
+            @NonNull AuthenticationMethod authMethod,
+            @Nullable String displayName,
+            @Nullable Uri displayPicture,
+            @Nullable String password,
+            @Nullable String idToken,
+            @NonNull Map<String, ByteString> additionalProps) {
+        mId = id;
+        mAuthDomain = authDomain;
+        mAuthMethod = authMethod;
+        mDisplayName = displayName;
+        mDisplayPicture = displayPicture;
+        mPassword = password;
+        mIdToken = idToken;
+        mAdditionalProps = additionalProps;
+    }
+
+    /**
+     * Creates a protocol buffer representation of the credential, for transmission or storage.
      */
     @NonNull
-    public Protobufs.Credential getProto() {
-        return mProto;
+    public Protobufs.Credential toProtobuf() {
+        Protobufs.Credential.Builder builder = Protobufs.Credential.newBuilder()
+                .setId(mId)
+                .setAuthMethod(mAuthMethod.toProtobuf())
+                .setAuthDomain(mAuthDomain.toProtobuf())
+                .putAllAdditionalProps(mAdditionalProps);
+
+        if (mDisplayName != null) {
+            builder.setDisplayName(mDisplayName);
+        }
+
+        if (mDisplayPicture != null) {
+            builder.setDisplayPictureUri(mDisplayPicture.toString());
+        }
+
+        if (mPassword != null) {
+            builder.setPassword(mPassword);
+        }
+
+        if (mIdToken != null) {
+            builder.setIdToken(mIdToken);
+        }
+
+        return builder.build();
     }
 
     /**
@@ -80,29 +148,25 @@ public final class Credential implements Parcelable {
      */
     @NonNull
     public String getIdentifier() {
-        return mProto.getId();
+        return mId;
+    }
+
+    /**
+     * The authentication method for the credential, which describes the mechanism by which
+     * it should be verified by the receiving app. This may be any valid URI, but is typically
+     * one of the {@link AuthenticationMethods standard values}.
+     */
+    @NonNull
+    public AuthenticationMethod getAuthenticationMethod() {
+        return mAuthMethod;
     }
 
     /**
      * The authentication domain against which this credential can be used, if specified.
      */
-    @Nullable
+    @NonNull
     public AuthenticationDomain getAuthenticationDomain() {
-        String authDomainStr = nullifyEmptyString(mProto.getAuthDomain());
-        if (authDomainStr == null) {
-            return null;
-        }
-
-        return new AuthenticationDomain(mProto.getAuthDomain());
-    }
-
-    /**
-     * The credential password, if defined. Must be non-empty, but any further restrictions are
-     * the responsibility of the authentication domain to define and validate.
-     */
-    @Nullable
-    public String getPassword() {
-        return nullifyEmptyString(mProto.getPassword());
+        return mAuthDomain;
     }
 
     /**
@@ -112,7 +176,7 @@ public final class Credential implements Parcelable {
      */
     @Nullable
     public String getDisplayName() {
-        return nullifyEmptyString(mProto.getDisplayName());
+        return mDisplayName;
     }
 
     /**
@@ -122,20 +186,25 @@ public final class Credential implements Parcelable {
      */
     @Nullable
     public Uri getDisplayPicture() {
-        String displayPictureUriStr = nullifyEmptyString(mProto.getDisplayPictureUri());
-        return (displayPictureUriStr != null)
-                ? Uri.parse(displayPictureUriStr)
-                : null;
+        return mDisplayPicture;
     }
 
     /**
-     * The authentication method for the credential, which describes the mechanism by which
-     * it should be verified by the receiving app. This may be any valid URI, but is typically
-     * one of the {@link AuthenticationMethods standard values}.
+     * The credential password, if defined. Must be non-empty, but any further restrictions are
+     * the responsibility of the authentication domain to define and validate.
      */
-    @NonNull
-    public Uri getAuthenticationMethod() {
-        return Uri.parse(mProto.getAuthMethod());
+    @Nullable
+    public String getPassword() {
+        return mPassword;
+    }
+
+    /**
+     * An ID token which provides "proof of access" to the identifier for this credential, if
+     * available.
+     */
+    @Nullable
+    public String getIdToken() {
+        return mIdToken;
     }
 
     /**
@@ -144,7 +213,7 @@ public final class Credential implements Parcelable {
     @NonNull
     public Map<String, byte[]> getAdditionalProperties() {
         return CollectionConverter.convertMapValues(
-            mProto.getAdditionalPropsMap(),
+            mAdditionalProps,
             ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY);
     }
 
@@ -155,7 +224,7 @@ public final class Credential implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        byte[] encoded = mProto.toByteArray();
+        byte[] encoded = toProtobuf().toByteArray();
         dest.writeInt(encoded.length);
         dest.writeByteArray(encoded);
     }
@@ -165,7 +234,14 @@ public final class Credential implements Parcelable {
      */
     public static final class Builder {
 
-        private Protobufs.Credential.Builder mProtoBuilder;
+        private String mId;
+        private AuthenticationMethod mAuthMethod;
+        private AuthenticationDomain mAuthDomain;
+        private String mDisplayName;
+        private Uri mDisplayPicture;
+        private String mPassword;
+        private String mIdToken;
+        private Map<String, ByteString> mAdditionalProps = new HashMap<>();
 
         /**
          * Starts the process of creating a credential, based on the properties of the
@@ -173,14 +249,17 @@ public final class Credential implements Parcelable {
          * must contain valid data for a credential.
          */
         public Builder(@NonNull Protobufs.Credential proto) {
-            mProtoBuilder = Protobufs.Credential.newBuilder();
-
             // required properties
             setIdentifier(proto.getId());
-            setAuthenticationDomain(new AuthenticationDomain(proto.getAuthDomain()));
-            setAuthenticationMethod(proto.getAuthMethod());
+            setAuthenticationMethod(
+                    AuthenticationMethodConverters.PROTOBUF_TO_OBJECT
+                            .convert(proto.getAuthMethod()));
+            setAuthenticationDomain(
+                    AuthenticationDomainConverters.PROTOBUF_TO_OBJECT
+                            .convert(proto.getAuthDomain()));
 
             // optional properties
+
             setDisplayName(proto.getDisplayName());
             setDisplayPicture(proto.getDisplayPictureUri());
             setPassword(proto.getPassword());
@@ -208,9 +287,8 @@ public final class Credential implements Parcelable {
          */
         public Builder(
                 @NonNull String identifier,
-                @NonNull Uri authenticationMethod,
+                @NonNull AuthenticationMethod authenticationMethod,
                 @NonNull AuthenticationDomain authenticationDomain) {
-            mProtoBuilder = Protobufs.Credential.newBuilder();
             setIdentifier(identifier);
             setAuthenticationMethod(authenticationMethod);
             setAuthenticationDomain(authenticationDomain);
@@ -221,14 +299,14 @@ public final class Credential implements Parcelable {
          * authentication method (as a string) and authentication domain (as a string). To create
          * a credential for your own application.
          *
-         * @see #Builder(String, Uri, AuthenticationDomain)
+         * @see #Builder(String, AuthenticationMethod, AuthenticationDomain)
          */
         public Builder(
                 @NonNull String identifier,
                 @NonNull String authenticationMethod,
                 @NonNull String authenticationDomain) {
             this(identifier,
-                    Uri.parse(authenticationMethod),
+                    new AuthenticationMethod(authenticationMethod),
                     new AuthenticationDomain(authenticationDomain));
         }
 
@@ -239,7 +317,7 @@ public final class Credential implements Parcelable {
         @NonNull
         public Builder setIdentifier(@NonNull String identifier) {
             require(!TextUtils.isEmpty(identifier), "identifier must not be null or empty");
-            mProtoBuilder.setId(identifier);
+            mId = identifier;
             return this;
         }
 
@@ -250,7 +328,7 @@ public final class Credential implements Parcelable {
         @NonNull
         public Builder setAuthenticationDomain(@NonNull AuthenticationDomain domain) {
             require(domain, notNullValue());
-            mProtoBuilder.setAuthDomain(extractString(domain));
+            mAuthDomain = domain;
             return this;
         }
 
@@ -260,21 +338,10 @@ public final class Credential implements Parcelable {
          * {@link AuthenticationMethods standard values}.
          */
         @NonNull
-        public Builder setAuthenticationMethod(@NonNull Uri authMethod) {
-            require(authMethod, isValidAuthenticationMethod());
-            mProtoBuilder.setAuthMethod(extractString(authMethod));
+        public Builder setAuthenticationMethod(@NonNull AuthenticationMethod authMethod) {
+            require(authMethod, notNullValue());
+            mAuthMethod = authMethod;
             return this;
-        }
-
-        /**
-         * Specifies the authentication method for the credential, in string form for convenience.
-         * The provided value must be non-null and non-empty.
-         * @see #setAuthenticationMethod(Uri)
-         */
-        @NonNull
-        public Builder setAuthenticationMethod(@NonNull String authMethod) {
-            require(!TextUtils.isEmpty(authMethod), "authMethod must not be null or empty");
-            return setAuthenticationMethod(Uri.parse(authMethod));
         }
 
         /**
@@ -283,12 +350,7 @@ public final class Credential implements Parcelable {
          */
         @NonNull
         public Builder setPassword(@Nullable String password) {
-            if (nullifyEmptyString(password) == null) {
-                mProtoBuilder.clearPassword();
-            } else {
-                mProtoBuilder.setPassword(password);
-            }
-
+            mPassword = nullifyEmptyString(password);
             return this;
         }
 
@@ -298,11 +360,7 @@ public final class Credential implements Parcelable {
          */
         @NonNull
         public Builder setDisplayName(@Nullable String displayName) {
-            if (nullifyEmptyString(displayName) == null) {
-                mProtoBuilder.clearDisplayName();
-            } else {
-                mProtoBuilder.setDisplayName(displayName);
-            }
+            mDisplayName = nullifyEmptyString(displayName);
             return this;
         }
 
@@ -314,11 +372,7 @@ public final class Credential implements Parcelable {
         @NonNull
         public Builder setDisplayPicture(@Nullable Uri displayPicture) {
             require(displayPicture, nullOr(isWebUri()));
-            if (displayPicture == null) {
-                mProtoBuilder.clearDisplayPictureUri();
-            } else {
-                mProtoBuilder.setDisplayPictureUri(extractString(displayPicture));
-            }
+            mDisplayPicture = displayPicture;
             return this;
         }
 
@@ -336,13 +390,15 @@ public final class Credential implements Parcelable {
          * Specifies any additional, non-standard properties associated with the credential.
          */
         public Builder setAdditionalProperties(@Nullable Map<String, byte[]> additionalProps) {
-            if (mProtoBuilder.getAdditionalPropsCount() > 0) {
-                mProtoBuilder.clearAdditionalProps();
+            if (additionalProps == null) {
+                mAdditionalProps.clear();
             }
-            mProtoBuilder.putAllAdditionalProps(
-                    CollectionConverter.convertMapValues(
-                            additionalProps,
-                            ByteStringConverters.BYTE_ARRAY_TO_BYTE_STRING));
+            require(additionalProps.keySet(), everyItem(notNullOrEmptyString()));
+            require(additionalProps.values(), everyItem(notNullValue()));
+
+            mAdditionalProps = CollectionConverter.convertMapValues(
+                    additionalProps,
+                    ByteStringConverters.BYTE_ARRAY_TO_BYTE_STRING);
             return this;
         }
 
@@ -351,15 +407,19 @@ public final class Credential implements Parcelable {
          */
         @NonNull
         public Credential build() {
-            return new Credential(mProtoBuilder.build());
-        }
-
-        private String extractString(@Nullable Object obj) {
-            return (obj != null) ? obj.toString() : null;
+            return new Credential(
+                    mId,
+                    mAuthDomain,
+                    mAuthMethod,
+                    mDisplayName,
+                    mDisplayPicture,
+                    mPassword,
+                    mIdToken,
+                    mAdditionalProps);
         }
     }
 
-    static final class CredentialCreator implements Creator<Credential> {
+    private static final class CredentialCreator implements Creator<Credential> {
         @Override
         public Credential createFromParcel(Parcel source) {
             int encodedLength = source.readInt();
@@ -368,7 +428,7 @@ public final class Credential implements Parcelable {
 
             try {
                 Protobufs.Credential proto = Protobufs.Credential.parseFrom(encodedBytes);
-                return new Credential(proto);
+                return new Credential.Builder(proto).build();
             } catch (IOException ex) {
                 throw new IllegalStateException("Unable to decode credential proto", ex);
             }

@@ -87,10 +87,11 @@ class CredentialAdapter
         }
 
         void bind(final Credential credential) {
-            String appLabel = credential.getAuthDomain();
+            String appLabel = credential.getAuthDomain().toString();
             Drawable appIcon = null;
 
-            AuthenticationDomain domain = new AuthenticationDomain(credential.getAuthDomain());
+            AuthenticationDomain domain =
+                    AuthenticationDomain.fromProtobuf(credential.getAuthDomain());
             if (domain.isAndroidAuthDomain()) {
                 String packageName = domain.getAndroidPackageName();
                 PackageManager pm = itemView.getContext().getPackageManager();

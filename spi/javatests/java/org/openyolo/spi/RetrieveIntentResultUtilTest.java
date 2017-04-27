@@ -46,7 +46,7 @@ public class RetrieveIntentResultUtilTest {
                 EMAIL,
                 new AuthenticationDomain("https://www.example.com"))
                 .build();
-        Intent response = RetrieveIntentResultUtil.createResponseData(cr.getProto());
+        Intent response = RetrieveIntentResultUtil.createResponseData(cr.toProtobuf());
 
         assertThat(response.hasExtra(ProtocolConstants.EXTRA_CREDENTIAL)).isTrue();
         byte[] bytes = response.getExtras().getByteArray(ProtocolConstants.EXTRA_CREDENTIAL);
@@ -57,8 +57,7 @@ public class RetrieveIntentResultUtilTest {
 
     @Test
     public void testCreateResponseData_withNull() throws Exception {
-        Intent response = RetrieveIntentResultUtil.createResponseData(null);
+        Intent response = RetrieveIntentResultUtil.createResponseData((Credential) null);
         assertNull(response.getExtras());
     }
-
 }

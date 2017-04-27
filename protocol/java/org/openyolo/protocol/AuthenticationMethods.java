@@ -14,12 +14,11 @@
 
 package org.openyolo.protocol;
 
-import android.net.Uri;
 import org.openyolo.protocol.Credential.Builder;
 
 /**
  * A set of well-known authentication method URIs for use with
- * {@link Builder#setAuthenticationMethod(String)}.
+ * {@link Builder#setAuthenticationMethod(AuthenticationMethod)}.
  */
 public final class AuthenticationMethods {
 
@@ -29,7 +28,7 @@ public final class AuthenticationMethods {
      * identifier. Authentication typically occurs using the email address and a password, but
      * is also possible using the email address as a recovery method.
      */
-    public static final Uri EMAIL = Uri.parse("openyolo://email");
+    public static final AuthenticationMethod EMAIL = new AuthenticationMethod("openyolo://email");
 
     /**
      * Phone number based authentication, optionally with a password. This authentication type
@@ -40,13 +39,14 @@ public final class AuthenticationMethods {
      * <p>When used to request a hint, OpenYOLO providers _MUST_ return the selected phone number
      * in E.164 format.
      */
-    public static final Uri PHONE = Uri.parse("openyolo://phone");
+    public static final AuthenticationMethod PHONE = new AuthenticationMethod("openyolo://phone");
 
     /**
      * User name and password based authentication. This authentication type requires the entry
      * of a unicode identifier string and a password.
      */
-    public static final Uri USER_NAME = Uri.parse("openyolo://username");
+    public static final AuthenticationMethod USER_NAME =
+            new AuthenticationMethod("openyolo://username");
 
     /**
      * Google Sign-in authentication.
@@ -54,7 +54,8 @@ public final class AuthenticationMethods {
      * @see <a href="https://developers.google.com/identity/sign-in/android/">Google Sign-in for
      *     Android</a>.
      */
-    public static final Uri GOOGLE = Uri.parse("https://accounts.google.com");
+    public static final AuthenticationMethod GOOGLE =
+            new AuthenticationMethod("https://accounts.google.com");
 
     /**
      * Facebook Login authentication.
@@ -62,7 +63,8 @@ public final class AuthenticationMethods {
      * @see <a href="https://developers.facebook.com/docs/facebook-login/android">Facebook Login
      *     for Android</a>.
      */
-    public static final Uri FACEBOOK = Uri.parse("https://www.facebook.com");
+    public static final AuthenticationMethod FACEBOOK =
+            new AuthenticationMethod("https://www.facebook.com");
 
     private AuthenticationMethods() {
         throw new IllegalStateException("not intended to be constructed");

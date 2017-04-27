@@ -69,22 +69,22 @@ public class CredentialTest {
 
     @Test(expected = RequireViolation.class)
     public void testBuilder_authMethodWithoutScheme() {
-        new Credential.Builder(EMAIL_ID, Uri.parse("www.example.com"), AUTH_DOMAIN);
+        new Credential.Builder(EMAIL_ID, "www.example.com", AUTH_DOMAIN_STR);
     }
 
     @Test(expected = RequireViolation.class)
     public void testBuilder_authMethodWithPath() {
-        new Credential.Builder(EMAIL_ID, Uri.parse("https://www.example.com/path"), AUTH_DOMAIN);
+        new Credential.Builder(EMAIL_ID, "https://www.example.com/path", AUTH_DOMAIN_STR);
     }
 
     @Test(expected = RequireViolation.class)
     public void testBuilder_authMethodWithQuery() {
-        new Credential.Builder(EMAIL_ID, Uri.parse("https://www.example.com?a=b"), AUTH_DOMAIN);
+        new Credential.Builder(EMAIL_ID, "https://www.example.com?a=b", AUTH_DOMAIN_STR);
     }
 
     @Test(expected = RequireViolation.class)
     public void testBuilder_authMethodWithFragment() {
-        new Credential.Builder(EMAIL_ID, Uri.parse("https://www.example.com#a"), AUTH_DOMAIN);
+        new Credential.Builder(EMAIL_ID, "https://www.example.com#a", AUTH_DOMAIN_STR);
     }
 
     @Test
@@ -239,7 +239,7 @@ public class CredentialTest {
                 EMAIL_ID,
                 EMAIL,
                 new AuthenticationDomain("https://www.example.com")).build();
-        Protobufs.Credential proto = cr.getProto();
+        Protobufs.Credential proto = cr.toProtobuf();
         assertThat(proto).isNotNull();
     }
 

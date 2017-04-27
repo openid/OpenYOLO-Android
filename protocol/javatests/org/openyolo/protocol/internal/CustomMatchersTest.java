@@ -83,45 +83,45 @@ public class CustomMatchersTest {
     }
 
     @Test
-    public void isValidAuthenticationDomain_http() throws Exception {
-        assertTrue(CustomMatchers.isValidAuthenticationDomain().matches(
-                Uri.parse("http://www.blah.com")));
+    public void isValidAuthenticationDomainUri_http() throws Exception {
+        String uriStr = "http://www.blah.com";
+        assertTrue(CustomMatchers.isValidAuthenticationDomain().matches(uriStr));
+        assertTrue(CustomMatchers.isValidAuthenticationDomainUri().matches(Uri.parse(uriStr)));
     }
 
     @Test
     public void isValidAuthenticationDomain_https() throws Exception {
-        assertTrue(CustomMatchers.isValidAuthenticationDomain().matches(
-                Uri.parse("https://www.blah.com")));
+        String uriStr = "https://www.blah.com";
+        assertTrue(CustomMatchers.isValidAuthenticationDomain().matches(uriStr));
+        assertTrue(CustomMatchers.isValidAuthenticationDomainUri().matches(Uri.parse(uriStr)));
     }
 
     @Test
     public void isValidAuthenticationDomain_android() throws Exception {
-        assertTrue(CustomMatchers.isValidAuthenticationDomain().matches(
-                Uri.parse("android://signature@com.blah.app")));
+        String uriStr = "android://signature@com.blah.app";
+        assertTrue(CustomMatchers.isValidAuthenticationDomain().matches(uriStr));
+        assertTrue(CustomMatchers.isValidAuthenticationDomainUri().matches(Uri.parse(uriStr)));
     }
 
     @Test
-    public void isValidAuthenticationDomain() throws Exception {
-        assertFalse(CustomMatchers.isValidAuthenticationDomain().matches(
-                Uri.parse("http://www.blah.com/resource")));
+    public void isValidAuthenticationDomain_path() throws Exception {
+        String uriStr = "http://www.blah.com/resource";
+        assertFalse(CustomMatchers.isValidAuthenticationDomain().matches(uriStr));
+        assertFalse(CustomMatchers.isValidAuthenticationDomainUri().matches(Uri.parse(uriStr)));
     }
 
     @Test
-    public void isValidAuthenticationMethod_builtIn() throws Exception {
-        assertTrue(CustomMatchers.isValidAuthenticationMethod().matches(
-                AuthenticationMethods.EMAIL));
+    public void isValidAuthenticationMethodUri_custom() {
+        String uriStr = "https://www.blah.com";
+        assertTrue(CustomMatchers.isValidAuthenticationMethod().matches(uriStr));
+        assertTrue(CustomMatchers.isValidAuthenticationMethodUri().matches(Uri.parse(uriStr)));
     }
 
     @Test
-    public void isValidAuthenticationMethod_custom() {
-        assertTrue(CustomMatchers.isValidAuthenticationMethod().matches(
-                Uri.parse("https://www.blah.com")));
-    }
-
-    @Test
-    public void isValidAuthenticationMethod_path() {
-        assertFalse(CustomMatchers.isValidAuthenticationMethod().matches(
-                Uri.parse("http://www.blah.com/resource")));
+    public void isValidAuthenticationMethodUri_path() {
+        String uriStr = "http://www.blah.com/resource";
+        assertFalse(CustomMatchers.isValidAuthenticationMethod().matches(uriStr));
+        assertFalse(CustomMatchers.isValidAuthenticationMethodUri().matches(Uri.parse(uriStr)));
     }
 
     @Test

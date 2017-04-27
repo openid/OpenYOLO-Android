@@ -25,7 +25,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -43,6 +42,7 @@ import org.openyolo.api.ui.ProviderPickerActivity;
 import org.openyolo.protocol.Credential;
 import org.openyolo.protocol.HintRequest;
 import org.openyolo.protocol.Protobufs;
+import org.openyolo.protocol.Protobufs.CredentialRetrieveBbqResponse;
 import org.openyolo.protocol.RetrieveRequest;
 import org.openyolo.protocol.RetrieveResult;
 import org.openyolo.protocol.internal.IntentUtil;
@@ -86,7 +86,7 @@ public class CredentialClient {
      */
     @Nullable
     public Intent getHintRetrieveIntent(final HintRequest request) {
-        List<ComponentName> hintProviders = findProviders(HINT_CREDENTIAL_ACTION, null);
+        List<ComponentName> hintProviders = findProviders(HINT_CREDENTIAL_ACTION);
 
         if (hintProviders.isEmpty()) {
             return null;
@@ -135,20 +135,19 @@ public class CredentialClient {
     @Nullable
     public Intent getSaveIntent(Credential credentialToSave) {
         List<ComponentName> saveProviders =
-                findProviders(SAVE_CREDENTIAL_ACTION, credentialToSave.getAuthenticationMethod());
+                findProviders(SAVE_CREDENTIAL_ACTION);
 
         if (saveProviders.isEmpty()) {
             return null;
         }
 
-        byte[] encodedCredential = credentialToSave.getProto().toByteArray();
+        byte[] encodedCredential = credentialToSave.toProtobuf().toByteArray();
 
         // if there is a preferred provider, directly invoke it.
         ComponentName preferredSaveActivity = getPreferredProvider(saveProviders);
         if (preferredSaveActivity != null) {
             return createSaveIntent(
                     preferredSaveActivity,
-                    credentialToSave.getAuthenticationMethod(),
                     encodedCredential);
         }
 
@@ -157,7 +156,6 @@ public class CredentialClient {
         for (ComponentName providerActivity : saveProviders) {
             saveIntents.add(createSaveIntent(
                     providerActivity,
-                    credentialToSave.getAuthenticationMethod(),
                     encodedCredential));
         }
 
@@ -181,10 +179,8 @@ public class CredentialClient {
 
     private Intent createSaveIntent(
             ComponentName providerActivity,
-            Uri authenticationMethod,
             byte[] saveRequest) {
         Intent saveIntent = createIntent(providerActivity, SAVE_CREDENTIAL_ACTION);
-        saveIntent.setData(authenticationMethod);
         saveIntent.putExtra(EXTRA_CREDENTIAL, saveRequest);
         return saveIntent;
     }
@@ -228,14 +224,9 @@ public class CredentialClient {
         }
     }
 
-    private List<ComponentName> findProviders(
-            @NonNull String action,
-            @Nullable Uri data) {
+    private List<ComponentName> findProviders(@NonNull String action) {
         Intent saveIntent = new Intent(action);
         saveIntent.addCategory(OPENYOLO_CATEGORY);
-        if (data != null) {
-            saveIntent.setData(data);
-        }
 
         List<ResolveInfo> resolveInfos =
                 mApplicationContext.getPackageManager().queryIntentActivities(saveIntent, 0);
@@ -326,11 +317,11 @@ public class CredentialClient {
         @Override
         public void onResponse(long queryId, List<QueryResponse> queryResponses) {
             ArrayList<Intent> retrieveIntents = new ArrayList<>();
-            Map<String, Protobufs.CredentialRetrieveResponse> protoResponses = new HashMap<>();
+            Map<String, CredentialRetrieveBbqResponse> protoResponses = new HashMap<>();
             for (QueryResponse queryResponse : queryResponses) {
-                Protobufs.CredentialRetrieveResponse response;
+                Protobufs.CredentialRetrieveBbqResponse response;
                 try {
-                    response = Protobufs.CredentialRetrieveResponse.parseFrom(
+                    response = Protobufs.CredentialRetrieveBbqResponse.parseFrom(
                             queryResponse.responseMessage);
                 } catch (IOException e) {
                     Log.w(LOG_TAG, "Failed to decode credential retrieve response");

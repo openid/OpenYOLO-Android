@@ -16,7 +16,9 @@ package org.openyolo.spi;
 
 import android.content.Intent;
 import android.support.annotation.Nullable;
-import org.openyolo.protocol.Protobufs.Credential;
+
+import org.openyolo.protocol.Credential;
+import org.openyolo.protocol.Protobufs;
 import org.openyolo.protocol.ProtocolConstants;
 
 /**
@@ -29,6 +31,15 @@ public final class RetrieveIntentResultUtil {
      * intent.
      */
     public static Intent createResponseData(@Nullable Credential credential) {
+        return createResponseData(
+                credential != null ? credential.toProtobuf() : null);
+    }
+
+    /**
+     * Creates an {@link android.content.Intent} wrapper for the result of a credential retrieve
+     * intent.
+     */
+    public static Intent createResponseData(@Nullable Protobufs.Credential credential) {
         Intent responseData = new Intent();
         if (credential != null) {
             responseData.putExtra(ProtocolConstants.EXTRA_CREDENTIAL, credential.toByteArray());

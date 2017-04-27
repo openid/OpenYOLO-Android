@@ -27,6 +27,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Base64;
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -58,7 +59,12 @@ public final class AuthenticationDomain implements Comparable<AuthenticationDoma
     private static final String SCHEME_HTTP = "http";
     private static final String SCHEME_HTTPS = "https";
 
-    private final Uri mUri;
+    private final String mUriStr;
+
+    /**
+     * Initially null, created on-demand for each thread from mUriStr.
+     */
+    private final ThreadLocal<Uri> mParsedUri = new ThreadLocal<>();
 
     /**
      * Creates an authentication domain that represents the current package, as identified
@@ -125,7 +131,27 @@ public final class AuthenticationDomain implements Comparable<AuthenticationDoma
                 new Uri.Builder()
                         .scheme(SCHEME_ANDROID)
                         .encodedAuthority(generateSignatureHash(signature) + "@" + packageName)
-                        .build());
+                        .build()
+                        .toString());
+    }
+
+    /**
+     * Creates an authentication domain from its protocol buffer equivalent, in byte form.
+     * @throws IOException if the protocol buffer cannot be parsed.
+     */
+    @NonNull
+    public static AuthenticationDomain fromProtobufBytes(@NonNull byte[] protobufBytes)
+            throws IOException {
+        return fromProtobuf(Protobufs.AuthenticationDomain.parseFrom(protobufBytes));
+    }
+
+    /**
+     * Creates an authentication domain from its protocol buffer equivalent.
+     */
+    @NonNull
+    public static AuthenticationDomain fromProtobuf(
+            @NonNull Protobufs.AuthenticationDomain authDomain) {
+        return new AuthenticationDomain(authDomain.getUri());
     }
 
     @NonNull
@@ -146,28 +172,25 @@ public final class AuthenticationDomain implements Comparable<AuthenticationDoma
      * will be thrown.
      */
     public AuthenticationDomain(@NonNull String authDomainString) {
-        mUri = Assertive.require(
-                Uri.parse(authDomainString),
+        mUriStr = Assertive.require(
+                authDomainString,
                 CustomMatchers.isValidAuthenticationDomain());
-    }
-
-    private AuthenticationDomain(@NonNull Uri authDomainUri) {
-        mUri = authDomainUri;
     }
 
     /**
      * Determines whether the authentication domain refers to an Android application.
      */
     public boolean isAndroidAuthDomain() {
-        return SCHEME_ANDROID.equals(mUri.getScheme());
+        return SCHEME_ANDROID.equals(getParsedUri().getScheme());
     }
 
     /**
      * Determines whether the authentication domain refers to a Web domain.
      */
     public boolean isWebAuthDomain() {
-        return SCHEME_HTTP.equals(mUri.getScheme())
-                || SCHEME_HTTPS.equals(mUri.getScheme());
+        Uri parsedUri = getParsedUri();
+        return SCHEME_HTTP.equals(parsedUri.getScheme())
+                || SCHEME_HTTPS.equals(parsedUri.getScheme());
     }
 
     /**
@@ -180,15 +203,17 @@ public final class AuthenticationDomain implements Comparable<AuthenticationDoma
         if (!isAndroidAuthDomain()) {
             throw new IllegalStateException("Authentication domain is not an Android domain");
         }
-        return mUri.getHost();
+        return getParsedUri().getHost();
     }
 
     /**
-     * Retrieves the URI form of the authentication domain.
+     * Creates a protocol buffer representation of the authentication domain, for transmission
+     * or storage.
      */
-    @NonNull
-    public Uri getUri() {
-        return mUri;
+    public Protobufs.AuthenticationDomain toProtobuf() {
+        return Protobufs.AuthenticationDomain.newBuilder()
+                .setUri(mUriStr)
+                .build();
     }
 
     /**
@@ -196,7 +221,7 @@ public final class AuthenticationDomain implements Comparable<AuthenticationDoma
      */
     @NonNull
     public String toString() {
-        return mUri.toString();
+        return mUriStr;
     }
 
     @Override
@@ -209,18 +234,26 @@ public final class AuthenticationDomain implements Comparable<AuthenticationDoma
             return false;
         }
 
-        AuthenticationDomain other = (AuthenticationDomain) obj;
-
-        return mUri.equals(other.getUri());
+        return compareTo((AuthenticationDomain) obj) == 0;
     }
 
     @Override
     public int hashCode() {
-        return mUri.hashCode();
+        return mUriStr.hashCode();
     }
 
     @Override
     public int compareTo(@NonNull AuthenticationDomain authenticationDomain) {
-        return mUri.compareTo(authenticationDomain.getUri());
+        return mUriStr.compareTo(authenticationDomain.mUriStr);
+    }
+
+    private Uri getParsedUri() {
+        Uri parsedUri = mParsedUri.get();
+        if (parsedUri == null) {
+            parsedUri = Uri.parse(mUriStr);
+            mParsedUri.set(parsedUri);
+        }
+
+        return parsedUri;
     }
 }

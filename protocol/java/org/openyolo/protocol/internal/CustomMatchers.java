@@ -45,21 +45,31 @@ public final class CustomMatchers {
     }
 
     /**
-     * Matcher for OpenYOLO authentication domains.
+     * Matcher for OpenYOLO authentication methods, in string form.
      */
-    public static Matcher<Uri> isValidAuthenticationMethod() {
+    public static Matcher<String> isValidAuthenticationMethod() {
+        return StringUriMatcher.AUTHENTICATION_METHOD_STR;
+    }
+
+    /**
+     * Matcher for OpenYOLO authentication methods, in parsed Uri form.
+     */
+    public static Matcher<Uri> isValidAuthenticationMethodUri() {
         return UriMatcher.AUTHENTICATION_METHOD;
     }
 
     /**
-     * Matcher for OpenYOLO authentication domains.
+     * Matcher for OpenYOLO authentication domains, in string form.
      */
-    public static Matcher<Uri> isValidAuthenticationDomain() {
-        return UriMatcher.AUTHENTICATION_DOMAIN;
+    public static Matcher<String> isValidAuthenticationDomain() {
+        return StringUriMatcher.AUTHENTICATION_DOMAIN_STR;
     }
 
-    public static Matcher<Uri> isValidIdentifierType() {
-        return UriMatcher.IDENTIFIER_TYPE;
+    /**
+     * Matcher for OpenYOLO authentication domains, in parsed Uri form.
+     */
+    public static Matcher<Uri> isValidAuthenticationDomainUri() {
+        return UriMatcher.AUTHENTICATION_DOMAIN;
     }
 
     /**
@@ -119,15 +129,32 @@ public final class CustomMatchers {
         }
     }
 
+    private static final class StringUriMatcher extends CustomTypeSafeMatcher<String> {
+
+        static final StringUriMatcher AUTHENTICATION_DOMAIN_STR =
+                new StringUriMatcher(UriMatcher.AUTHENTICATION_DOMAIN);
+
+        static final StringUriMatcher AUTHENTICATION_METHOD_STR =
+                new StringUriMatcher(UriMatcher.AUTHENTICATION_METHOD);
+
+        private final UriMatcher mUriMatcher;
+
+        StringUriMatcher(UriMatcher matcher) {
+            super(matcher.mUriDescriptor);
+            mUriMatcher = matcher;
+        }
+
+        @Override
+        protected boolean matchesSafely(String item) {
+            Uri uri = Uri.parse(item);
+            return mUriMatcher.matchesSafely(uri);
+        }
+    }
+
     private static final class UriMatcher extends CustomTypeSafeMatcher<Uri> {
 
         static final String SCHEME_HTTP = "http";
         static final String SCHEME_HTTPS = "https";
-
-        static final UriMatcher IDENTIFIER_TYPE = new UriMatcher(
-                Collections.<String>emptySet(),
-                false,
-                "an identifier type");
 
         static final UriMatcher AUTHENTICATION_DOMAIN = new UriMatcher(
                 Collections.<String>emptySet(),
@@ -151,6 +178,7 @@ public final class CustomMatchers {
 
         final Set<String> mPermittedSchemes;
         final boolean mAllowPathQueryOrFragment;
+        final String mUriDescriptor;
 
         UriMatcher(
                 Set<String> permittedSchemes,
@@ -159,6 +187,7 @@ public final class CustomMatchers {
             super(uriDescriptor);
             mPermittedSchemes = permittedSchemes;
             mAllowPathQueryOrFragment = allowPathQueryOrFragment;
+            mUriDescriptor = uriDescriptor;
         }
 
         @Override

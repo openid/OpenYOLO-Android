@@ -51,7 +51,7 @@ public class RetrieveResultTest {
         byte[] fromBytes = IntentUtil.toBytes(fromIntent);
         Intent retrieveIntent= IntentUtil.fromBytes(fromBytes);
 
-        Map<String, Protobufs.CredentialRetrieveResponse> protoResponses = new HashMap<>();
+        Map<String, Protobufs.CredentialRetrieveBbqResponse> protoResponses = new HashMap<>();
 
         underTest = new RetrieveResult.Builder()
                 .setProtoResponses(protoResponses)

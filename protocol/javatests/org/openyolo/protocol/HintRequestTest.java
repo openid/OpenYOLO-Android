@@ -135,19 +135,13 @@ public class HintRequestTest {
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
     public void testBuild_constructor_nullAuthenticationMethod() {
-        new HintRequest.Builder((Uri) null).build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_constructor_nullString() {
-        new HintRequest.Builder((String) null).build();
+        new HintRequest.Builder((AuthenticationMethod) null).build();
     }
 
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
     public void testBuild_constructor_nullUriSet() {
-        new HintRequest.Builder((Set<Uri>) null).build();
+        new HintRequest.Builder((Set<AuthenticationMethod>) null).build();
     }
 
     @Test(expected = RequireViolation.class)
@@ -159,27 +153,22 @@ public class HintRequestTest {
     }
 
     @Test(expected = RequireViolation.class)
-    public void testBuild_constructor_nullStringInVarargs() {
+    public void testBuild_constructor_nullInVarargs() {
         new HintRequest.Builder(
-                "custom://auth-method",
+                AuthenticationMethods.EMAIL,
                 null,
-                "custom://another-auth-method")
+                AuthenticationMethods.PHONE)
                 .build();
     }
 
     @Test(expected = RequireViolation.class)
-    public void testBuild_constructor_invalidAuthMethodString() {
-        new HintRequest.Builder("notAnAuthMethod").build();
-    }
-
-    @Test(expected = RequireViolation.class)
     public void testBuild_constructor_emptySet() {
-        new HintRequest.Builder(new HashSet<Uri>()).build();
+        new HintRequest.Builder(new HashSet<AuthenticationMethod>()).build();
     }
 
     @Test(expected = RequireViolation.class)
     public void testBuild_constructor_setContainingNull() {
-        HashSet<Uri> authMethods = new HashSet<>();
+        HashSet<AuthenticationMethod> authMethods = new HashSet<>();
         authMethods.add(null);
         new HintRequest.Builder(new HashSet<>(authMethods)).build();
     }
@@ -188,7 +177,7 @@ public class HintRequestTest {
     @Test(expected = RequireViolation.class)
     public void testBuild_setAuthenticationMethods_nullUri() {
         new HintRequest.Builder(AuthenticationMethods.EMAIL)
-                .setAuthenticationMethods((Uri) null)
+                .setAuthenticationMethods((AuthenticationMethod) null)
                 .build();
     }
 
@@ -205,28 +194,9 @@ public class HintRequestTest {
 
     @SuppressWarnings("ConstantConditions")
     @Test(expected = RequireViolation.class)
-    public void testBuild_setAuthenticationMethods_nullString() {
-        new HintRequest.Builder(AuthenticationMethods.EMAIL)
-                .setAuthenticationMethods((String) null)
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_setAuthenticationMethods_nullStringInVarargs() {
-        new HintRequest.Builder(AuthenticationMethods.EMAIL)
-                .setAuthenticationMethods(
-                        "custom://auth-method",
-                        null,
-                        "custom://another-auth-method")
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
     public void testBuild_setAuthenticationMethods_nullSet() {
         new HintRequest.Builder(AuthenticationMethods.EMAIL)
-                .setAuthenticationMethods((Set<Uri>) null)
+                .setAuthenticationMethods(null)
                 .build();
     }
 
@@ -234,13 +204,13 @@ public class HintRequestTest {
     @Test(expected = RequireViolation.class)
     public void testBuild_setAuthenticationMethods_emptySet() {
         new HintRequest.Builder(AuthenticationMethods.EMAIL)
-                .setAuthenticationMethods(new HashSet<Uri>())
+                .setAuthenticationMethods(new HashSet<AuthenticationMethod>())
                 .build();
     }
 
     @Test(expected = RequireViolation.class)
     public void testBuild_setAuthenticationMethods_setContainingNull() {
-        HashSet<Uri> authMethods = new HashSet<>();
+        HashSet<AuthenticationMethod> authMethods = new HashSet<>();
         authMethods.add(null);
         new HintRequest.Builder(AuthenticationMethods.EMAIL)
                 .setAuthenticationMethods(authMethods)
@@ -251,31 +221,7 @@ public class HintRequestTest {
     @Test(expected = RequireViolation.class)
     public void testBuild_addAuthenticationMethod_nullUri() {
         new HintRequest.Builder(AuthenticationMethods.EMAIL)
-                .addAuthenticationMethod((Uri) null)
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_addAuthenticationMethod_nullString() {
-        new HintRequest.Builder(AuthenticationMethods.EMAIL)
-                .addAuthenticationMethod((String) null)
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_addAuthenticationMethod_emptyString() {
-        new HintRequest.Builder(AuthenticationMethods.EMAIL)
-                .addAuthenticationMethod("")
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_addAuthenticationMethod_invalidString() {
-        new HintRequest.Builder(AuthenticationMethods.EMAIL)
-                .addAuthenticationMethod("notAnAuthMethod")
+                .addAuthenticationMethod(null)
                 .build();
     }
 

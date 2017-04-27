@@ -40,6 +40,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.AuthenticationMethod;
+import org.openyolo.protocol.Protobufs;
 import org.openyolo.protocol.Protobufs.CredentialRetrieveRequest;
 import org.openyolo.protocol.RetrieveRequest;
 import org.robolectric.RobolectricTestRunner;
@@ -105,8 +107,8 @@ public class BaseCredentialQueryReceiverTest {
 
     private static CredentialRetrieveRequest makeValidCredentialRetrieveRequest() {
         return CredentialRetrieveRequest.newBuilder()
-            .addAuthMethods("custom://one")
-            .addAuthMethods("custom://two")
+            .addAuthMethods(new AuthenticationMethod("custom://one").toProtobuf())
+            .addAuthMethods(new AuthenticationMethod("custom://two").toProtobuf())
             .build();
     }
 
@@ -157,7 +159,8 @@ public class BaseCredentialQueryReceiverTest {
     @Test
     public void processQuery_withValidRequestAndUnableToDetermineAuthenticationDomain_sendsNullResponse()
             throws Exception {
-        ShadowAuthenticationDomain.setListForPackageResponse(Collections.EMPTY_LIST);
+        ShadowAuthenticationDomain.setListForPackageResponse(
+                Collections.<AuthenticationDomain>emptyList());
         credentialQueryReceiver.processQuery(mockContext, QUERY_WITH_VALID_REQUEST);
 
         verifyProcessCredentialRequestWasNotCalled();

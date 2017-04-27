@@ -19,15 +19,13 @@ import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.unmodifiableSet;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.everyItem;
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.openyolo.protocol.internal.CustomMatchers.isValidAuthenticationMethod;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.openyolo.protocol.internal.CustomMatchers.notNullOrEmptyString;
-import static org.openyolo.protocol.internal.UriConverters.CONVERTER_STRING_TO_URI;
-import static org.openyolo.protocol.internal.UriConverters.CONVERTER_URI_TO_STRING;
 import static org.valid4j.Validation.validate;
 
-import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
@@ -38,6 +36,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.openyolo.protocol.internal.AuthenticationMethodConverters;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.CollectionConverter;
 import org.openyolo.protocol.internal.NoopValueConverter;
@@ -55,13 +54,13 @@ public class RetrieveRequest implements Parcelable {
     public static final Creator<RetrieveRequest> CREATOR = new RetrieveRequestCreator();
 
     @NonNull
-    private final Set<Uri> mAuthMethods;
+    private final Set<AuthenticationMethod> mAuthMethods;
 
     @NonNull
     private final Map<String, byte[]> mAdditionalProps;
 
     private RetrieveRequest(
-            @NonNull Set<Uri> authMethods,
+            @NonNull Set<AuthenticationMethod> authMethods,
             @NonNull Map<String, byte[]> additionalParams) {
         mAuthMethods = authMethods;
         mAdditionalProps = additionalParams;
@@ -71,14 +70,15 @@ public class RetrieveRequest implements Parcelable {
      * Creates a {@link RetrieveRequest} from the given authentication methods.
      */
     public static RetrieveRequest forAuthenticationMethods(
-            @NonNull Set<Uri> authenticationMethods) {
+            @NonNull Set<AuthenticationMethod> authenticationMethods) {
         return new RetrieveRequest.Builder(authenticationMethods).build();
     }
 
     /**
      * Creates a {@link RetrieveRequest} from the given authentication methods.
      */
-    public static RetrieveRequest forAuthenticationMethods(@NonNull Uri... authenticationMethods) {
+    public static RetrieveRequest forAuthenticationMethods(
+            @NonNull AuthenticationMethod... authenticationMethods) {
         return new RetrieveRequest.Builder(authenticationMethods).build();
     }
 
@@ -87,7 +87,7 @@ public class RetrieveRequest implements Parcelable {
      * of credentials saved by the provider. At least one authentication method must be specified.
      */
     @NonNull
-    public Set<Uri> getAuthenticationMethods() {
+    public Set<AuthenticationMethod> getAuthenticationMethods() {
         return mAuthMethods;
     }
 
@@ -143,7 +143,7 @@ public class RetrieveRequest implements Parcelable {
                 .addAllAuthMethods(
                         CollectionConverter.toList(
                                 mAuthMethods,
-                                CONVERTER_URI_TO_STRING))
+                                AuthenticationMethodConverters.OBJECT_TO_PROTOBUF))
                 .putAllAdditionalProps(
                         CollectionConverter.convertMapValues(
                                 mAdditionalProps,
@@ -156,7 +156,7 @@ public class RetrieveRequest implements Parcelable {
      */
     public static final class Builder {
 
-        private Set<Uri> mAuthMethods = new HashSet<>();
+        private Set<AuthenticationMethod> mAuthMethods = new HashSet<>();
         private Map<String, byte[]> mAdditionalParams = new HashMap<>();
 
         /**
@@ -168,7 +168,7 @@ public class RetrieveRequest implements Parcelable {
 
             setAuthenticationMethods(CollectionConverter.toSet(
                     requestProto.getAuthMethodsList(),
-                    CONVERTER_STRING_TO_URI));
+                    AuthenticationMethodConverters.PROTOBUF_TO_OBJECT));
             setAdditionalProperties(
                     CollectionConverter.convertMapValues(
                             requestProto.getAdditionalPropsMap(),
@@ -179,18 +179,18 @@ public class RetrieveRequest implements Parcelable {
          * Starts the process of describing a retrieve request. At least one authentication method
          * must be provided.
          */
-        public Builder(@NonNull Uri... authMethods) {
+        public Builder(@NonNull AuthenticationMethod... authMethods) {
             setAuthenticationMethods(
                     CollectionConverter.toSet(
                             authMethods,
-                            NoopValueConverter.<Uri>getInstance()));
+                            NoopValueConverter.<AuthenticationMethod>getInstance()));
         }
 
         /**
          * Starts the process of describing a retrieve request. At least one authentication method
          * must be provided.
          */
-        public Builder(@NonNull Set<Uri> authMethods) {
+        public Builder(@NonNull Set<AuthenticationMethod> authMethods) {
             setAuthenticationMethods(authMethods);
         }
 
@@ -198,13 +198,10 @@ public class RetrieveRequest implements Parcelable {
          * Specifies the authentication methods supported by the requester. At least one
          * authentication method must be provided.
          */
-        private Builder setAuthenticationMethods(@NonNull Set<Uri> authMethods) {
+        private Builder setAuthenticationMethods(@NonNull Set<AuthenticationMethod> authMethods) {
             validate(authMethods, notNullValue(), IllegalArgumentException.class);
+            validate(authMethods, not(hasItem(nullValue())), IllegalArgumentException.class);
             validate(authMethods, not(equalTo(EMPTY_SET)), IllegalArgumentException.class);
-            validate(
-                    authMethods,
-                    everyItem(isValidAuthenticationMethod()),
-                    IllegalArgumentException.class);
 
             mAuthMethods = authMethods;
             return this;

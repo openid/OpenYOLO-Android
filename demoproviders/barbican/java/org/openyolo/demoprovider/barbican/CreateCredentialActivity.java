@@ -46,7 +46,7 @@ import java.util.List;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
 import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.AuthenticationMethods;
-import org.openyolo.protocol.Protobufs.Credential;
+import org.openyolo.protocol.Credential;
 
 /**
  * Creates credentials from manual user input for storage.
@@ -190,14 +190,14 @@ public class CreateCredentialActivity
                     mPackageName)
                     .get(0);
 
-            Credential credential = Credential.newBuilder()
-                    .setId(mUsername)
-                    .setAuthDomain(domain.toString())
-                    .setAuthMethod(AuthenticationMethods.EMAIL.toString())
+            Credential credential = new Credential.Builder(
+                    mUsername,
+                    AuthenticationMethods.EMAIL,
+                    domain)
                     .setPassword(mPassword)
                     .build();
             try {
-                mStorageClient.upsertCredential(credential);
+                mStorageClient.upsertCredential(credential.toProtobuf());
                 return true;
             } catch (IOException e) {
                 Log.w(LOG_TAG, "Failed to upsert credential to database");

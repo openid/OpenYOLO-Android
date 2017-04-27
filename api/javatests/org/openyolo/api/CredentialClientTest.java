@@ -304,7 +304,7 @@ public class CredentialClientTest {
     @Test
     public void getCredentialFromActivityResult_withExtras() throws Exception {
         Intent intent = new Intent();
-        byte[] array = testCredential.getProto().toByteArray();
+        byte[] array = testCredential.toProtobuf().toByteArray();
         intent.putExtra(EXTRA_CREDENTIAL, array);
         Credential result = credentialClient.getCredentialFromActivityResult(intent);
         assertEquals(result.getIdentifier(), "alice@example.com");

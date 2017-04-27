@@ -15,8 +15,8 @@
 package org.openyolo.testapp;
 
 import android.content.Context;
-import android.net.Uri;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -25,9 +25,13 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import java.util.HashSet;
 import java.util.Set;
+import org.openyolo.protocol.AuthenticationMethod;
 import org.openyolo.protocol.AuthenticationMethods;
+import org.valid4j.errors.RequireViolation;
 
 public final class AuthenticationMethodsInputView extends LinearLayout {
+
+    private static final String TAG = "AuthMethodsInputView";
 
     @BindView(R.id.facebook_authentication_method_checkbox)
     CheckBox mFaceBookCheckBox;
@@ -91,8 +95,8 @@ public final class AuthenticationMethodsInputView extends LinearLayout {
     /**
      * @return A set of authentication domains that are marked as enabled.
      */
-    public Set<Uri> getEnabledAuthenticationMethods() {
-        Set<Uri> authenticationMethods = new HashSet<>();
+    public Set<AuthenticationMethod> getEnabledAuthenticationMethods() {
+        Set<AuthenticationMethod> authenticationMethods = new HashSet<>();
 
         if (mFaceBookCheckBox.isChecked()) {
             authenticationMethods.add(AuthenticationMethods.FACEBOOK);
@@ -107,8 +111,13 @@ public final class AuthenticationMethodsInputView extends LinearLayout {
         }
 
         if (mCustomAuthenticationMethodCheckBox.isChecked()) {
-            Uri authenticationMethod = Uri.parse(mCustomAuthenticationMethod.getText().toString());
-            authenticationMethods.add(authenticationMethod);
+            String customAuthMethodStr = mCustomAuthenticationMethod.getText().toString();
+            try {
+                authenticationMethods.add(new AuthenticationMethod(customAuthMethodStr));
+            } catch (RequireViolation ex) {
+                Log.w(TAG, "Authentication method " + customAuthMethodStr
+                        + " is invalid, ignoring");
+            }
         }
 
         return authenticationMethods;

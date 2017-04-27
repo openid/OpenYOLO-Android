@@ -19,6 +19,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -30,11 +31,15 @@ import butterknife.OnClick;
 import butterknife.OnTextChanged;
 import com.bumptech.glide.Glide;
 import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.AuthenticationMethod;
 import org.openyolo.protocol.AuthenticationMethods;
 import org.openyolo.protocol.Credential;
 import org.openyolo.protocol.PasswordSpecification;
+import org.valid4j.errors.RequireViolation;
 
 public final class CredentialView extends LinearLayout {
+
+    private static final String TAG = "CredentialView";
 
     @BindView(R.id.generate_id_button)
     ImageButton mGenerateIdButton;
@@ -214,21 +219,26 @@ public final class CredentialView extends LinearLayout {
      */
     @Nullable
     public Credential makeCredentialFromFields() {
-        String authenticationMethod = mAuthenticationMethodField.getText().toString();
-        Uri authMethodUri = Uri.parse(authenticationMethod);
+        String authMethodStr = mAuthenticationMethodField.getText().toString();
+        AuthenticationMethod authMethod;
+        try {
+            authMethod = new AuthenticationMethod(authMethodStr);
+        } catch (RequireViolation ex) {
+            Log.w(TAG, "User entered authentication method " + authMethodStr + " is invalid", ex);
+            return null;
+        }
+
         AuthenticationDomain authenticationDomain =
                 AuthenticationDomain.getSelfAuthDomain(getContext());
 
         Credential.Builder credentialBuilder = new Credential.Builder(
                 mIdField.getText().toString(),
-                authMethodUri,
+                authMethod,
                 authenticationDomain)
                 .setDisplayName(convertEmptyToNull(mDisplayNameField.getText().toString()))
                 .setDisplayPicture(convertEmptyToNull(mProfilePictureField.getText().toString()));
 
-        if (authMethodUri.equals(AuthenticationMethods.EMAIL)) {
-            credentialBuilder.setPassword(mPasswordField.getText().toString());
-        }
+        credentialBuilder.setPassword(mPasswordField.getText().toString());
 
         return credentialBuilder.build();
     }

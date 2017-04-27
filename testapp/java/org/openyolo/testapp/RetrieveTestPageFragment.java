@@ -19,7 +19,6 @@ import static android.app.Activity.RESULT_OK;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.StringRes;
 import android.support.design.widget.Snackbar;
@@ -33,6 +32,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import org.openyolo.api.CredentialClient;
 import org.openyolo.api.RetrieveCallback;
+import org.openyolo.protocol.AuthenticationMethod;
 import org.openyolo.protocol.Credential;
 import org.openyolo.protocol.RetrieveRequest;
 import org.openyolo.protocol.RetrieveResult;
@@ -103,7 +103,7 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
     void onRetrieve() {
         mCredentialView.clearFields();
 
-        Set<Uri> authenticationMethods =
+        Set<AuthenticationMethod> authenticationMethods =
                 mAuthenticationMethodsInputView.getEnabledAuthenticationMethods();
 
         if (authenticationMethods.isEmpty()) {

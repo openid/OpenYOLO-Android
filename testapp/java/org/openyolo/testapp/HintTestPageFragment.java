@@ -18,7 +18,6 @@ import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.StringRes;
 import android.support.design.widget.Snackbar;
@@ -30,9 +29,11 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import org.openyolo.api.CredentialClient;
+import org.openyolo.protocol.AuthenticationMethod;
 import org.openyolo.protocol.AuthenticationMethods;
 import org.openyolo.protocol.Credential;
 import org.openyolo.protocol.HintRequest;
+import org.valid4j.errors.RequireViolation;
 
 /**
  * Fragment which contains a method of testing the OpenYolo credential hint flow.
@@ -99,14 +100,16 @@ public final class HintTestPageFragment extends TestPageFragment {
     void onHint() {
         mCredentialView.clearFields();
 
-        String uriString = mAuthenticationMethodInput.getText().toString();
-        if (uriString.isEmpty()) {
+        String authMethodStr = mAuthenticationMethodInput.getText().toString();
+        AuthenticationMethod authMethod;
+        try {
+            authMethod = new AuthenticationMethod(authMethodStr);
+        } catch (RequireViolation ex) {
             showSnackbar(R.string.authentication_field_required);
             return;
         }
-        Uri authMethodUri = Uri.parse(uriString);
 
-        HintRequest.Builder requestBuilder = new HintRequest.Builder(authMethodUri);
+        HintRequest.Builder requestBuilder = new HintRequest.Builder(authMethod);
 
         Intent hintIntent = mApi.getHintRetrieveIntent(requestBuilder.build());
         if (hintIntent == null) {

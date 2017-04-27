@@ -48,7 +48,7 @@
     <string name="open_yolo_email_button_content_description">Set authentication method to Email</string>
 
     <!-- Misc -->
-    <string name="authentication_field_required">Must select authentication method</string>
+    <string name="authentication_field_required">Must select or enter valid authentication method</string>
     <string name="request_failed">OpenYOLO request failed</string>
     <string name="unknown_response">Unknown response</string>
     <string name="response">Response</string>

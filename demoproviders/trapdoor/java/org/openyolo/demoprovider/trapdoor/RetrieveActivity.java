@@ -26,7 +26,7 @@ import java.util.TreeSet;
 import me.philio.pinentry.PinEntryView;
 import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.AuthenticationMethods;
-import org.openyolo.protocol.Protobufs.Credential;
+import org.openyolo.protocol.Credential;
 import org.openyolo.spi.RetrieveIntentResultUtil;
 
 /**
@@ -85,10 +85,10 @@ public class RetrieveActivity extends AppCompatActivity {
                     pin.toString(),
                     mDomain.toString());
 
-            Credential credential = Credential.newBuilder()
-                    .setAuthMethod(AuthenticationMethods.EMAIL.toString())
-                    .setAuthDomain(mDomain.toString())
-                    .setId(UserDataStore.getUserName(RetrieveActivity.this))
+            Credential credential = new Credential.Builder(
+                    UserDataStore.getUserName(RetrieveActivity.this),
+                    AuthenticationMethods.EMAIL,
+                    mDomain)
                     .setPassword(password)
                     .build();
 

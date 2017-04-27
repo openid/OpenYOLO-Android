@@ -16,7 +16,6 @@ package org.openyolo.demoprovider.barbican.provider;
 
 import android.content.ComponentName;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
@@ -29,6 +28,7 @@ import java.util.Set;
 import org.openyolo.demoprovider.barbican.Protobufs.AccountHint;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
 import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.AuthenticationMethod;
 import org.openyolo.protocol.AuthenticationMethods;
 import org.openyolo.protocol.HintRequest;
 import org.openyolo.protocol.Protobufs.Credential;
@@ -103,15 +103,16 @@ public class HintActivity
         // they contain (so more complete items are displayed first), and then alphabetically.
         ArrayList<Credential> filteredHints = new ArrayList<>();
         for (AccountHint hint : hints) {
-            Set<Uri> authMethods = mRequest.getAuthenticationMethods();
-            if (!authMethods.contains(Uri.parse(hint.getAuthMethod()))) {
+            AuthenticationMethod hintAuthMethod = new AuthenticationMethod(hint.getAuthMethod());
+            Set<AuthenticationMethod> authMethods = mRequest.getAuthenticationMethods();
+            if (!authMethods.contains(hintAuthMethod)) {
                 continue;
             }
 
             Credential.Builder hintCredentialBuilder = Credential.newBuilder()
                     .setId(hint.getIdentifier())
-                    .setAuthMethod(hint.getAuthMethod())
-                    .setAuthDomain(mCallerAuthDomain.toString())
+                    .setAuthMethod(hintAuthMethod.toProtobuf())
+                    .setAuthDomain(mCallerAuthDomain.toProtobuf())
                     .setDisplayName(hint.getName())
                     .setDisplayPictureUri(hint.getPictureUri());
 

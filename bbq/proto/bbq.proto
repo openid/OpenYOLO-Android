@@ -22,24 +22,35 @@ option java_package = "com.google.bbq";
 option java_outer_classname = "Protobufs";
 
 message BroadcastQuery {
-    string   dataType      = 1; // required
-    string   requestingApp = 2; // required
-    sfixed64 requestId     = 3; // required
-    sfixed64 responseId    = 4; // required
-    bytes    queryMessage  = 5;
+    // required - The BBQ client version.
+    ClientVersion version = 1;
 
-    map<string, bytes> additionalProps = 6;
+    // required - the type of data to be discovered
+    string dataType = 2;
+
+    // required - the package name of the requesting app
+    string requestingApp = 3;
+
+    // required - a 64-bit random number for this request.
+    sfixed64 requestId = 4;
+
+    // required
+    sfixed64 responseId = 5;
+
+    bytes queryMessage = 6;
+    map<string, bytes> additionalProps = 7;
 }
 
 message BroadcastQueryResponse {
-    sfixed64 requestId       = 1; // required
-    sfixed64 responseId      = 2; // required
-    bytes    responseMessage = 3;
+    // required
+    sfixed64 requestId = 1;
+    // required
+    sfixed64 responseId = 2;
+    bytes responseMessage = 3;
 
     map<string, bytes> additionalProps = 4;
 }
 
-message Parameter {
-    string name  = 1; // required
-    bytes  value = 2;
+message ClientVersion {
+    string version = 1;
 }

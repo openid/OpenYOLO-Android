@@ -65,7 +65,7 @@ public class SaveCredentialConfirmationActivity extends AppCompatActivity {
             Credential credential) {
         Intent intent = new Intent(context, SaveCredentialConfirmationActivity.class);
         intent.putExtra(EXTRA_CALLING_PACKAGE, callingPackage);
-        intent.putExtra(EXTRA_CREDENTIAL, credential.getProto().toByteArray());
+        intent.putExtra(EXTRA_CREDENTIAL, credential.toProtobuf().toByteArray());
         return intent;
     }
 
@@ -129,7 +129,7 @@ public class SaveCredentialConfirmationActivity extends AppCompatActivity {
 
         if (client.isUnlocked()) {
             try {
-                client.upsertCredential(mCredential.getProto());
+                client.upsertCredential(mCredential.toProtobuf());
                 finish(RESULT_OK);
             } catch (IOException e) {
                 Log.w(LOG_TAG, "Failed to write credential to storage");
@@ -139,7 +139,7 @@ public class SaveCredentialConfirmationActivity extends AppCompatActivity {
             Intent saveAfterUnlock = UnlockActivity.createIntent(
                     this,
                     true,
-                    SaveAfterUnlockActivity.createIntent(this, mCredential.getProto()));
+                    SaveAfterUnlockActivity.createIntent(this, mCredential.toProtobuf()));
             saveAfterUnlock.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
             startActivity(saveAfterUnlock);
             finish();
