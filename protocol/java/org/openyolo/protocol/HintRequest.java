@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import org.openyolo.protocol.internal.AuthenticationMethodConverters;
 import org.openyolo.protocol.internal.ByteStringConverters;
+import org.openyolo.protocol.internal.ClientVersionUtil;
 import org.openyolo.protocol.internal.CollectionConverter;
 import org.openyolo.protocol.internal.NoopValueConverter;
 
@@ -159,6 +160,7 @@ public class HintRequest implements Parcelable {
     @NonNull
     public Protobufs.HintRetrieveRequest toProtocolBuffer() {
         return Protobufs.HintRetrieveRequest.newBuilder()
+                .setClientVersion(ClientVersionUtil.getClientVersion())
                 .addAllAuthMethods(
                         CollectionConverter.toList(
                                 mAuthMethods,

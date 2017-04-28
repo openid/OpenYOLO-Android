@@ -23,7 +23,7 @@ option java_outer_classname = "Protobufs";
 
 message BroadcastQuery {
     // required - The BBQ client version.
-    ClientVersion version = 1;
+    ClientVersion clientVersion = 1;
 
     // required - the type of data to be discovered
     string dataType = 2;
@@ -52,5 +52,15 @@ message BroadcastQueryResponse {
 }
 
 message ClientVersion {
-    string version = 1;
+    // required
+    string vendor = 1;
+
+    // required
+    uint32 major = 3;
+
+    // required
+    uint32 minor = 4;
+
+    // required
+    uint32 patch = 5;
 }

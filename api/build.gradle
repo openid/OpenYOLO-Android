@@ -6,6 +6,10 @@ android {
         vectorDrawables.useSupportLibrary = true
         consumerProguardFiles 'proguard-rules.txt'
         project.archivesBaseName = 'openyolo-api'
+
+        buildConfigField('String', 'clientVersionMajor', rootProject.ext.versionMajor)
+        buildConfigField('String', 'clientVersionMinor', rootProject.ext.versionMinor)
+        buildConfigField('String', 'clientVersionPatch', rootProject.ext.versionPatch)
     }
 }
 

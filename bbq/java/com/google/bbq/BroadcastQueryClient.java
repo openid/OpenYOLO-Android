@@ -27,6 +27,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import com.google.bbq.Protobufs.BroadcastQuery;
 import com.google.bbq.Protobufs.BroadcastQueryResponse;
+import com.google.bbq.internal.ClientVersionUtil;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.MessageLite;
 import java.io.IOException;
@@ -186,6 +187,7 @@ public final class BroadcastQueryClient {
         queryIntent.setPackage(responderPackage);
         queryIntent.putExtra(QueryUtil.EXTRA_QUERY_MESSAGE,
                 BroadcastQuery.newBuilder()
+                        .setClientVersion(ClientVersionUtil.getClientVersion())
                         .setRequestingApp(mContext.getPackageName())
                         .setDataType(pendingQuery.mDataType)
                         .setRequestId(pendingQuery.mQueryId)

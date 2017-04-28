@@ -5,6 +5,10 @@ android {
     defaultConfig {
         project.archivesBaseName = 'openyolo-spi'
         consumerProguardFiles 'proguard-rules.txt'
+
+        buildConfigField('String', 'spiVersionMajor', rootProject.ext.versionMajor)
+        buildConfigField('String', 'spiVersionMinor', rootProject.ext.versionMinor)
+        buildConfigField('String', 'spiVersionPatch', rootProject.ext.versionPatch)
     }
 }
 

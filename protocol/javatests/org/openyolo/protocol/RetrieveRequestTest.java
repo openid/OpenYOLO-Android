@@ -29,6 +29,7 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.openyolo.protocol.internal.ClientVersionUtil;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -121,6 +122,34 @@ public class RetrieveRequestTest {
     @Test(expected = NullPointerException.class)
     public void testAdapter_nullArray() throws IOException {
         Protobufs.CredentialRetrieveRequest.parseFrom((byte[]) null);
+    }
+
+    @Test
+    public void testToProtocolBuffer_includesClientVersion() {
+        String vendor = "test";
+        int major = 1;
+        int minor = 2;
+        int patch = 3;
+        ClientVersionUtil.setClientVersion(
+                Protobufs.ClientVersion.newBuilder()
+                        .setVendor(vendor)
+                        .setMajor(major)
+                        .setMinor(minor)
+                        .setPatch(patch)
+                        .build());
+
+        try {
+            RetrieveRequest request = RetrieveRequest.forAuthenticationMethods(
+                    AuthenticationMethods.EMAIL);
+            Protobufs.CredentialRetrieveRequest proto = request.toProtocolBuffer();
+            assertThat(proto.hasClientVersion());
+            assertThat(proto.getClientVersion().getVendor()).isEqualTo(vendor);
+            assertThat(proto.getClientVersion().getMajor()).isEqualTo(major);
+            assertThat(proto.getClientVersion().getMinor()).isEqualTo(minor);
+            assertThat(proto.getClientVersion().getPatch()).isEqualTo(patch);
+        } finally {
+            ClientVersionUtil.setClientVersion(null);
+        }
     }
 
     private static <T, U> void assertMapsEqual(Map<T, U> a, Map<T, U> b) {

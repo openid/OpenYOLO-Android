@@ -4,7 +4,15 @@ apply from:'../config/android-common.gradle'
 apply from:'../config/protobuf.gradle'
 apply from:'../config/third-party.gradle'
 
-android.defaultConfig.project.archivesBaseName = 'bbq'
+android {
+    defaultConfig {
+        project.archivesBaseName = 'bbq'
+
+        buildConfigField('String', 'bbqVersionMajor', rootProject.ext.versionMajor)
+        buildConfigField('String', 'bbqVersionMinor', rootProject.ext.versionMinor)
+        buildConfigField('String', 'bbqVersionPatch', rootProject.ext.versionPatch)
+    }
+}
 
 dependencies {
     compile "com.android.support:support-annotations:${rootProject.supportLibVersion}"

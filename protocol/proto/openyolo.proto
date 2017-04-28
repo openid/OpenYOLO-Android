@@ -22,8 +22,10 @@ option java_package = "org.openyolo.protocol";
 option java_outer_classname = "Protobufs";
 
 message CredentialRetrieveRequest {
+    ClientVersion clientVersion = 1;
+
     // at least one authMethod required
-    repeated AuthenticationMethod authMethods = 1;
+    repeated AuthenticationMethod authMethods = 2;
 
     map<string, TokenRequestInfo> supportedTokenProviders = 3;
     map<string, bytes> additionalProps = 4;
@@ -35,12 +37,14 @@ message CredentialRetrieveBbqResponse {
 }
 
 message HintRetrieveRequest {
-    // at least one authMethod required
-    repeated AuthenticationMethod authMethods = 1;
+    ClientVersion clientVersion = 1;
 
-    PasswordSpecification passwordSpec = 2;
-    map<string, TokenRequestInfo> supportedTokenProviders = 3;
-    map<string, bytes> additionalProps = 4;
+    // at least one authMethod required
+    repeated AuthenticationMethod authMethods = 2;
+
+    PasswordSpecification passwordSpec = 3;
+    map<string, TokenRequestInfo> supportedTokenProviders = 4;
+    map<string, bytes> additionalProps = 5;
 }
 
 message HintRetrieveResult {
@@ -104,4 +108,18 @@ message TokenRequestInfo {
     string clientId = 1;
     string nonce = 2;
     map<string, bytes> additionalProps = 3;
+}
+
+message ClientVersion {
+    // required
+    string vendor = 1;
+
+    // required
+    uint32 major = 2;
+
+    // required
+    uint32 minor = 3;
+
+    // required
+    uint32 patch = 4;
 }

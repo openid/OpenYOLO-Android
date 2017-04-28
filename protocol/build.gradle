@@ -3,7 +3,16 @@ apply plugin: 'com.android.library'
 apply from:'../config/android-common.gradle'
 apply from:'../config/protobuf.gradle'
 
-android.defaultConfig.project.archivesBaseName = 'data'
+android {
+    defaultConfig {
+        project.archivesBaseName = 'protocol'
+        consumerProguardFiles 'proguard-rules.txt'
+
+        buildConfigField('String', 'clientVersionMajor', rootProject.ext.versionMajor)
+        buildConfigField('String', 'clientVersionMinor', rootProject.ext.versionMinor)
+        buildConfigField('String', 'clientVersionPatch', rootProject.ext.versionPatch)
+    }
+}
 
 dependencies {
     compile "com.android.support:support-annotations:${rootProject.supportLibVersion}"
