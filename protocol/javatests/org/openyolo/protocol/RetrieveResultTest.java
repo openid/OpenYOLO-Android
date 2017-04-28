@@ -28,8 +28,6 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.openyolo.protocol.Protobufs;
-import org.openyolo.protocol.RetrieveResult;
 import org.openyolo.protocol.internal.IntentUtil;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -42,7 +40,7 @@ import org.valid4j.errors.RequireViolation;
 @Config(manifest = Config.NONE)
 public class RetrieveResultTest {
 
-    private RetrieveResult underTest;
+    private RetrieveBbqResponse underTest;
 
     @Before
     public void setUp() throws Exception {
@@ -53,7 +51,7 @@ public class RetrieveResultTest {
 
         Map<String, Protobufs.CredentialRetrieveBbqResponse> protoResponses = new HashMap<>();
 
-        underTest = new RetrieveResult.Builder()
+        underTest = new RetrieveBbqResponse.Builder()
                 .setProtoResponses(protoResponses)
                 .setRetrieveIntent(retrieveIntent)
                 .build();
@@ -87,7 +85,7 @@ public class RetrieveResultTest {
         underTest.writeToParcel(p, 0);
         p.setDataPosition(0);
 
-        RetrieveResult result = RetrieveResult.CREATOR.createFromParcel(p);
+        RetrieveBbqResponse result = RetrieveBbqResponse.CREATOR.createFromParcel(p);
         checkIntentsEquivalent(underTest.getRetrieveIntent(), result.getRetrieveIntent());
         assertThat(result.getResponderPackageNames())
                 .isEqualTo(underTest.getResponderPackageNames());

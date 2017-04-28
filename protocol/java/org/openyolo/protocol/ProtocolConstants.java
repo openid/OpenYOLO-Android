@@ -30,6 +30,16 @@ public final class ProtocolConstants {
     public static final String EXTRA_CREDENTIAL = "org.openyolo.retrieve.credential";
 
     /**
+     * The extra value key used to carry a credential retrieve request.
+     */
+    public static final String EXTRA_RETRIEVE_REQUEST = "org.openyolo.credential.retrieve.request";
+
+    /**
+     * The extra value key used to carry a credential retrieve result.
+     */
+    public static final String EXTRA_RETRIEVE_RESULT = "org.openyolo.credential.retrieve.result";
+
+    /**
      * The extra key value used to carry a hint request to a credential provider.
      */
     public static final String EXTRA_HINT_REQUEST = "org.openyolo.hint.request";
@@ -40,6 +50,11 @@ public final class ProtocolConstants {
     public static final String OPENYOLO_CATEGORY = "org.openyolo";
 
     /**
+     * The action used for credential retrieval request intents.
+     */
+    public static final String RETRIEVE_CREDENTIAL_ACTION = "org.openyolo.credential.retrieve";
+
+    /**
      * The action used for hint intents.
      */
     public static final String HINT_CREDENTIAL_ACTION = "org.openyolo.hint";
@@ -48,6 +63,7 @@ public final class ProtocolConstants {
      * The action used for save intents.
      */
     public static final String SAVE_CREDENTIAL_ACTION = "org.openyolo.save";
+
 
     private ProtocolConstants() {
         throw new IllegalStateException("not intended to be constructed");

@@ -24,8 +24,8 @@ import com.google.protobuf.ByteString;
 import java.util.Set;
 import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.AuthenticationMethods;
+import org.openyolo.protocol.CredentialRetrieveRequest;
 import org.openyolo.protocol.Protobufs.CredentialRetrieveBbqResponse;
-import org.openyolo.protocol.RetrieveRequest;
 import org.openyolo.protocol.internal.IntentUtil;
 import org.openyolo.spi.BaseCredentialQueryReceiver;
 
@@ -50,7 +50,7 @@ public class CredentialQueryReceiver extends BaseCredentialQueryReceiver {
     protected void processCredentialRequest(
             @NonNull Context context,
             @NonNull BroadcastQuery query,
-            @NonNull RetrieveRequest request,
+            @NonNull CredentialRetrieveRequest request,
             @NonNull Set<AuthenticationDomain> requestorDomains) {
 
         Log.i(LOG_TAG, "Processing retrieve query from claimed caller: "

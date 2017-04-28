@@ -20,14 +20,14 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import com.google.bbq.Protobufs.BroadcastQuery;
 import com.google.bbq.QueryResponseSender;
-import com.google.protobuf.ByteString;
+
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Set;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorage;
 import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.CredentialRetrieveRequest;
 import org.openyolo.protocol.Protobufs.CredentialRetrieveBbqResponse;
-import org.openyolo.protocol.RetrieveRequest;
 import org.openyolo.protocol.internal.IntentUtil;
 import org.openyolo.spi.BaseCredentialQueryReceiver;
 
@@ -51,7 +51,7 @@ public class CredentialQueryReceiver extends BaseCredentialQueryReceiver {
     protected void processCredentialRequest(
             @NonNull final Context context,
             @NonNull final BroadcastQuery query,
-            @NonNull RetrieveRequest request,
+            @NonNull CredentialRetrieveRequest request,
             @NonNull Set<AuthenticationDomain> requestorDomains) {
 
         final Context applicationContext = context.getApplicationContext();
@@ -86,10 +86,11 @@ public class CredentialQueryReceiver extends BaseCredentialQueryReceiver {
                 + credentialsFound);
 
         if (credentialsFound) {
-            Intent retrieveIntent = RetrieveCredentialActivity.createIntent(context);
-            CredentialRetrieveBbqResponse response = CredentialRetrieveBbqResponse.newBuilder()
-                    .setRetrieveIntent(ByteString.copyFrom(IntentUtil.toBytes(retrieveIntent)))
-                    .build();
+            Intent retrieveIntent = RetrieveCredentialActivity.createIntent(context, request);
+            CredentialRetrieveBbqResponse response =
+                    CredentialRetrieveBbqResponse.newBuilder()
+                            .setRetrieveIntent(IntentUtil.toByteString(retrieveIntent))
+                            .build();
             responseBytes = response.toByteArray();
         }
 

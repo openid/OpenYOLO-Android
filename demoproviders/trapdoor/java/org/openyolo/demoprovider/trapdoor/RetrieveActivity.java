@@ -27,7 +27,7 @@ import me.philio.pinentry.PinEntryView;
 import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.AuthenticationMethods;
 import org.openyolo.protocol.Credential;
-import org.openyolo.spi.RetrieveIntentResultUtil;
+import org.openyolo.protocol.CredentialRetrieveResult;
 
 /**
  * Collects a 6-digit pin from the user, then generates a password to return to the invoking app.
@@ -92,7 +92,11 @@ public class RetrieveActivity extends AppCompatActivity {
                     .setPassword(password)
                     .build();
 
-            setResult(RESULT_OK, RetrieveIntentResultUtil.createResponseData(credential));
+            CredentialRetrieveResult result = new CredentialRetrieveResult.Builder(
+                    CredentialRetrieveResult.RESULT_SUCCESS)
+                    .setCredential(credential)
+                    .build();
+            setResult(result.getResultCode(), result.toResultDataIntent());
             finish();
         }
     }

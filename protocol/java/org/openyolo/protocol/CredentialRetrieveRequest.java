@@ -26,6 +26,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.openyolo.protocol.internal.CustomMatchers.notNullOrEmptyString;
 import static org.valid4j.Validation.validate;
 
+import android.content.Intent;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
@@ -45,14 +46,71 @@ import org.openyolo.protocol.internal.NoopValueConverter;
 /**
  * A request for credentials, to be sent to credential providers on the device.
  */
-public class RetrieveRequest implements Parcelable {
+public class CredentialRetrieveRequest implements Parcelable {
 
     /**
-     * Parcelable reader for {@link RetrieveRequest} instances.
+     * Parcelable reader for {@link CredentialRetrieveRequest} instances.
      *
      * @see android.os.Parcelable
      */
-    public static final Creator<RetrieveRequest> CREATOR = new RetrieveRequestCreator();
+    public static final Creator<CredentialRetrieveRequest> CREATOR = new RetrieveRequestCreator();
+
+    /**
+     * Creates a {@link CredentialRetrieveRequest} from the given authentication methods.
+     */
+    @NonNull
+    public static CredentialRetrieveRequest forAuthenticationMethods(
+            @NonNull Set<AuthenticationMethod> authenticationMethods) {
+        return new CredentialRetrieveRequest.Builder(authenticationMethods).build();
+    }
+
+    /**
+     * Creates a {@link CredentialRetrieveRequest} from the given authentication methods.
+     */
+    @NonNull
+    public static CredentialRetrieveRequest forAuthenticationMethods(
+            @NonNull AuthenticationMethod... authenticationMethods) {
+        return new CredentialRetrieveRequest.Builder(authenticationMethods).build();
+    }
+
+    /**
+     * Creats a {@link CredentialRetrieveRequest} from its protocol buffer equivalent.
+     */
+    @NonNull
+    public static CredentialRetrieveRequest fromProtobuf(
+            @NonNull Protobufs.CredentialRetrieveRequest proto) {
+        return new CredentialRetrieveRequest.Builder(proto).build();
+    }
+
+    /**
+     * Creates a {@link CredentialRetrieveRequest} from its protocol buffer byte array equivalent.
+     * @throws IOException if the request could not be parsed and validated.
+     */
+    @NonNull
+    public static CredentialRetrieveRequest fromProtobufBytes(
+            @NonNull byte[] protoBytes)
+            throws IOException {
+        return fromProtobuf(Protobufs.CredentialRetrieveRequest.parseFrom(protoBytes));
+    }
+
+    /**
+     * Extracts a {@link CredentialRetrieveRequest} from the intent extra that is used to carry
+     * a request from the client to the provider activity.
+     *
+     * @throws IOException if the intent does not contain a retrieve request, or the contained
+     *     request could not be parsed and validated.
+     */
+    @NonNull
+    public static CredentialRetrieveRequest fromRequestIntent(
+            @NonNull Intent requestIntent)
+            throws IOException {
+        if (!requestIntent.hasExtra(ProtocolConstants.EXTRA_RETRIEVE_REQUEST)) {
+            throw new IOException("credential retrieve request missing in intent data");
+        }
+
+        return fromProtobufBytes(
+                requestIntent.getByteArrayExtra(ProtocolConstants.EXTRA_RETRIEVE_REQUEST));
+    }
 
     @NonNull
     private final Set<AuthenticationMethod> mAuthMethods;
@@ -60,27 +118,11 @@ public class RetrieveRequest implements Parcelable {
     @NonNull
     private final Map<String, byte[]> mAdditionalProps;
 
-    private RetrieveRequest(
+    private CredentialRetrieveRequest(
             @NonNull Set<AuthenticationMethod> authMethods,
             @NonNull Map<String, byte[]> additionalParams) {
         mAuthMethods = authMethods;
         mAdditionalProps = additionalParams;
-    }
-
-    /**
-     * Creates a {@link RetrieveRequest} from the given authentication methods.
-     */
-    public static RetrieveRequest forAuthenticationMethods(
-            @NonNull Set<AuthenticationMethod> authenticationMethods) {
-        return new RetrieveRequest.Builder(authenticationMethods).build();
-    }
-
-    /**
-     * Creates a {@link RetrieveRequest} from the given authentication methods.
-     */
-    public static RetrieveRequest forAuthenticationMethods(
-            @NonNull AuthenticationMethod... authenticationMethods) {
-        return new RetrieveRequest.Builder(authenticationMethods).build();
     }
 
     /**
@@ -154,7 +196,7 @@ public class RetrieveRequest implements Parcelable {
     }
 
     /**
-     * Creates {@link RetrieveRequest} instances.
+     * Creates {@link CredentialRetrieveRequest} instances.
      */
     public static final class Builder {
 
@@ -233,7 +275,7 @@ public class RetrieveRequest implements Parcelable {
          * Adds an additional parameter, where the value will be encoded as a UTF-8 string. Both the
          * parameter name and value must be non-null.
          *
-         * @see RetrieveRequest#getAdditionalPropertyAsString(String)
+         * @see CredentialRetrieveRequest#getAdditionalPropertyAsString(String)
          */
         public Builder addAdditionalProperty(
                 @NonNull String name,
@@ -256,27 +298,28 @@ public class RetrieveRequest implements Parcelable {
         }
 
         /**
-         * Creates a {@link RetrieveRequest} using the properties set on the builder.
+         * Creates a {@link CredentialRetrieveRequest} using the properties set on the builder.
          */
         @NonNull
-        public RetrieveRequest build() {
-            return new RetrieveRequest(
+        public CredentialRetrieveRequest build() {
+            return new CredentialRetrieveRequest(
                     unmodifiableSet(mAuthMethods),
                     unmodifiableMap(mAdditionalParams));
         }
     }
 
-    private static final class RetrieveRequestCreator implements Creator<RetrieveRequest> {
+    private static final class RetrieveRequestCreator
+            implements Creator<CredentialRetrieveRequest> {
 
         @Override
-        public RetrieveRequest createFromParcel(Parcel in) {
+        public CredentialRetrieveRequest createFromParcel(Parcel in) {
 
             int protoLength = in.readInt();
             byte[] protoBytes = new byte[protoLength];
             in.readByteArray(protoBytes);
 
             try {
-                return new RetrieveRequest.Builder(
+                return new CredentialRetrieveRequest.Builder(
                         Protobufs.CredentialRetrieveRequest.parseFrom(protoBytes))
                         .build();
             } catch (IOException ex) {
@@ -285,8 +328,8 @@ public class RetrieveRequest implements Parcelable {
         }
 
         @Override
-        public RetrieveRequest[] newArray(int size) {
-            return new RetrieveRequest[size];
+        public CredentialRetrieveRequest[] newArray(int size) {
+            return new CredentialRetrieveRequest[size];
         }
     }
 }

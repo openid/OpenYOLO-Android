@@ -72,7 +72,12 @@
         <activity android:name=".provider.RetrieveCredentialActivity"
             android:theme="@style/AppTheme.NoUi"
             android:exported="true"
-            android:excludeFromRecents="true" />
+            android:excludeFromRecents="true">
+            <intent-filter>
+                <action android:name="org.openyolo.credential.retrieve"/>
+                <category android:name="org.openyolo" />
+            </intent-filter>
+        </activity>
 
         <activity android:name=".provider.SaveCredentialActivity"
             android:theme="@style/AppTheme.NoUi"

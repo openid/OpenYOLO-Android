@@ -22,6 +22,8 @@ import android.content.Intent;
 import android.os.Parcel;
 import android.support.annotation.NonNull;
 
+import com.google.protobuf.ByteString;
+
 /**
  * Utilities for manipulating intents for use in protocol buffers.
  */
@@ -44,6 +46,14 @@ public final class IntentUtil {
         parcel.recycle();
 
         return intentBytes;
+    }
+
+    /**
+     * Serializes the provided intent to a ByteString, for use with a protocol buffer.
+     */
+    public static ByteString toByteString(@NonNull Intent intent) {
+        require(intent, notNullValue());
+        return ByteString.copyFrom(toBytes(intent));
     }
 
     /**

@@ -14,9 +14,9 @@
 
 package org.openyolo.api;
 
-import org.openyolo.protocol.RetrieveResult;
+import org.openyolo.protocol.RetrieveBbqResponse;
 
 /**
  * Asyncronous callback type for credential retrieval.
  */
-public interface RetrieveCallback extends ResultCallback<RetrieveResult, Throwable> {}
+public interface RetrieveCallback extends ResultCallback<RetrieveBbqResponse, Throwable> {}

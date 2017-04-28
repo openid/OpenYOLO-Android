@@ -36,6 +36,25 @@ message CredentialRetrieveBbqResponse {
     map<string, bytes> additionalProps = 2;
 }
 
+message CredentialRetrieveBbqResponseList {
+    repeated CredentialRetrieveBbqResponse responses = 1;
+}
+
+message CredentialRetrieveResult {
+    enum ResultCode {
+        UNSPECIFIED = 0;
+        SUCCESS = 1;
+        REJECTED_BY_PROVIDER = 2;
+        REJECTED_BY_USER = 3;
+    }
+
+    // required
+    ResultCode resultCode = 1;
+
+    Credential credential = 2;
+    map<string, bytes> additionalProps = 3;
+}
+
 message HintRetrieveRequest {
     ClientVersion clientVersion = 1;
 

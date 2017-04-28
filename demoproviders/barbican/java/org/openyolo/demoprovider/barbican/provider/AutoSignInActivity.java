@@ -27,8 +27,9 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import java.io.IOException;
 import org.openyolo.demoprovider.barbican.R;
-import org.openyolo.protocol.Protobufs.Credential;
-import org.openyolo.spi.RetrieveIntentResultUtil;
+import org.openyolo.protocol.Credential;
+import org.openyolo.protocol.CredentialRetrieveResult;
+import org.openyolo.protocol.Protobufs;
 
 /**
  * Displays a brief, "snackbar"-like notification to the user indicating that a credential
@@ -53,6 +54,13 @@ public class AutoSignInActivity extends AppCompatActivity {
      * Creates an intent to display this activity with the specified credential.
      */
     public static Intent createIntent(Context context, Credential credential) {
+        return createIntent(context, credential.toProtobuf());
+    }
+
+    /**
+     * Creates an intent to display this activity with the specified credential, in protobuf form.
+     */
+    public static Intent createIntent(Context context, Protobufs.Credential credential) {
         Intent intent = new Intent(context, AutoSignInActivity.class);
         intent.putExtra(EXTRA_CREDENTIAL, credential.toByteArray());
         return intent;
@@ -68,9 +76,9 @@ public class AutoSignInActivity extends AppCompatActivity {
         Credential credential = getCredential();
         if (credential.getDisplayName() != null) {
             mCredentialPrimary.setText(credential.getDisplayName());
-            mCredentialSecondary.setText(credential.getId());
+            mCredentialSecondary.setText(credential.getIdentifier());
         } else {
-            mCredentialPrimary.setText(credential.getId());
+            mCredentialPrimary.setText(credential.getIdentifier());
             mCredentialSecondary.setVisibility(View.GONE);
         }
 
@@ -99,11 +107,10 @@ public class AutoSignInActivity extends AppCompatActivity {
                 rectangle.height() - statusBarHeight);
     }
 
-
     private Credential getCredential() {
         byte[] credentialBytes = getIntent().getByteArrayExtra(EXTRA_CREDENTIAL);
         try {
-            return Credential.parseFrom(credentialBytes);
+            return Credential.fromProtoBytes(credentialBytes);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to decode credential");
         }
@@ -112,8 +119,11 @@ public class AutoSignInActivity extends AppCompatActivity {
     private class ReturnCredentialTask implements Runnable {
         @Override
         public void run() {
-            Intent responseData = RetrieveIntentResultUtil.createResponseData(getCredential());
-            setResult(RESULT_OK, responseData);
+            CredentialRetrieveResult result = new CredentialRetrieveResult.Builder(
+                    CredentialRetrieveResult.RESULT_SUCCESS)
+                    .setCredential(getCredential())
+                    .build();
+            setResult(result.getResultCode(), result.toResultDataIntent());
             finish();
         }
     }

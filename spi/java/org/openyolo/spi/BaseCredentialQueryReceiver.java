@@ -24,14 +24,14 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import org.openyolo.protocol.AuthenticationDomain;
-import org.openyolo.protocol.Protobufs.CredentialRetrieveRequest;
-import org.openyolo.protocol.RetrieveRequest;
+import org.openyolo.protocol.CredentialRetrieveRequest;
+import org.openyolo.protocol.Protobufs;
 
 /**
  * Partial implementation of an OpenYOLO request receiver, that should be extended by providers.
  * This implementation handles some basic validation and decoding of the request before
  * handing the request to
- * {@link #processCredentialRequest(Context, BroadcastQuery, RetrieveRequest, Set)}.
+ * {@link #processCredentialRequest(Context, BroadcastQuery, CredentialRetrieveRequest, Set)}.
  */
 public abstract class BaseCredentialQueryReceiver extends BaseBroadcastQueryReceiver {
 
@@ -44,19 +44,19 @@ public abstract class BaseCredentialQueryReceiver extends BaseBroadcastQueryRece
 
     @Override
     protected void processQuery(@NonNull Context context, @NonNull BroadcastQuery query) {
-        CredentialRetrieveRequest requestProto;
+        Protobufs.CredentialRetrieveRequest requestProto;
 
         try {
-            requestProto = CredentialRetrieveRequest.parseFrom(query.getQueryMessage());
+            requestProto = Protobufs.CredentialRetrieveRequest.parseFrom(query.getQueryMessage());
         } catch (NullPointerException | IOException ex) {
             Log.w(mLogTag, "Failed to parse credential request message", ex);
             new QueryResponseSender(context).sendResponse(query, null);
             return;
         }
 
-        RetrieveRequest request;
+        CredentialRetrieveRequest request;
         try {
-            request = new RetrieveRequest.Builder(requestProto).build();
+            request = new CredentialRetrieveRequest.Builder(requestProto).build();
         } catch (NullPointerException | IllegalArgumentException ex) {
             Log.w(mLogTag, "Credential request message failed field validation", ex);
             new QueryResponseSender(context).sendResponse(query, null);
@@ -82,6 +82,6 @@ public abstract class BaseCredentialQueryReceiver extends BaseBroadcastQueryRece
     protected abstract void processCredentialRequest(
             @NonNull Context context,
             @NonNull BroadcastQuery query,
-            @NonNull RetrieveRequest request,
+            @NonNull CredentialRetrieveRequest request,
             @NonNull Set<AuthenticationDomain> requestorDomains);
 }

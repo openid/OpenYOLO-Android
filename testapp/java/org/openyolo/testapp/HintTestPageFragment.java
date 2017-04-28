@@ -83,7 +83,7 @@ public final class HintTestPageFragment extends TestPageFragment {
         }
 
         if (resultCode == RESULT_OK) {
-            Credential credential = mApi.getCredentialFromActivityResult(data);
+            Credential credential = mApi.getHintRetrieveResult(data);
             if (credential == null) {
                 showSnackbar(R.string.no_credential_returned);
             } else {

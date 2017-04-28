@@ -33,15 +33,15 @@ import org.openyolo.protocol.internal.CollectionConverter;
 import org.openyolo.protocol.internal.IntentUtil;
 
 /**
- * A response to a {@link RetrieveRequest credential retrieve request}.
+ * A response to a {@link CredentialRetrieveRequest credential retrieve request}.
  */
-public class RetrieveResult implements Parcelable {
+public class RetrieveBbqResponse implements Parcelable {
 
     /**
-     * Parcelable reader for {@link RetrieveResult} instances.
+     * Parcelable reader for {@link RetrieveBbqResponse} instances.
      * @see android.os.Parcelable
      */
-    public static final Creator<RetrieveResult> CREATOR = new RetrieveResultCreator();
+    public static final Creator<RetrieveBbqResponse> CREATOR = new RetrieveResultCreator();
 
     @Nullable
     private final Intent mRetrieveIntent;
@@ -49,7 +49,7 @@ public class RetrieveResult implements Parcelable {
     @NonNull
     private final Map<String, CredentialRetrieveBbqResponse> mResponses;
 
-    private RetrieveResult(
+    private RetrieveBbqResponse(
             @Nullable Intent retrieveIntent,
             @NonNull Map<String, CredentialRetrieveBbqResponse> responses) {
         mRetrieveIntent = retrieveIntent;
@@ -108,7 +108,7 @@ public class RetrieveResult implements Parcelable {
     }
 
     /**
-     * Creates {@link RetrieveResult} instances.
+     * Creates {@link RetrieveBbqResponse} instances.
      */
     public static final class Builder {
 
@@ -152,11 +152,11 @@ public class RetrieveResult implements Parcelable {
         }
 
         /**
-         * Creates a {@link RetrieveResult} with the properties described to the builder.
+         * Creates a {@link RetrieveBbqResponse} with the properties described to the builder.
          */
         @NonNull
-        public RetrieveResult build() {
-            return new RetrieveResult(mIntent, mProtoResponses);
+        public RetrieveBbqResponse build() {
+            return new RetrieveBbqResponse(mIntent, mProtoResponses);
         }
     }
 
@@ -178,9 +178,9 @@ public class RetrieveResult implements Parcelable {
         return 0;
     }
 
-    static final class RetrieveResultCreator implements Creator<RetrieveResult> {
+    static final class RetrieveResultCreator implements Creator<RetrieveBbqResponse> {
         @Override
-        public RetrieveResult createFromParcel(Parcel in) {
+        public RetrieveBbqResponse createFromParcel(Parcel in) {
             Intent retrieveIntent = in.readParcelable(Intent.class.getClassLoader());
             int numResponses = in.readInt();
 
@@ -201,15 +201,15 @@ public class RetrieveResult implements Parcelable {
                 responses.put(key, response);
             }
 
-            return new RetrieveResult.Builder()
+            return new RetrieveBbqResponse.Builder()
                     .setRetrieveIntent(retrieveIntent)
                     .setProtoResponses(responses)
                     .build();
         }
 
         @Override
-        public RetrieveResult[] newArray(int size) {
-            return new RetrieveResult[size];
+        public RetrieveBbqResponse[] newArray(int size) {
+            return new RetrieveBbqResponse[size];
         }
     }
 

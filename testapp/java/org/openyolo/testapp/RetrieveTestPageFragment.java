@@ -14,9 +14,6 @@
 
 package org.openyolo.testapp;
 
-import static android.app.Activity.RESULT_CANCELED;
-import static android.app.Activity.RESULT_OK;
-
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
@@ -33,9 +30,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.openyolo.api.CredentialClient;
 import org.openyolo.api.RetrieveCallback;
 import org.openyolo.protocol.AuthenticationMethod;
-import org.openyolo.protocol.Credential;
-import org.openyolo.protocol.RetrieveRequest;
-import org.openyolo.protocol.RetrieveResult;
+import org.openyolo.protocol.CredentialRetrieveRequest;
+import org.openyolo.protocol.CredentialRetrieveResult;
+import org.openyolo.protocol.RetrieveBbqResponse;
 
 /**
  * Fragment which contains a method of testing the OpenYolo credential retrieve flow.
@@ -85,15 +82,18 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
             return;
         }
 
-        if (resultCode == RESULT_OK) {
-            Credential credential = mApi.getCredentialFromActivityResult(data);
-            if (credential == null) {
-                showSnackbar(R.string.no_credential_returned);
-            } else {
-                mCredentialView.setFieldsFromCredential(credential);
-            }
-        } else if (resultCode == RESULT_CANCELED) {
-            showSnackbar(R.string.retrieve_cancelled);
+        CredentialRetrieveResult result = mApi.getCredentialRetrieveResult(data);
+        if (result.getCredential() != null) {
+            mCredentialView.setFieldsFromCredential(result.getCredential());
+            return;
+        }
+
+
+        int retrieveResultCode = result.getResultCode();
+        if (retrieveResultCode == CredentialRetrieveResult.RESULT_REJECTED_BY_USER) {
+            showSnackbar(R.string.credential_retrieve_user_rejected);
+        } else if (retrieveResultCode == CredentialRetrieveResult.RESULT_REJECTED_BY_PROVIDER) {
+            showSnackbar(R.string.credential_retrieve_provider_rejected);
         } else {
             showSnackbar(R.string.unknown_response);
         }
@@ -110,7 +110,8 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
             showSnackbar(R.string.authentication_field_required);
             return;
         }
-        RetrieveRequest request = RetrieveRequest.forAuthenticationMethods(authenticationMethods);
+        CredentialRetrieveRequest request =
+                CredentialRetrieveRequest.forAuthenticationMethods(authenticationMethods);
 
         mApi.retrieve(request, new HandleRetrieveResult());
     }
@@ -121,11 +122,11 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
 
     private class HandleRetrieveResult implements RetrieveCallback, Runnable {
 
-        private final AtomicReference<RetrieveResult> mResult = new AtomicReference<>();
+        private final AtomicReference<RetrieveBbqResponse> mResult = new AtomicReference<>();
         private final AtomicReference<Throwable> mError = new AtomicReference<>();
 
         @Override
-        public void onComplete(RetrieveResult result, Throwable error) {
+        public void onComplete(RetrieveBbqResponse result, Throwable error) {
             mResult.set(result);
             mError.set(error);
             getActivity().runOnUiThread(this);
@@ -138,7 +139,7 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
                 return;
             }
 
-            RetrieveResult result = mResult.get();
+            RetrieveBbqResponse result = mResult.get();
             if (result.getRetrieveIntent() == null) {
                 showSnackbar(R.string.no_credentials);
                 return;

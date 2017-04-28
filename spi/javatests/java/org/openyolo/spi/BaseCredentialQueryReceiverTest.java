@@ -41,9 +41,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.AuthenticationMethod;
+import org.openyolo.protocol.CredentialRetrieveRequest;
 import org.openyolo.protocol.Protobufs;
-import org.openyolo.protocol.Protobufs.CredentialRetrieveRequest;
-import org.openyolo.protocol.RetrieveRequest;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -79,7 +78,7 @@ public class BaseCredentialQueryReceiverTest {
 
 
     private static BroadcastQuery makeQueryFromRequest(
-            @Nullable CredentialRetrieveRequest request) {
+            @Nullable Protobufs.CredentialRetrieveRequest request) {
         BroadcastQuery.Builder builder = BroadcastQuery.newBuilder()
                 .setRequestingApp(CALLING_PACKAGE_NAME)
                 .setDataType("blah")
@@ -100,13 +99,13 @@ public class BaseCredentialQueryReceiverTest {
         return authenticationDomains;
     }
 
-    private static CredentialRetrieveRequest makeInvalidCredentialRetrieveRequest() {
+    private static Protobufs.CredentialRetrieveRequest makeInvalidCredentialRetrieveRequest() {
         // Invalid because it does not specify a non-empty set of authentication method
-        return CredentialRetrieveRequest.newBuilder().build();
+        return Protobufs.CredentialRetrieveRequest.newBuilder().build();
     }
 
-    private static CredentialRetrieveRequest makeValidCredentialRetrieveRequest() {
-        return CredentialRetrieveRequest.newBuilder()
+    private static Protobufs.CredentialRetrieveRequest makeValidCredentialRetrieveRequest() {
+        return Protobufs.CredentialRetrieveRequest.newBuilder()
             .addAuthMethods(new AuthenticationMethod("custom://one").toProtobuf())
             .addAuthMethods(new AuthenticationMethod("custom://two").toProtobuf())
             .build();
@@ -123,7 +122,7 @@ public class BaseCredentialQueryReceiverTest {
                     protected void processCredentialRequest(
                             @NonNull Context context,
                             @NonNull BroadcastQuery query,
-                            @NonNull RetrieveRequest request,
+                            @NonNull CredentialRetrieveRequest request,
                             @NonNull Set<AuthenticationDomain> requestorDomains) {
                         // Do nothing
                     }
@@ -188,7 +187,7 @@ public class BaseCredentialQueryReceiverTest {
                 .processCredentialRequest(
                         (Context) any(),
                         (BroadcastQuery) any(),
-                        (RetrieveRequest) any(),
+                        (CredentialRetrieveRequest) any(),
                         (Set<AuthenticationDomain>) any());
     }
 
@@ -197,7 +196,7 @@ public class BaseCredentialQueryReceiverTest {
                 .processCredentialRequest(
                         (Context) any(),
                         (BroadcastQuery) any(),
-                        (RetrieveRequest) any(),
+                        (CredentialRetrieveRequest) any(),
                         (Set<AuthenticationDomain>) any());
     }
 }

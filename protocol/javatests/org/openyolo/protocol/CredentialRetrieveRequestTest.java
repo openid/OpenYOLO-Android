@@ -19,7 +19,6 @@ package org.openyolo.protocol;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
-import android.net.Uri;
 import android.os.Parcel;
 import java.io.IOException;
 import java.util.Collections;
@@ -34,20 +33,20 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 /**
- * Battery of tests for RetrieveRequest
+ * Battery of tests for CredentialRetrieveRequest
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
-public class RetrieveRequestTest {
+public class CredentialRetrieveRequestTest {
 
     private static final byte[] testBytes = new byte[]
             {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
-    private RetrieveRequest request;
+    private CredentialRetrieveRequest request;
 
     @Before
     public void setUp() {
-        request = new RetrieveRequest.Builder(AuthenticationMethods.EMAIL)
+        request = new CredentialRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
                 .addAdditionalProperty("a", "b")
                 .addAdditionalProperty("c", testBytes)
                 .build();
@@ -59,7 +58,7 @@ public class RetrieveRequestTest {
         try {
             request.writeToParcel(p, 0);
             p.setDataPosition(0);
-            RetrieveRequest deserialized = RetrieveRequest.CREATOR.createFromParcel(p);
+            CredentialRetrieveRequest deserialized = CredentialRetrieveRequest.CREATOR.createFromParcel(p);
             assertThat(deserialized).isNotNull();
             assertThat(deserialized.getAuthenticationMethods())
                     .isEqualTo(request.getAuthenticationMethods());
@@ -73,17 +72,17 @@ public class RetrieveRequestTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void builderUriSetConstructor_withEmptySet_throwsIllegalArgumentException() {
-        new RetrieveRequest.Builder(new HashSet<AuthenticationMethod>());
+        new CredentialRetrieveRequest.Builder(new HashSet<AuthenticationMethod>());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void builderProtoConstructor_withNull_throwsIllegalArgumentException() {
-        new RetrieveRequest.Builder((Protobufs.CredentialRetrieveRequest) null);
+        new CredentialRetrieveRequest.Builder((Protobufs.CredentialRetrieveRequest) null);
     }
 
     @Test
     public void forAuthenticationMethods_withValidAuthenticationMethodsUsingVarArgs_returnsValidRequest() {
-        RetrieveRequest request = RetrieveRequest
+        CredentialRetrieveRequest request = CredentialRetrieveRequest
             .forAuthenticationMethods(AuthenticationMethods.GOOGLE, AuthenticationMethods.FACEBOOK);
 
         assertThat(request.getAuthenticationMethods())
@@ -98,7 +97,7 @@ public class RetrieveRequestTest {
             AuthenticationMethods.GOOGLE,
             AuthenticationMethods.FACEBOOK);
 
-        RetrieveRequest request = RetrieveRequest.forAuthenticationMethods(authenticationMethods);
+        CredentialRetrieveRequest request = CredentialRetrieveRequest.forAuthenticationMethods(authenticationMethods);
 
         assertThat(request.getAuthenticationMethods())
             .containsOnly(AuthenticationMethods.GOOGLE, AuthenticationMethods.FACEBOOK);
@@ -139,7 +138,7 @@ public class RetrieveRequestTest {
                         .build());
 
         try {
-            RetrieveRequest request = RetrieveRequest.forAuthenticationMethods(
+            CredentialRetrieveRequest request = CredentialRetrieveRequest.forAuthenticationMethods(
                     AuthenticationMethods.EMAIL);
             Protobufs.CredentialRetrieveRequest proto = request.toProtocolBuffer();
             assertThat(proto.hasClientVersion());

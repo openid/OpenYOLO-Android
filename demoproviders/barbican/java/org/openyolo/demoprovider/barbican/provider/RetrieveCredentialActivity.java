@@ -25,7 +25,10 @@ import java.util.List;
 import org.openyolo.demoprovider.barbican.UnlockActivity;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
 import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.CredentialRetrieveRequest;
+import org.openyolo.protocol.CredentialRetrieveResult;
 import org.openyolo.protocol.Protobufs.Credential;
+import org.openyolo.protocol.ProtocolConstants;
 
 /**
  * A UI-less activity that determines how to retrieve a requested credential. If the credential
@@ -39,12 +42,21 @@ public class RetrieveCredentialActivity
 
     private static final String LOG_TAG = "RetrieveCredential";
     private CredentialStorageClient mClient;
+    private CredentialRetrieveRequest mRequest;
 
     /**
      * Creates the intent to handle releasing a credential to the calling app.
      */
-    public static Intent createIntent(Context context) {
-        return new Intent(context, RetrieveCredentialActivity.class);
+    public static Intent createIntent(Context context, CredentialRetrieveRequest request) {
+        // the format of this intent needs to be compatible with a "direct invocation" intent,
+        // based on the spec (Section 4.3.1).
+        Intent intent = new Intent(context, RetrieveCredentialActivity.class);
+        intent.setAction(ProtocolConstants.RETRIEVE_CREDENTIAL_ACTION);
+        intent.addCategory(ProtocolConstants.OPENYOLO_CATEGORY);
+        intent.putExtra(
+                ProtocolConstants.EXTRA_RETRIEVE_REQUEST,
+                request.toProtocolBuffer().toByteArray());
+        return intent;
     }
 
     @Override
@@ -52,8 +64,14 @@ public class RetrieveCredentialActivity
         super.onCreate(savedInstanceState);
 
         if (getCallingPackage() == null) {
-            setResult(RESULT_CANCELED);
-            finish();
+            setResultAndFinish(CredentialRetrieveResult.REJECTED_BY_PROVIDER);
+            return;
+        }
+
+        try {
+            mRequest = CredentialRetrieveRequest.fromRequestIntent(getIntent());
+        } catch (IOException e) {
+            setResultAndFinish(CredentialRetrieveResult.REJECTED_BY_PROVIDER);
         }
     }
 
@@ -68,7 +86,7 @@ public class RetrieveCredentialActivity
         mClient = client;
         if (!client.isUnlocked()) {
             Intent retrieveAfterUnlockIntent =
-                    RetrieveCredentialActivity.createIntent(this);
+                    RetrieveCredentialActivity.createIntent(this, mRequest);
             retrieveAfterUnlockIntent.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
 
             Intent unlockIntent =
@@ -111,5 +129,10 @@ public class RetrieveCredentialActivity
     protected void onStop() {
         super.onStop();
         mClient.disconnect(this);
+    }
+
+    private void setResultAndFinish(CredentialRetrieveResult result) {
+        setResult(result.getResultCode(), result.toResultDataIntent());
+        finish();
     }
 }

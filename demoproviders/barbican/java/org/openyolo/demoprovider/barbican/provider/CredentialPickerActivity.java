@@ -39,9 +39,9 @@ import java.util.List;
 import org.openyolo.demoprovider.barbican.CredentialQualityScore;
 import org.openyolo.demoprovider.barbican.R;
 import org.openyolo.protocol.AuthenticationMethods;
+import org.openyolo.protocol.CredentialRetrieveResult;
 import org.openyolo.protocol.Protobufs.Credential;
 import org.openyolo.protocol.Protobufs.CredentialList;
-import org.openyolo.spi.RetrieveIntentResultUtil;
 
 /**
  * Displays a dialog to pick a credential from a list.
@@ -84,12 +84,19 @@ public class CredentialPickerActivity extends AppCompatActivity {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (MotionEvent.ACTION_OUTSIDE == event.getAction()) {
-            setResult(RESULT_CANCELED);
-            finish();
+            setResultAndFinish(
+                    new CredentialRetrieveResult.Builder(
+                            CredentialRetrieveResult.RESULT_REJECTED_BY_USER)
+                            .build());
             return true;
         }
 
         return super.onTouchEvent(event);
+    }
+
+    private void setResultAndFinish(CredentialRetrieveResult result) {
+        setResult(result.getResultCode(), result.toResultDataIntent());
+        finish();
     }
 
     private List<Credential> getCredentials() {
@@ -179,10 +186,11 @@ public class CredentialPickerActivity extends AppCompatActivity {
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent responseData =
-                            RetrieveIntentResultUtil.createResponseData(credential);
-                    setResult(RESULT_OK, responseData);
-                    finish();
+                    setResultAndFinish(
+                            new CredentialRetrieveResult.Builder(
+                                    CredentialRetrieveResult.RESULT_SUCCESS)
+                                    .setCredentialFromProto(credential)
+                                    .build());
                 }
             });
         }

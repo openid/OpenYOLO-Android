@@ -17,6 +17,7 @@ package org.openyolo.api;
 import static org.openyolo.protocol.ProtocolConstants.CREDENTIAL_DATA_TYPE;
 import static org.openyolo.protocol.ProtocolConstants.EXTRA_CREDENTIAL;
 import static org.openyolo.protocol.ProtocolConstants.EXTRA_HINT_REQUEST;
+import static org.openyolo.protocol.ProtocolConstants.EXTRA_RETRIEVE_RESULT;
 import static org.openyolo.protocol.ProtocolConstants.HINT_CREDENTIAL_ACTION;
 import static org.openyolo.protocol.ProtocolConstants.OPENYOLO_CATEGORY;
 import static org.openyolo.protocol.ProtocolConstants.SAVE_CREDENTIAL_ACTION;
@@ -40,11 +41,12 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import org.openyolo.api.ui.ProviderPickerActivity;
 import org.openyolo.protocol.Credential;
+import org.openyolo.protocol.CredentialRetrieveRequest;
+import org.openyolo.protocol.CredentialRetrieveResult;
 import org.openyolo.protocol.HintRequest;
 import org.openyolo.protocol.Protobufs;
 import org.openyolo.protocol.Protobufs.CredentialRetrieveBbqResponse;
-import org.openyolo.protocol.RetrieveRequest;
-import org.openyolo.protocol.RetrieveResult;
+import org.openyolo.protocol.RetrieveBbqResponse;
 import org.openyolo.protocol.internal.IntentUtil;
 
 /**
@@ -115,7 +117,7 @@ public class CredentialClient {
      * @param callback Handler for the result of the credential request.
      */
     public void retrieve(
-            final RetrieveRequest request,
+            final CredentialRetrieveRequest request,
             final RetrieveCallback callback) {
         mQueryClient.queryFor(
                 CREDENTIAL_DATA_TYPE,
@@ -190,38 +192,74 @@ public class CredentialClient {
      * {@link android.app.Activity#onActivityResult(int, int, Intent) onActivityResult},
      * after a credential retrieve intent completes.
      */
-    @Nullable
-    public Credential getCredentialFromActivityResult(@Nullable Intent resultData) {
+    @NonNull
+    public CredentialRetrieveResult getCredentialRetrieveResult(
+            @Nullable Intent resultData) {
         if (resultData == null) {
-            Log.i(LOG_TAG, "resultData is null, exiting (returning null)");
-            return null;
+            Log.i(LOG_TAG, "resultData is null, returning default response");
+            return createDefaultCredentialRetrieveResult();
+        }
+
+        if (!resultData.hasExtra(EXTRA_RETRIEVE_RESULT)) {
+            Log.i(LOG_TAG, "retrieve result missing from response, returning default response");
+            return createDefaultCredentialRetrieveResult();
+        }
+
+        byte[] resultBytes = resultData.getByteArrayExtra(EXTRA_RETRIEVE_RESULT);
+        if (resultBytes == null) {
+            Log.i(LOG_TAG, "No retrieve result found in result data, returning default response");
+            return createDefaultCredentialRetrieveResult();
+        }
+
+        try {
+            return CredentialRetrieveResult.fromProtobufBytes(resultBytes);
+        } catch (IOException ex) {
+            Log.e(LOG_TAG, "validation of result proto failed, returning default response", ex);
+            return createDefaultCredentialRetrieveResult();
+        }
+    }
+
+    /**
+     * Extracts the result of a hint retrieve request from the intent data returned by a provider.
+     */
+    @Nullable
+    public Credential getHintRetrieveResult(Intent resultData) {
+        // TODO: this has yet to be updated to the new hint retrieve result format and distinct
+        // hint result object type
+
+        if (resultData == null) {
+            Log.i(LOG_TAG, "resultData is null, returning default response");
+            return createDefaultHintRetrieveResult();
         }
 
         if (!resultData.hasExtra(EXTRA_CREDENTIAL)) {
-            Log.i(LOG_TAG, "credential data missing from response");
-            return null;
+            Log.i(LOG_TAG, "hint result missing from response, returning default response");
+            return createDefaultHintRetrieveResult();
         }
 
-        byte[] credentialBytes = resultData.getByteArrayExtra(EXTRA_CREDENTIAL);
-        if (credentialBytes == null) {
-            Log.i(LOG_TAG, "No credential found in response");
-            return null;
+        byte[] resultBytes = resultData.getByteArrayExtra(EXTRA_CREDENTIAL);
+        if (resultBytes == null) {
+            Log.i(LOG_TAG, "No hint result found in result data, returning default response");
+            return createDefaultHintRetrieveResult();
         }
 
-        Protobufs.Credential credentialProto;
         try {
-            credentialProto = Protobufs.Credential.parseFrom(credentialBytes);
+            return Credential.fromProtoBytes(resultBytes);
         } catch (IOException ex) {
-            Log.e(LOG_TAG, "failed to decode credential from response data");
-            return null;
+            Log.e(LOG_TAG, "hint result is malformed, returning default response");
+            return createDefaultHintRetrieveResult();
         }
+    }
 
-        try {
-            return new Credential.Builder(credentialProto).build();
-        } catch (IllegalArgumentException ex) {
-            Log.e(LOG_TAG, "validation of received credential failed", ex);
-            return null;
-        }
+    @NonNull
+    private static CredentialRetrieveResult createDefaultCredentialRetrieveResult() {
+        return new CredentialRetrieveResult.Builder(CredentialRetrieveResult.RESULT_UNKNOWN)
+                .build();
+    }
+
+    @Nullable
+    private static Credential createDefaultHintRetrieveResult() {
+        return null;
     }
 
     private List<ComponentName> findProviders(@NonNull String action) {
@@ -356,7 +394,7 @@ public class CredentialClient {
             }
 
             mCallback.onComplete(
-                    new RetrieveResult.Builder()
+                    new RetrieveBbqResponse.Builder()
                             .setProtoResponses(protoResponses)
                             .setRetrieveIntent(retrieveIntent)
                             .build(),

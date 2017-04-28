@@ -17,15 +17,12 @@
 
 package org.openyolo.api;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNull;
 import static junit.framework.TestCase.assertNotNull;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.when;
 import static org.openyolo.protocol.AuthenticationMethods.EMAIL;
-import static org.openyolo.protocol.ProtocolConstants.EXTRA_CREDENTIAL;
 
 import android.content.Context;
 import android.content.Intent;
@@ -41,9 +38,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.openyolo.protocol.AuthenticationDomain;
-import org.openyolo.protocol.AuthenticationMethods;
 import org.openyolo.protocol.Credential;
 import org.openyolo.protocol.HintRequest;
+import org.openyolo.protocol.CredentialRetrieveResult;
+import org.openyolo.protocol.ProtocolConstants;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -295,31 +293,34 @@ public class CredentialClientTest {
     }
 
     @Test
-    public void getCredentialFromActivityResult_noExtras() throws Exception {
+    public void testGetCredentialRetrieveResult() throws Exception {
         Intent intent = new Intent();
-        Credential result = credentialClient.getCredentialFromActivityResult(intent);
-        assertNull(result);
+        intent.putExtra(ProtocolConstants.EXTRA_RETRIEVE_RESULT,
+                new CredentialRetrieveResult.Builder(CredentialRetrieveResult.RESULT_SUCCESS)
+                        .setCredential(testCredential)
+                        .build()
+                        .toProtobuf()
+                        .toByteArray());
+
+        CredentialRetrieveResult result = credentialClient.getCredentialRetrieveResult(intent);
+        assertThat(result).isNotNull();
+        assertThat(result.getResultCode()).isEqualTo(CredentialRetrieveResult.RESULT_SUCCESS);
+
+        assertThat(result.getCredential()).isNotNull();
+        assertThat(result.getCredential().getIdentifier())
+                .isEqualTo(testCredential.getIdentifier());
+
+        assertThat(result.getAdditionalProps()).isEmpty();
     }
 
     @Test
-    public void getCredentialFromActivityResult_withExtras() throws Exception {
+    public void testGetCredentialRetrieveResult_noExtra() throws Exception {
         Intent intent = new Intent();
-        byte[] array = testCredential.toProtobuf().toByteArray();
-        intent.putExtra(EXTRA_CREDENTIAL, array);
-        Credential result = credentialClient.getCredentialFromActivityResult(intent);
-        assertEquals(result.getIdentifier(), "alice@example.com");
-        assertEquals(result.getAuthenticationMethod(), AuthenticationMethods.EMAIL);
-        assertEquals(result.getAuthenticationDomain(), AUTH_DOMAIN);
-    }
-
-    private ResolveInfo createResolveInfo(String packageName, String name) {
-        ResolveInfo resolveInfo = new ResolveInfo();
-        ActivityInfo activityInfo = new ActivityInfo();
-        activityInfo.packageName = packageName;
-        activityInfo.name =  name;
-        resolveInfo.activityInfo = activityInfo;
-
-        return resolveInfo;
+        CredentialRetrieveResult result = credentialClient.getCredentialRetrieveResult(intent);
+        assertThat(result).isNotNull();
+        assertThat(result.getResultCode()).isEqualTo(CredentialRetrieveResult.RESULT_UNKNOWN);
+        assertThat(result.getCredential()).isNull();
+        assertThat(result.getAdditionalProps()).isEmpty();
     }
 
     private void addKnownProviders(String... packageNames) {
@@ -334,5 +335,15 @@ public class CredentialClientTest {
             installedProviders.add(createResolveInfo(packageName, packageName));
             when(mockKnownProviders.isKnown(packageName)).thenReturn(false);
         }
+    }
+
+    private ResolveInfo createResolveInfo(String packageName, String name) {
+        ResolveInfo resolveInfo = new ResolveInfo();
+        ActivityInfo activityInfo = new ActivityInfo();
+        activityInfo.packageName = packageName;
+        activityInfo.name =  name;
+        resolveInfo.activityInfo = activityInfo;
+
+        return resolveInfo;
     }
 }
