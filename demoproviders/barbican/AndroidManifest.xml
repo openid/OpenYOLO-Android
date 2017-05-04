@@ -97,10 +97,10 @@
         </activity>
 
         <activity
-            android:name=".provider.HintActivity"
-            android:theme="@style/AppTheme.NoUi"
-            android:exported="true"
-            android:excludeFromRecents="true">
+            android:name=".provider.HintPickerActivity"
+            android:theme="@style/AppTheme.Dialog"
+            android:excludeFromRecents="true"
+            android:exported="true">
             <intent-filter>
                 <action android:name="org.openyolo.hint"/>
                 <category android:name="org.openyolo" />

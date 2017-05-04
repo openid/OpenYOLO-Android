@@ -42,13 +42,13 @@ import org.openyolo.protocol.internal.NoopValueConverter;
  * the basic set of information that can help with account creation, or re-discovering an
  * existing account.
  */
-public class HintRequest implements Parcelable {
+public class HintRetrieveRequest implements Parcelable {
 
     /**
-     * Parcelable reader for {@link HintRequest} instances.
+     * Parcelable reader for {@link HintRetrieveRequest} instances.
      * @see android.os.Parcelable
      */
-    public static final Creator<HintRequest> CREATOR = new HintRequestCreator();
+    public static final Creator<HintRetrieveRequest> CREATOR = new HintRequestCreator();
 
     @NonNull
     private final Set<AuthenticationMethod> mAuthMethods;
@@ -62,8 +62,8 @@ public class HintRequest implements Parcelable {
     /**
      * Creates a hint request for email and password based accounts.
      */
-    public static HintRequest forEmailAndPasswordAccount() {
-        return new HintRequest.Builder(AuthenticationMethods.EMAIL)
+    public static HintRetrieveRequest forEmailAndPasswordAccount() {
+        return new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
                 .build();
     }
 
@@ -74,17 +74,17 @@ public class HintRequest implements Parcelable {
      * @see #toProtocolBuffer().
      */
     @NonNull
-    public static HintRequest fromProtoBytes(byte[] hintRequestProtoBytes)
+    public static HintRetrieveRequest fromProtoBytes(byte[] hintRequestProtoBytes)
             throws IOException {
         if (hintRequestProtoBytes == null) {
             throw new IOException("Unable to decode hint request from null array");
         }
-        return new HintRequest.Builder(
+        return new HintRetrieveRequest.Builder(
                 Protobufs.HintRetrieveRequest.parseFrom(hintRequestProtoBytes))
                 .build();
     }
 
-    private HintRequest(
+    private HintRetrieveRequest(
             @NonNull Set<AuthenticationMethod> authMethods,
             @NonNull PasswordSpecification passwordSpec,
             @NonNull Map<String, byte[]> additionalParams) {
@@ -174,7 +174,7 @@ public class HintRequest implements Parcelable {
     }
 
     /**
-     * Creates {@link HintRequest} instances.
+     * Creates {@link HintRetrieveRequest} instances.
      */
     public static final class Builder {
 
@@ -185,7 +185,7 @@ public class HintRequest implements Parcelable {
         /**
          * Recreates a hint request from its protocol buffer form.
          *
-         * @see HintRequest#toProtocolBuffer()
+         * @see HintRetrieveRequest#toProtocolBuffer()
          */
         public Builder(@NonNull Protobufs.HintRetrieveRequest requestProto) {
             require(requestProto, notNullValue());
@@ -317,27 +317,27 @@ public class HintRequest implements Parcelable {
         }
 
         /**
-         * Creates a {@link HintRequest} with the properties specified on the builder.
+         * Creates a {@link HintRetrieveRequest} with the properties specified on the builder.
          */
         @NonNull
-        public HintRequest build() {
-            return new HintRequest(
+        public HintRetrieveRequest build() {
+            return new HintRetrieveRequest(
                     unmodifiableSet(mAuthMethods),
                     mPasswordSpec,
                     unmodifiableMap(mAdditionalProps));
         }
     }
 
-    private static final class HintRequestCreator implements Creator<HintRequest> {
+    private static final class HintRequestCreator implements Creator<HintRetrieveRequest> {
         @Override
-        public HintRequest createFromParcel(Parcel in) {
+        public HintRetrieveRequest createFromParcel(Parcel in) {
 
             int protoLength = in.readInt();
             byte[] protoBytes = new byte[protoLength];
             in.readByteArray(protoBytes);
 
             try {
-                return new HintRequest.Builder(
+                return new HintRetrieveRequest.Builder(
                         Protobufs.HintRetrieveRequest.parseFrom(protoBytes))
                         .build();
             } catch (IOException ex) {
@@ -346,8 +346,8 @@ public class HintRequest implements Parcelable {
         }
 
         @Override
-        public HintRequest[] newArray(int size) {
-            return new HintRequest[size];
+        public HintRetrieveRequest[] newArray(int size) {
+            return new HintRetrieveRequest[size];
         }
     }
 }

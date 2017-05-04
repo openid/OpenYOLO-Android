@@ -40,9 +40,14 @@ public final class ProtocolConstants {
     public static final String EXTRA_RETRIEVE_RESULT = "org.openyolo.credential.retrieve.result";
 
     /**
-     * The extra key value used to carry a hint request to a credential provider.
+     * The extra key value used to carry a hint request.
      */
     public static final String EXTRA_HINT_REQUEST = "org.openyolo.hint.request";
+
+    /**
+     * The extra key value used to carry a hint result.
+     */
+    public static final String EXTRA_HINT_RESULT = "org.openyolo.hint.result";
 
     /**
      * The category used for all OpenYOLO-related intents.

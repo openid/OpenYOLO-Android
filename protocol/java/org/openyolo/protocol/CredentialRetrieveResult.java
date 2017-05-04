@@ -55,7 +55,7 @@ public final class CredentialRetrieveResult {
             Protobufs.CredentialRetrieveResult.ResultCode.REJECTED_BY_PROVIDER_VALUE;
 
     /**
-     * Indicates that the credential request was defined by the user.
+     * Indicates that the credential request was denied by the user.
      */
     public static final int RESULT_REJECTED_BY_USER =
             Protobufs.CredentialRetrieveResult.ResultCode.REJECTED_BY_USER_VALUE;

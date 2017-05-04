@@ -34,6 +34,7 @@ import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.AuthenticationMethod;
 import org.openyolo.protocol.AuthenticationMethods;
 import org.openyolo.protocol.Credential;
+import org.openyolo.protocol.Hint;
 import org.openyolo.protocol.PasswordSpecification;
 import org.valid4j.errors.RequireViolation;
 
@@ -210,6 +211,17 @@ public final class CredentialView extends LinearLayout {
         copyIfNotNull(credential.getDisplayName(), mDisplayNameField);
         copyIfNotNull(credential.getDisplayPicture(), mProfilePictureField);
         copyIfNotNull(credential.getAuthenticationMethod(), mAuthenticationMethodField);
+    }
+
+    /**
+     * Populates the fragment's fields from a given OpenYOLO hint.
+     */
+    public void setFieldsFromHint(Hint hint) {
+        copyIfNotNull(hint.getIdentifier(), mIdField);
+        copyIfNotNull(hint.getGeneratedPassword(), mPasswordField);
+        copyIfNotNull(hint.getDisplayName(), mDisplayNameField);
+        copyIfNotNull(hint.getDisplayPictureUri(), mProfilePictureField);
+        copyIfNotNull(hint.getAuthenticationMethod(), mAuthenticationMethodField);
     }
 
     /**

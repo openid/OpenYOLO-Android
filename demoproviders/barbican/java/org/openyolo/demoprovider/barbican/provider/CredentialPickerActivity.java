@@ -16,7 +16,6 @@ package org.openyolo.demoprovider.barbican.provider;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -27,21 +26,19 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import com.bumptech.glide.Glide;
+import com.google.protobuf.ByteString;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import org.openyolo.demoprovider.barbican.CredentialQualityScore;
+import org.openyolo.demoprovider.barbican.ProtoListUtil;
 import org.openyolo.demoprovider.barbican.R;
-import org.openyolo.protocol.AuthenticationMethods;
+import org.openyolo.demoprovider.barbican.provider.AccountViewHolder.ClickHandler;
+import org.openyolo.protocol.Credential;
 import org.openyolo.protocol.CredentialRetrieveResult;
-import org.openyolo.protocol.Protobufs.Credential;
-import org.openyolo.protocol.Protobufs.CredentialList;
+import org.openyolo.protocol.Protobufs;
+import org.openyolo.protocol.internal.CollectionConverter;
+import org.openyolo.protocol.internal.CredentialConverter;
 
 /**
  * Displays a dialog to pick a credential from a list.
@@ -58,13 +55,16 @@ public class CredentialPickerActivity extends AppCompatActivity {
     /**
      * Creates an intent to display the credential picker with the provided set of credentials.
      */
-    public static Intent createIntent(Context context, List<Credential> credentials) {
+    public static Intent createIntent(
+            Context context,
+            List<Credential> credentials) {
         Intent intent = new Intent(context, CredentialPickerActivity.class);
-        intent.putExtra(EXTRA_CREDENTIALS,
-                CredentialList.newBuilder()
-                        .addAllCredentials(credentials)
-                        .build()
-                        .toByteArray());
+        ByteString data = ProtoListUtil.writeMessageList(
+                CollectionConverter.toList(
+                        credentials,
+                        CredentialConverter.CREDENTIAL_TO_PROTO));
+
+        intent.putExtra(EXTRA_CREDENTIALS, data.toByteArray());
         return intent;
     }
 
@@ -102,16 +102,20 @@ public class CredentialPickerActivity extends AppCompatActivity {
     private List<Credential> getCredentials() {
         byte[] credentialBytes = getIntent().getByteArrayExtra(EXTRA_CREDENTIALS);
         try {
-            List<Credential> credentials =
-                    new ArrayList<>(CredentialList.parseFrom(credentialBytes).getCredentialsList());
-            Collections.sort(credentials, CredentialQualityScore.PROTO_QUALITY_SORT);
-            return credentials;
+            List<Protobufs.Credential> credentialProtos = ProtoListUtil
+                    .readMessageList(credentialBytes, Protobufs.Credential.parser());
+
+            return CollectionConverter.toList(
+                    credentialProtos,
+                    CredentialConverter.PROTO_TO_CREDENTIAL);
         } catch (IOException ex) {
             throw new IllegalStateException("Failed to decode credentials from intent", ex);
         }
     }
 
-    private final class CredentialPickerAdapter extends RecyclerView.Adapter<CredentialViewHolder> {
+    private final class CredentialPickerAdapter
+            extends RecyclerView.Adapter<AccountViewHolder>
+            implements ClickHandler<Credential> {
 
         List<Credential> mCredentials;
 
@@ -120,79 +124,30 @@ public class CredentialPickerActivity extends AppCompatActivity {
         }
 
         @Override
-        public CredentialViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public AccountViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View credentialView = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.credential_picker_item_view, parent, false);
 
-            return new CredentialViewHolder(credentialView);
+            return new AccountViewHolder(credentialView);
         }
 
         @Override
-        public void onBindViewHolder(CredentialViewHolder holder, int position) {
-            holder.bind(mCredentials.get(position));
+        public void onBindViewHolder(AccountViewHolder holder, int position) {
+            holder.bind(mCredentials.get(position), this);
         }
 
         @Override
         public int getItemCount() {
             return mCredentials.size();
         }
-    }
 
-    private final class CredentialViewHolder extends RecyclerView.ViewHolder {
-
-        private ImageView mProfileIcon;
-        private TextView mPrimaryLabel;
-        private TextView mSecondaryLabel;
-
-        CredentialViewHolder(View itemView) {
-            super(itemView);
-
-            mProfileIcon = (ImageView) itemView.findViewById(R.id.credential_icon);
-            mPrimaryLabel = (TextView) itemView.findViewById(R.id.credential_primary_label);
-            mSecondaryLabel = (TextView) itemView.findViewById(R.id.credential_secondary_label);
-        }
-
-        void bind(final Credential credential) {
-
-            int iconId;
-            if (AuthenticationMethods.EMAIL.toString().equals(credential.getAuthMethod())) {
-                iconId = R.drawable.email;
-            } else if (AuthenticationMethods.PHONE.toString().equals(credential.getAuthMethod())) {
-                iconId = R.drawable.phone;
-            } else {
-                iconId = R.drawable.person;
-            }
-
-            if (credential.getDisplayPictureUri() != null) {
-                Uri displayPictureUri = Uri.parse(credential.getDisplayPictureUri());
-                Glide.with(CredentialPickerActivity.this)
-                        .load(displayPictureUri)
-                        .fitCenter()
-                        .fallback(iconId)
-                        .into(mProfileIcon);
-            } else {
-                mProfileIcon.setImageResource(iconId);
-            }
-
-            if (credential.getDisplayName() != null) {
-                mPrimaryLabel.setText(credential.getDisplayName());
-                mSecondaryLabel.setText(credential.getId());
-                mSecondaryLabel.setVisibility(View.VISIBLE);
-            } else {
-                mPrimaryLabel.setText(credential.getId());
-                mSecondaryLabel.setVisibility(View.GONE);
-            }
-
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    setResultAndFinish(
-                            new CredentialRetrieveResult.Builder(
-                                    CredentialRetrieveResult.RESULT_SUCCESS)
-                                    .setCredentialFromProto(credential)
-                                    .build());
-                }
-            });
+        @Override
+        public void onClick(Credential clicked) {
+            CredentialRetrieveResult result = new CredentialRetrieveResult.Builder(
+                    CredentialRetrieveResult.RESULT_SUCCESS)
+                    .setCredential(clicked)
+                    .build();
+            setResultAndFinish(result);
         }
     }
 }

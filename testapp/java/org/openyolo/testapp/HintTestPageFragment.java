@@ -14,9 +14,6 @@
 
 package org.openyolo.testapp;
 
-import static android.app.Activity.RESULT_CANCELED;
-import static android.app.Activity.RESULT_OK;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.StringRes;
@@ -31,8 +28,9 @@ import butterknife.OnClick;
 import org.openyolo.api.CredentialClient;
 import org.openyolo.protocol.AuthenticationMethod;
 import org.openyolo.protocol.AuthenticationMethods;
-import org.openyolo.protocol.Credential;
-import org.openyolo.protocol.HintRequest;
+import org.openyolo.protocol.Hint;
+import org.openyolo.protocol.HintRetrieveRequest;
+import org.openyolo.protocol.HintRetrieveResult;
 import org.valid4j.errors.RequireViolation;
 
 /**
@@ -82,18 +80,32 @@ public final class HintTestPageFragment extends TestPageFragment {
             return;
         }
 
-        if (resultCode == RESULT_OK) {
-            Credential credential = mApi.getHintRetrieveResult(data);
-            if (credential == null) {
-                showSnackbar(R.string.no_credential_returned);
-            } else {
-                mCredentialView.setFieldsFromCredential(credential);
-            }
-        } else if (resultCode == RESULT_CANCELED) {
-            showSnackbar(R.string.hint_cancelled);
-        } else {
-            showSnackbar(R.string.unknown_response);
+        // CredentialRetrieveResult result = mApi.getCredentialRetrieveResult(data);
+        HintRetrieveResult result = mApi.getHintRetrieveResult(data);
+        Hint hint = result.getHint();
+        if (hint != null) {
+            mCredentialView.setFieldsFromHint(hint);
+            return;
         }
+
+        int errorStringResId;
+        switch (result.getResultCode()) {
+            case HintRetrieveResult.CODE_BAD_REQUEST:
+                errorStringResId = R.string.hint_bad_request;
+                break;
+            case HintRetrieveResult.CODE_NO_HINTS_AVAILABLE:
+                errorStringResId = R.string.hint_none_available;
+                break;
+            case HintRetrieveResult.CODE_USER_CANCELED:
+                errorStringResId = R.string.hint_user_canceled;
+                break;
+            case HintRetrieveResult.CODE_USER_REQUESTS_MANUAL_AUTH:
+                errorStringResId = R.string.hint_manual_auth;
+                break;
+            default:
+                errorStringResId = R.string.hint_unknown_response;
+        }
+        showSnackbar(errorStringResId);
     }
 
     @OnClick(R.id.hint_button)
@@ -109,7 +121,7 @@ public final class HintTestPageFragment extends TestPageFragment {
             return;
         }
 
-        HintRequest.Builder requestBuilder = new HintRequest.Builder(authMethod);
+        HintRetrieveRequest.Builder requestBuilder = new HintRetrieveRequest.Builder(authMethod);
 
         Intent hintIntent = mApi.getHintRetrieveIntent(requestBuilder.build());
         if (hintIntent == null) {

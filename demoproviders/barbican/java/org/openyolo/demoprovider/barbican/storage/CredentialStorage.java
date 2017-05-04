@@ -32,11 +32,11 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.TreeSet;
 import org.openyolo.demoprovider.barbican.CredentialQualityScore;
+import org.openyolo.demoprovider.barbican.ProtoListUtil;
 import org.openyolo.demoprovider.barbican.Protobufs.AccountHint;
 import org.openyolo.demoprovider.barbican.Protobufs.CredentialMeta;
 import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.Protobufs.Credential;
-import org.openyolo.protocol.Protobufs.CredentialList;
 import org.spongycastle.crypto.digests.Blake2bDigest;
 import org.spongycastle.crypto.generators.BCrypt;
 import org.spongycastle.crypto.io.CipherInputStream;
@@ -533,11 +533,7 @@ public final class CredentialStorage {
         CipherOutputStream stream = null;
         try {
             stream = IoUtil.encryptTo(getCredentialsFile(authDomain), mKey);
-            CredentialList proto = CredentialList.newBuilder()
-                    .addAllCredentials(credentials)
-                    .build();
-
-            proto.writeTo(stream);
+            ProtoListUtil.writeMessageListTo(stream, credentials);
         } finally {
             IoUtil.closeQuietly(stream, LOG_TAG);
         }
@@ -556,7 +552,7 @@ public final class CredentialStorage {
         CipherInputStream stream = null;
         try {
             stream = IoUtil.decryptFrom(credentialsFile, mKey);
-            return CredentialList.parseFrom(stream).getCredentialsList();
+            return ProtoListUtil.readMessageList(stream, Credential.parser());
         } finally {
             IoUtil.closeQuietly(stream, LOG_TAG);
         }

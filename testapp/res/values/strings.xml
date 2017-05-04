@@ -26,7 +26,11 @@
     <!-- Hint Test -->
     <string name="hint_button_label">Get Hint</string>
     <string name="hint_button_content_description">Hint for new account creation</string>
-    <string name="hint_cancelled">Hint retrieve cancelled</string>
+    <string name="hint_bad_request">Bad hint request</string>
+    <string name="hint_none_available">No hints available</string>
+    <string name="hint_user_canceled">User canceled hint request</string>
+    <string name="hint_manual_auth">User requests manual auth</string>
+    <string name="hint_unknown_response">Unknown hint response</string>
 
     <!-- Credential -->
     <string name="id_field_hint">Identifier</string>
@@ -54,6 +58,4 @@
     <string name="unknown_response">Unknown response</string>
     <string name="response">Response</string>
     <string name="request">Request</string>
-    <string name="no_credential_returned">No credential returned</string>
-
 </resources>

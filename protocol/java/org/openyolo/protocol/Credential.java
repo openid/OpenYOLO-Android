@@ -38,9 +38,9 @@ import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.CollectionConverter;
 
 /**
- * A representation of a credential for use in sign-in or sign-up. This provides a
- * higher-level, data-verifying wrapper for the underlying {@link Protobufs.Credential
- * protocol buffer} that is returned by the app.
+ * A representation of a credential for use in sign-in. This provides a higher-level,
+ * data-verifying wrapper for the underlying {@link Protobufs.Credential protocol buffer} that is
+ * returned by the provider.
  *
  * <p>Credentials must have an {@link #getIdentifier() identifier},
  * an {@link #getAuthenticationMethod() authentication method} and an
@@ -392,7 +392,9 @@ public final class Credential implements Parcelable {
         public Builder setAdditionalProperties(@Nullable Map<String, byte[]> additionalProps) {
             if (additionalProps == null) {
                 mAdditionalProps.clear();
+                return this;
             }
+
             require(additionalProps.keySet(), everyItem(notNullOrEmptyString()));
             require(additionalProps.values(), everyItem(notNullValue()));
 

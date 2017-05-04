@@ -17,6 +17,7 @@ package org.openyolo.api;
 import static org.openyolo.protocol.ProtocolConstants.CREDENTIAL_DATA_TYPE;
 import static org.openyolo.protocol.ProtocolConstants.EXTRA_CREDENTIAL;
 import static org.openyolo.protocol.ProtocolConstants.EXTRA_HINT_REQUEST;
+import static org.openyolo.protocol.ProtocolConstants.EXTRA_HINT_RESULT;
 import static org.openyolo.protocol.ProtocolConstants.EXTRA_RETRIEVE_RESULT;
 import static org.openyolo.protocol.ProtocolConstants.HINT_CREDENTIAL_ACTION;
 import static org.openyolo.protocol.ProtocolConstants.OPENYOLO_CATEGORY;
@@ -43,7 +44,8 @@ import org.openyolo.api.ui.ProviderPickerActivity;
 import org.openyolo.protocol.Credential;
 import org.openyolo.protocol.CredentialRetrieveRequest;
 import org.openyolo.protocol.CredentialRetrieveResult;
-import org.openyolo.protocol.HintRequest;
+import org.openyolo.protocol.HintRetrieveRequest;
+import org.openyolo.protocol.HintRetrieveResult;
 import org.openyolo.protocol.Protobufs;
 import org.openyolo.protocol.Protobufs.CredentialRetrieveBbqResponse;
 import org.openyolo.protocol.RetrieveBbqResponse;
@@ -87,7 +89,7 @@ public class CredentialClient {
      * returned.
      */
     @Nullable
-    public Intent getHintRetrieveIntent(final HintRequest request) {
+    public Intent getHintRetrieveIntent(final HintRetrieveRequest request) {
         List<ComponentName> hintProviders = findProviders(HINT_CREDENTIAL_ACTION);
 
         if (hintProviders.isEmpty()) {
@@ -223,28 +225,25 @@ public class CredentialClient {
      * Extracts the result of a hint retrieve request from the intent data returned by a provider.
      */
     @Nullable
-    public Credential getHintRetrieveResult(Intent resultData) {
-        // TODO: this has yet to be updated to the new hint retrieve result format and distinct
-        // hint result object type
-
+    public HintRetrieveResult getHintRetrieveResult(Intent resultData) {
         if (resultData == null) {
             Log.i(LOG_TAG, "resultData is null, returning default response");
             return createDefaultHintRetrieveResult();
         }
 
-        if (!resultData.hasExtra(EXTRA_CREDENTIAL)) {
+        if (!resultData.hasExtra(EXTRA_HINT_RESULT)) {
             Log.i(LOG_TAG, "hint result missing from response, returning default response");
             return createDefaultHintRetrieveResult();
         }
 
-        byte[] resultBytes = resultData.getByteArrayExtra(EXTRA_CREDENTIAL);
+        byte[] resultBytes = resultData.getByteArrayExtra(EXTRA_HINT_RESULT);
         if (resultBytes == null) {
             Log.i(LOG_TAG, "No hint result found in result data, returning default response");
             return createDefaultHintRetrieveResult();
         }
 
         try {
-            return Credential.fromProtoBytes(resultBytes);
+            return HintRetrieveResult.fromProtobufBytes(resultBytes);
         } catch (IOException ex) {
             Log.e(LOG_TAG, "hint result is malformed, returning default response");
             return createDefaultHintRetrieveResult();
@@ -258,8 +257,8 @@ public class CredentialClient {
     }
 
     @Nullable
-    private static Credential createDefaultHintRetrieveResult() {
-        return null;
+    private static HintRetrieveResult createDefaultHintRetrieveResult() {
+        return HintRetrieveResult.UNKNOWN;
     }
 
     private List<ComponentName> findProviders(@NonNull String action) {

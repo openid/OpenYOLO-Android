@@ -15,32 +15,39 @@
 package org.openyolo.demoprovider.barbican.provider;
 
 import android.content.ComponentName;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.openyolo.demoprovider.barbican.Protobufs.AccountHint;
+import org.openyolo.demoprovider.barbican.R;
+import org.openyolo.demoprovider.barbican.provider.AccountViewHolder.ClickHandler;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
 import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.AuthenticationMethod;
 import org.openyolo.protocol.AuthenticationMethods;
-import org.openyolo.protocol.HintRequest;
-import org.openyolo.protocol.Protobufs.Credential;
+import org.openyolo.protocol.Hint;
+import org.openyolo.protocol.HintRetrieveRequest;
+import org.openyolo.protocol.HintRetrieveResult;
 import org.openyolo.protocol.ProtocolConstants;
 
-public class HintActivity
+public class HintPickerActivity
         extends AppCompatActivity
         implements CredentialStorageClient.ConnectedCallback {
 
-    private static final String LOG_TAG = "HintActivity";
+    private static final String LOG_TAG = "HintPickerActivity";
 
-    private HintRequest mRequest;
+    private HintRetrieveRequest mRequest;
     private AuthenticationDomain mCallerAuthDomain;
     private CredentialStorageClient mClient;
 
@@ -50,22 +57,22 @@ public class HintActivity
 
         if (!getIntent().hasExtra(ProtocolConstants.EXTRA_HINT_REQUEST)) {
             Log.w(LOG_TAG, "No hint request object found in the intent");
-            finish(RESULT_CANCELED);
+            setResultAndFinish(HintRetrieveResult.BAD_REQUEST);
             return;
         }
 
         try {
-            mRequest = HintRequest.fromProtoBytes(
+            mRequest = HintRetrieveRequest.fromProtoBytes(
                     getIntent().getByteArrayExtra(ProtocolConstants.EXTRA_HINT_REQUEST));
         } catch (IOException ex) {
             Log.w(LOG_TAG, "Failed to decode hint request from intent", ex);
-            finish(RESULT_CANCELED);
+            setResultAndFinish(HintRetrieveResult.BAD_REQUEST);
             return;
         }
 
         if (!extractCallerAuthDomain()) {
             Log.w(LOG_TAG, "Unable to identify calling app");
-            finish(RESULT_CANCELED);
+            setResultAndFinish(HintRetrieveResult.BAD_REQUEST);
             return;
         }
 
@@ -78,7 +85,7 @@ public class HintActivity
 
         if (!mClient.isCreated()) {
             Log.i(LOG_TAG, "Store is not yet initialized, cannot serve hints");
-            finish(RESULT_CANCELED);
+            setResultAndFinish(HintRetrieveResult.UNKNOWN);
             return;
         }
 
@@ -94,14 +101,14 @@ public class HintActivity
             hints = mClient.getHints();
         } catch (IOException ex) {
             Log.e(LOG_TAG, "Failed to retrieve hints from the credential store", ex);
-            finish(RESULT_CANCELED);
+            setResultAndFinish(HintRetrieveResult.UNKNOWN);
             return;
         }
 
         // filter the credentials to just those which are pertinent to the request. For those
         // selected, turn them into credentials. Order the hints by the amount of information
         // they contain (so more complete items are displayed first), and then alphabetically.
-        ArrayList<Credential> filteredHints = new ArrayList<>();
+        ArrayList<Hint> filteredHints = new ArrayList<>();
         for (AccountHint hint : hints) {
             AuthenticationMethod hintAuthMethod = new AuthenticationMethod(hint.getAuthMethod());
             Set<AuthenticationMethod> authMethods = mRequest.getAuthenticationMethods();
@@ -109,40 +116,46 @@ public class HintActivity
                 continue;
             }
 
-            Credential.Builder hintCredentialBuilder = Credential.newBuilder()
-                    .setId(hint.getIdentifier())
-                    .setAuthMethod(hintAuthMethod.toProtobuf())
-                    .setAuthDomain(mCallerAuthDomain.toProtobuf())
+            Hint.Builder hintProtoBuilder = new Hint.Builder(
+                    hint.getIdentifier(),
+                    hintAuthMethod)
                     .setDisplayName(hint.getName())
                     .setDisplayPictureUri(hint.getPictureUri());
 
             // include a generated password if appropriate
-            if (hint.getAuthMethod().equals(AuthenticationMethods.EMAIL.toString())) {
-                hintCredentialBuilder.setPassword(mRequest.getPasswordSpecification().generate());
+            if (hintAuthMethod.equals(AuthenticationMethods.EMAIL)
+                    || hintAuthMethod.equals(AuthenticationMethods.PHONE)
+                    || hintAuthMethod.equals(AuthenticationMethods.USER_NAME)) {
+                hintProtoBuilder.setGeneratedPassword(
+                        mRequest.getPasswordSpecification().generate());
             }
 
-            filteredHints.add(hintCredentialBuilder.build());
+            filteredHints.add(hintProtoBuilder.build());
         }
 
         // if there are no hints, immediately end the request
         if (filteredHints.isEmpty()) {
-            finish(RESULT_CANCELED);
+            setResultAndFinish(HintRetrieveResult.NO_HINTS_AVAILABLE);
             return;
         }
 
         // otherwise, display the standard credential picker.
-        Intent pickerIntent = CredentialPickerActivity.createIntent(
-                this,
-                filteredHints);
-        pickerIntent.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
-        startActivity(pickerIntent);
-        finish();
+        renderPicker(filteredHints);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         mClient.disconnect(this);
+    }
+
+    private void renderPicker(List<Hint> hints) {
+        setContentView(R.layout.hint_picker_layout);
+
+        RecyclerView hintsView = (RecyclerView) findViewById(R.id.available_hints);
+
+        hintsView.setAdapter(new HintPickerAdapter(hints));
+        hintsView.setLayoutManager(new LinearLayoutManager(this));
     }
 
     private boolean extractCallerAuthDomain() {
@@ -152,9 +165,6 @@ public class HintActivity
             return false;
         }
 
-        // TODO: a more complete implementation would need to expand this to the full set of
-        // affiliated apps and sites, though it is generally unusual for an app to save a
-        // credential for any authentication domain other than those it can directly identify as.
         String callingPackage = callingActivity.getPackageName();
         List<AuthenticationDomain> authDomains =
                 AuthenticationDomain.listForPackage(this, callingPackage);
@@ -168,8 +178,46 @@ public class HintActivity
     }
 
     @UiThread
-    private void finish(int resultCode) {
-        setResult(resultCode);
+    private void setResultAndFinish(HintRetrieveResult result) {
+        setResult(result.getResultCode(), result.toResultDataIntent());
         finish();
+    }
+
+    private final class HintPickerAdapter extends RecyclerView.Adapter<AccountViewHolder> implements
+            ClickHandler<Hint> {
+
+        List<Hint> mHints;
+
+        HintPickerAdapter(List<Hint> hints) {
+            mHints = hints;
+        }
+
+        @Override
+        public AccountViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View credentialView = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.credential_picker_item_view, parent, false);
+
+            return new AccountViewHolder(credentialView);
+        }
+
+        @Override
+        public void onBindViewHolder(AccountViewHolder holder, int position) {
+            holder.bind(mHints.get(position), this);
+        }
+
+        @Override
+        public int getItemCount() {
+            return mHints.size();
+        }
+
+        @Override
+        public void onClick(Hint clicked) {
+            HintRetrieveResult result = new HintRetrieveResult.Builder(
+                    HintRetrieveResult.CODE_HINT_SELECTED)
+                    .setHint(clicked)
+                    .build();
+
+            setResultAndFinish(result);
+        }
     }
 }

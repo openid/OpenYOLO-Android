@@ -8,6 +8,7 @@
     <string name="credential_storage_service_label">Barbican credential storage service</string>
     <string name="credential_authority_icon">App icon</string>
     <string name="credential_selection_prompt">Continue with:</string>
+    <string name="hint_selection_prompt">Continue with:</string>
     <string name="credential_icon">Credential profile picture</string>
     <string name="id_hint">User name</string>
     <string name="invalid_password">Invalid password, try again</string>
