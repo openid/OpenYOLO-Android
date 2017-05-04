@@ -22,13 +22,14 @@ option java_package = "org.openyolo.protocol";
 option java_outer_classname = "Protobufs";
 
 message CredentialRetrieveRequest {
-    ClientVersion clientVersion = 1;
+    ClientVersion client_version = 1;
 
     // at least one authMethod required
-    repeated AuthenticationMethod authMethods = 2;
+    repeated AuthenticationMethod auth_methods = 2;
 
-    map<string, TokenRequestInfo> supportedTokenProviders = 3;
-    map<string, bytes> additionalProps = 4;
+    map<string, TokenRequestInfo> supported_token_providers = 3;
+    bool require_user_mediation = 4;
+    map<string, bytes> additional_props = 5;
 }
 
 message CredentialRetrieveBbqResponse {
@@ -43,27 +44,29 @@ message CredentialRetrieveBbqResponseList {
 message CredentialRetrieveResult {
     enum ResultCode {
         UNSPECIFIED = 0;
-        SUCCESS = 1;
-        REJECTED_BY_PROVIDER = 2;
-        REJECTED_BY_USER = 3;
+        BAD_REQUEST = 1;
+        CREDENTIAL_SELECTED = 2;
+        NO_CREDENTIALS_AVAILABLE = 3;
+        USER_REQUESTS_MANUAL_AUTH = 4;
+        USER_CANCELED = 5;
     }
 
     // required
-    ResultCode resultCode = 1;
+    ResultCode result_code = 1;
 
     Credential credential = 2;
-    map<string, bytes> additionalProps = 3;
+    map<string, bytes> additional_props = 3;
 }
 
 message HintRetrieveRequest {
-    ClientVersion clientVersion = 1;
+    ClientVersion client_version = 1;
 
     // at least one authMethod required
-    repeated AuthenticationMethod authMethods = 2;
+    repeated AuthenticationMethod auth_methods = 2;
 
-    PasswordSpecification passwordSpec = 3;
-    map<string, TokenRequestInfo> supportedTokenProviders = 4;
-    map<string, bytes> additionalProps = 5;
+    PasswordSpecification password_spec = 3;
+    map<string, TokenRequestInfo> supported_token_providers = 4;
+    map<string, bytes> additional_props = 5;
 }
 
 message HintRetrieveResult {
@@ -77,10 +80,62 @@ message HintRetrieveResult {
     }
 
     // required
-    ResultCode resultCode = 1;
+    ResultCode result_code = 1;
 
     Hint hint = 2;
-    map<string, bytes> additionalProps = 3;
+    map<string, bytes> additional_props = 3;
+}
+
+message CredentialSaveRequest {
+    ClientVersion client_version = 1;
+
+    // required
+    Credential credential = 2;
+
+    map<string, bytes> additional_props = 3;
+}
+
+message CredentialSaveResult {
+
+    enum ResultCode {
+        UNSPECIFIED = 0;
+        BAD_REQUEST = 1;
+        SAVED = 2;
+        PROVIDER_REFUSED = 3;
+        USER_CANCELED = 4;
+        USER_REFUSED = 5;
+    }
+
+    // required
+    ResultCode result_code = 1;
+
+    map<string, bytes> additional_props = 2;
+}
+
+message CredentialDeleteRequest {
+    ClientVersion client_version = 1;
+
+    // required
+    Credential credential = 2;
+
+    map<string, bytes> additional_props = 3;
+}
+
+message CredentialDeleteResult {
+    enum ResultCode {
+        UNSPECIFIED = 0;
+        BAD_REQUEST = 1;
+        DELETED = 2;
+        NO_MATCHING_CREDENTIAL = 3;
+        PROVIDER_REFUSED = 4;
+        USER_CANCELED = 5;
+        USER_REFUSED = 6;
+    }
+
+    // required
+    ResultCode result_code = 1;
+
+    map<string, bytes> additional_props = 2;
 }
 
 message Credential {
@@ -88,16 +143,16 @@ message Credential {
     string id = 1;
 
     // required
-    AuthenticationDomain authDomain = 2;
+    AuthenticationDomain auth_domain = 2;
 
     // required
-    AuthenticationMethod authMethod = 3;
+    AuthenticationMethod auth_method = 3;
 
-    string displayName = 4;
-    string displayPictureUri = 5;
+    string display_name = 4;
+    string display_picture_uri = 5;
     string password = 6;
-    string idToken = 7;
-    map<string, bytes> additionalProps = 8;
+    string id_token = 7;
+    map<string, bytes> additional_props = 8;
 }
 
 message Hint {
@@ -105,13 +160,13 @@ message Hint {
     string id = 1;
 
     // required
-    AuthenticationMethod authMethod = 2;
+    AuthenticationMethod auth_method = 3;
 
-    string displayName = 3;
-    string displayPictureUri = 4;
-    string generatedPassword = 5;
-    string idToken = 6;
-    map<string, bytes> additionalProps = 7;
+    string display_name = 4;
+    string display_picture_uri = 5;
+    string generated_password = 6;
+    string id_token = 7;
+    map<string, bytes> additional_props = 8;
 }
 
 message AuthenticationMethod {
@@ -129,12 +184,12 @@ message PasswordSpecification {
     string allowed = 1;
 
     // required
-    uint32 minSize = 2;
+    uint32 min_size = 2;
 
     // required
-    uint32 maxSize = 3;
+    uint32 max_size = 3;
 
-    repeated RequiredCharSet requiredSets = 4;
+    repeated RequiredCharSet required_sets = 4;
 }
 
 message RequiredCharSet {
@@ -146,9 +201,9 @@ message RequiredCharSet {
 }
 
 message TokenRequestInfo {
-    string clientId = 1;
+    string client_id = 1;
     string nonce = 2;
-    map<string, bytes> additionalProps = 3;
+    map<string, bytes> additional_props = 3;
 }
 
 message ClientVersion {

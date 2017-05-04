@@ -252,7 +252,7 @@ public class CredentialClient {
 
     @NonNull
     private static CredentialRetrieveResult createDefaultCredentialRetrieveResult() {
-        return new CredentialRetrieveResult.Builder(CredentialRetrieveResult.RESULT_UNKNOWN)
+        return new CredentialRetrieveResult.Builder(CredentialRetrieveResult.CODE_UNKNOWN)
                 .build();
     }
 

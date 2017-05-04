@@ -66,14 +66,14 @@ public class RetrieveCredentialActivity
         super.onCreate(savedInstanceState);
 
         if (getCallingPackage() == null) {
-            setResultAndFinish(CredentialRetrieveResult.REJECTED_BY_PROVIDER);
+            setResultAndFinish(CredentialRetrieveResult.BAD_REQUEST);
             return;
         }
 
         try {
             mRequest = CredentialRetrieveRequest.fromRequestIntent(getIntent());
         } catch (IOException e) {
-            setResultAndFinish(CredentialRetrieveResult.REJECTED_BY_PROVIDER);
+            setResultAndFinish(CredentialRetrieveResult.BAD_REQUEST);
         }
     }
 

@@ -93,7 +93,7 @@ public class RetrieveActivity extends AppCompatActivity {
                     .build();
 
             CredentialRetrieveResult result = new CredentialRetrieveResult.Builder(
-                    CredentialRetrieveResult.RESULT_SUCCESS)
+                    CredentialRetrieveResult.CODE_CREDENTIAL_SELECTED)
                     .setCredential(credential)
                     .build();
             setResult(result.getResultCode(), result.toResultDataIntent());

@@ -88,15 +88,25 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
             return;
         }
 
-
-        int retrieveResultCode = result.getResultCode();
-        if (retrieveResultCode == CredentialRetrieveResult.RESULT_REJECTED_BY_USER) {
-            showSnackbar(R.string.credential_retrieve_user_rejected);
-        } else if (retrieveResultCode == CredentialRetrieveResult.RESULT_REJECTED_BY_PROVIDER) {
-            showSnackbar(R.string.credential_retrieve_provider_rejected);
-        } else {
-            showSnackbar(R.string.unknown_response);
+        int resultMessageId;
+        switch (result.getResultCode()) {
+            case CredentialRetrieveResult.CODE_NO_CREDENTIALS_AVAILABLE:
+                resultMessageId = R.string.retrieve_no_credentials;
+                break;
+            case CredentialRetrieveResult.CODE_BAD_REQUEST:
+                resultMessageId = R.string.retrieve_bad_request;
+                break;
+            case CredentialRetrieveResult.CODE_USER_CANCELED:
+                resultMessageId = R.string.retrieve_user_canceled;
+                break;
+            case CredentialRetrieveResult.CODE_USER_REQUESTS_MANUAL_AUTH:
+                resultMessageId = R.string.retrieve_manual_auth;
+                break;
+            default:
+                resultMessageId = R.string.retrieve_unknown_response;
         }
+
+        showSnackbar(resultMessageId);
     }
 
     @OnClick(R.id.retrieve_button)
@@ -141,7 +151,7 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
 
             RetrieveBbqResponse result = mResult.get();
             if (result.getRetrieveIntent() == null) {
-                showSnackbar(R.string.no_credentials);
+                showSnackbar(R.string.retrieve_no_credentials);
                 return;
             }
 

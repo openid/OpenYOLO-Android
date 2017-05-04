@@ -296,7 +296,8 @@ public class CredentialClientTest {
     public void testGetCredentialRetrieveResult() throws Exception {
         Intent intent = new Intent();
         intent.putExtra(ProtocolConstants.EXTRA_RETRIEVE_RESULT,
-                new CredentialRetrieveResult.Builder(CredentialRetrieveResult.RESULT_SUCCESS)
+                new CredentialRetrieveResult.Builder(
+                        CredentialRetrieveResult.CODE_CREDENTIAL_SELECTED)
                         .setCredential(testCredential)
                         .build()
                         .toProtobuf()
@@ -304,7 +305,8 @@ public class CredentialClientTest {
 
         CredentialRetrieveResult result = credentialClient.getCredentialRetrieveResult(intent);
         assertThat(result).isNotNull();
-        assertThat(result.getResultCode()).isEqualTo(CredentialRetrieveResult.RESULT_SUCCESS);
+        assertThat(result.getResultCode()).isEqualTo(
+                CredentialRetrieveResult.CODE_CREDENTIAL_SELECTED);
 
         assertThat(result.getCredential()).isNotNull();
         assertThat(result.getCredential().getIdentifier())
@@ -318,7 +320,7 @@ public class CredentialClientTest {
         Intent intent = new Intent();
         CredentialRetrieveResult result = credentialClient.getCredentialRetrieveResult(intent);
         assertThat(result).isNotNull();
-        assertThat(result.getResultCode()).isEqualTo(CredentialRetrieveResult.RESULT_UNKNOWN);
+        assertThat(result.getResultCode()).isEqualTo(CredentialRetrieveResult.CODE_UNKNOWN);
         assertThat(result.getCredential()).isNull();
         assertThat(result.getAdditionalProps()).isEmpty();
     }

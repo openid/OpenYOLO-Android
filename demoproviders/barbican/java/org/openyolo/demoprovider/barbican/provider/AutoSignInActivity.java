@@ -120,7 +120,7 @@ public class AutoSignInActivity extends AppCompatActivity {
         @Override
         public void run() {
             CredentialRetrieveResult result = new CredentialRetrieveResult.Builder(
-                    CredentialRetrieveResult.RESULT_SUCCESS)
+                    CredentialRetrieveResult.CODE_CREDENTIAL_SELECTED)
                     .setCredential(getCredential())
                     .build();
             setResult(result.getResultCode(), result.toResultDataIntent());

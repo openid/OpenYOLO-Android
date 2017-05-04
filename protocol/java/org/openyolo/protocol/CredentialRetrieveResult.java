@@ -39,38 +39,67 @@ public final class CredentialRetrieveResult {
     /**
      * Indicates that the provider returned a response that could not be interpreted.
      */
-    public static final int RESULT_UNKNOWN =
+    public static final int CODE_UNKNOWN =
             Protobufs.CredentialRetrieveResult.ResultCode.UNSPECIFIED_VALUE;
 
     /**
-     * Indicates that the credential request completed without any issues.
+     * Indicates that the credential request sent to the provider was malformed.
      */
-    public static final int RESULT_SUCCESS =
-            Protobufs.CredentialRetrieveResult.ResultCode.SUCCESS_VALUE;
+    public static final int CODE_BAD_REQUEST =
+            Protobufs.CredentialRetrieveResult.ResultCode.BAD_REQUEST_VALUE;
 
     /**
-     * Indicates that the credential request was denied by the provider.
+     * Indicates that the user selected a hint, that has been returned as part of this response.
      */
-    public static final int RESULT_REJECTED_BY_PROVIDER =
-            Protobufs.CredentialRetrieveResult.ResultCode.REJECTED_BY_PROVIDER_VALUE;
+    public static final int CODE_CREDENTIAL_SELECTED =
+            Protobufs.CredentialRetrieveResult.ResultCode.CREDENTIAL_SELECTED_VALUE;
 
     /**
-     * Indicates that the credential request was denied by the user.
+     * Indicates that no credentials are available that meet the requirements of the credential
+     * request.
      */
-    public static final int RESULT_REJECTED_BY_USER =
-            Protobufs.CredentialRetrieveResult.ResultCode.REJECTED_BY_USER_VALUE;
+    public static final int CODE_NO_CREDENTIALS_AVAILABLE =
+            Protobufs.CredentialRetrieveResult.ResultCode.NO_CREDENTIALS_AVAILABLE_VALUE;
 
     /**
-     * Indicates that the credential request was rejected by the provider.
+     * Indicates that the user canceled the selection of a credential in a manner that indicates
+     * they wish to proceed with authentication, but by manually entering their details.
      */
-    public static final CredentialRetrieveResult REJECTED_BY_PROVIDER =
-            new CredentialRetrieveResult.Builder(RESULT_REJECTED_BY_PROVIDER).build();
+    public static final int CODE_USER_REQUESTS_MANUAL_AUTH =
+            Protobufs.CredentialRetrieveResult.ResultCode.USER_REQUESTS_MANUAL_AUTH_VALUE;
 
     /**
-     * Indicates that the credential request was rejected by the user.
+     * Indicates that the user canceled the selection of a credential in a manner that indicates
+     * they do not wish to authenticate at this time.
      */
-    public static final CredentialRetrieveResult REJECTED_BY_USER =
-            new CredentialRetrieveResult.Builder(RESULT_REJECTED_BY_USER).build();
+    public static final int CODE_USER_CANCELED =
+            Protobufs.CredentialRetrieveResult.ResultCode.USER_CANCELED_VALUE;
+
+    /**
+     * Pre-built result that indicates the request was malformed. Carries no
+     * credential or additional params.
+     */
+    public static final CredentialRetrieveResult BAD_REQUEST =
+            new CredentialRetrieveResult.Builder(CODE_BAD_REQUEST).build();
+
+    /**
+     * Pre-built result that indicates that no credentials are available. Carries no credential or
+     * additional params.
+     */
+    public static final CredentialRetrieveResult NO_CREDENTIALS_AVAILABLE =
+            new CredentialRetrieveResult.Builder(CODE_NO_CREDENTIALS_AVAILABLE).build();
+
+    /**
+     * Pre-built result that indicates the user wishes to manually authenticate.
+     */
+    public static final CredentialRetrieveResult USER_REQUESTS_MANUAL_AUTH =
+            new CredentialRetrieveResult.Builder(CODE_USER_REQUESTS_MANUAL_AUTH).build();
+
+    /**
+     * Pre-built result that indicates that the user does not want to authenticate at this time.
+     */
+    public static final CredentialRetrieveResult USER_CANCELED =
+            new CredentialRetrieveResult.Builder(CODE_USER_CANCELED).build();
 
     /**
      * Creates a credential retrieve request from its protocol buffer byte equivalent.
@@ -188,11 +217,6 @@ public final class CredentialRetrieveResult {
         /**
          * Specifies the result code. It is recommended to use one of the standard values, though
          * any value may be used.
-         *
-         * @see CredentialRetrieveResult#RESULT_SUCCESS
-         * @see CredentialRetrieveResult#RESULT_REJECTED_BY_PROVIDER
-         * @see CredentialRetrieveResult#RESULT_REJECTED_BY_USER
-         * @see CredentialRetrieveResult#RESULT_UNKNOWN
          */
         public Builder setResultCode(int resultCode) {
             mResultCode = resultCode;

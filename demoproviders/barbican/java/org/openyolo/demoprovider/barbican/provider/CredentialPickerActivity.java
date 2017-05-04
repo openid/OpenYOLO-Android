@@ -84,10 +84,7 @@ public class CredentialPickerActivity extends AppCompatActivity {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (MotionEvent.ACTION_OUTSIDE == event.getAction()) {
-            setResultAndFinish(
-                    new CredentialRetrieveResult.Builder(
-                            CredentialRetrieveResult.RESULT_REJECTED_BY_USER)
-                            .build());
+            setResultAndFinish(CredentialRetrieveResult.USER_CANCELED);
             return true;
         }
 
@@ -144,7 +141,7 @@ public class CredentialPickerActivity extends AppCompatActivity {
         @Override
         public void onClick(Credential clicked) {
             CredentialRetrieveResult result = new CredentialRetrieveResult.Builder(
-                    CredentialRetrieveResult.RESULT_SUCCESS)
+                    CredentialRetrieveResult.CODE_CREDENTIAL_SELECTED)
                     .setCredential(clicked)
                     .build();
             setResultAndFinish(result);
