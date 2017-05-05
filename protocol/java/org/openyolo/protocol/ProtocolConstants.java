@@ -69,6 +69,15 @@ public final class ProtocolConstants {
      */
     public static final String SAVE_CREDENTIAL_ACTION = "org.openyolo.save";
 
+    /**
+     * The extra key value used to carry a credential deletion request.
+     */
+    public static final String EXTRA_DELETE_REQUEST = "org.openyolo.credential.delete.request";
+
+    /**
+     * The extra key value used to carry a credential deletion result.
+     */
+    public static final String EXTRA_DELETE_RESULT = "org.openyolo.credential.delete.result";
 
     private ProtocolConstants() {
         throw new IllegalStateException("not intended to be constructed");

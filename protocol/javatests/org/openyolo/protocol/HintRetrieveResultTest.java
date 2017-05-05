@@ -15,6 +15,11 @@
 package org.openyolo.protocol;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.openyolo.protocol.TestConstants.ADDITIONAL_KEY;
+import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROPS;
+import static org.openyolo.protocol.TestConstants.ADDITIONAL_VALUE;
+import static org.openyolo.protocol.TestConstants.checkAdditionalProps;
+import static org.openyolo.protocol.TestConstants.checkAdditionalPropsFromProto;
 
 import android.content.Intent;
 import com.google.protobuf.ByteString;
@@ -33,21 +38,11 @@ import org.robolectric.annotation.Config;
 public class HintRetrieveResultTest {
 
     private static final String ALICE_ID = "alice@example.com";
-    private static final String ADDITIONAL_KEY = "extra";
-    private static final byte[] ADDITIONAL_VALUE = "value".getBytes();
-    private static final Map<String, byte[]> ADDITIONAL_PROPS;
-
     private static final Hint HINT =
             new Hint.Builder(
                     ALICE_ID,
                     AuthenticationMethods.EMAIL)
                     .build();
-
-    static {
-        HashMap<String, byte[]> additionalProps = new HashMap<>();
-        additionalProps.put(ADDITIONAL_KEY, ADDITIONAL_VALUE);
-        ADDITIONAL_PROPS = Collections.unmodifiableMap(additionalProps);
-    }
 
     @Test
     public void build() {
@@ -80,9 +75,7 @@ public class HintRetrieveResultTest {
                 .build();
 
         assertThat(result.getAdditionalProperties()).hasSize(1);
-        assertThat(result.getAdditionalProperties()).containsKey(ADDITIONAL_KEY);
-        assertThat(result.getAdditionalProperties().get(ADDITIONAL_KEY))
-                .isEqualTo(ADDITIONAL_VALUE);
+        checkAdditionalProps(result.getAdditionalProperties());
     }
 
     @Test
@@ -96,9 +89,7 @@ public class HintRetrieveResultTest {
         Protobufs.HintRetrieveResult proto = result.toProtobuf();
         assertThat(proto.getResultCodeValue()).isEqualTo(ResultCode.HINT_SELECTED_VALUE);
         assertThat(proto.hasHint());
-        assertThat(proto.containsAdditionalProps(ADDITIONAL_KEY));
-        assertThat(proto.getAdditionalPropsOrThrow(ADDITIONAL_KEY).toByteArray())
-                .isEqualTo(ADDITIONAL_VALUE);
+        checkAdditionalPropsFromProto(proto.getAdditionalPropsMap());
     }
 
     @Test
@@ -114,10 +105,7 @@ public class HintRetrieveResultTest {
         HintRetrieveResult result = HintRetrieveResult.fromProtobuf(proto);
         assertThat(result.getResultCode()).isEqualTo(HintRetrieveResult.CODE_HINT_SELECTED);
         assertThat(result.getHint()).isNotNull();
-        assertThat(result.getAdditionalProperties()).hasSize(1);
-        assertThat(result.getAdditionalProperties()).containsKey(ADDITIONAL_KEY);
-        assertThat(result.getAdditionalProperties().get(ADDITIONAL_KEY))
-                .isEqualTo(ADDITIONAL_VALUE);
+        checkAdditionalProps(result.getAdditionalProperties());
     }
 
     @Test
@@ -135,6 +123,6 @@ public class HintRetrieveResultTest {
         HintRetrieveResult readResult = HintRetrieveResult.fromProtobufBytes(data);
         assertThat(readResult.getResultCode()).isEqualTo(HintRetrieveResult.CODE_HINT_SELECTED);
         assertThat(readResult.getHint()).isNotNull();
-        assertThat(readResult.getAdditionalProperties()).hasSize(1);
+        checkAdditionalProps(readResult.getAdditionalProperties());
     }
 }
