@@ -38,6 +38,15 @@ import org.robolectric.annotation.Config;
 @Config(manifest = Config.NONE)
 public class CredentialDeleteResultTest {
 
+    // invalid as empty string keys are not permitted
+    private static final Protobufs.CredentialDeleteResult INVALID_PROTO =
+            Protobufs.CredentialDeleteResult.newBuilder()
+                    .putAdditionalProps("", ByteString.copyFrom(new byte[0]))
+                    .build();
+
+    private static final byte[] INVALID_PROTO_BYTES =
+            new byte[] { 1, 2, 3, 4, 5 };
+
     @Test
     public void build() {
         CredentialDeleteResult result = new CredentialDeleteResult.Builder(
@@ -81,7 +90,7 @@ public class CredentialDeleteResultTest {
     }
 
     @Test
-    public void fromResultIntentData() throws IOException {
+    public void fromResultIntentData() throws Exception {
         byte[] resultBytes = Protobufs.CredentialDeleteResult.newBuilder()
                 .setResultCode(ResultCode.USER_REFUSED)
                 .putAdditionalProps(ADDITIONAL_KEY, ByteString.copyFrom(ADDITIONAL_VALUE))
@@ -96,8 +105,40 @@ public class CredentialDeleteResultTest {
         checkAdditionalProps(result.getAdditionalProperties());
     }
 
+    @Test(expected=MalformedDataException.class)
+    public void fromResultIntentData_nullIntent_throwsException() throws Exception {
+        CredentialDeleteResult.fromResultIntentData(null);
+    }
+
+    @Test(expected=MalformedDataException.class)
+    public void fromResultIntentData_missingExtra_throwsException() throws Exception {
+        CredentialDeleteResult.fromResultIntentData(new Intent());
+    }
+
+    @Test(expected=MalformedDataException.class)
+    public void fromResultIntentData_wrongExtraType_throwsException() throws Exception {
+        Intent intent = new Intent();
+        intent.putExtra(ProtocolConstants.EXTRA_DELETE_RESULT, "notAByteArray");
+        CredentialDeleteResult.fromResultIntentData(intent);
+    }
+
+    @Test(expected=MalformedDataException.class)
+    public void fromResultIntentData_invalidProtoBytes_throwsException() throws Exception {
+        Intent intent = new Intent();
+        intent.putExtra(ProtocolConstants.EXTRA_DELETE_RESULT, INVALID_PROTO_BYTES);
+        CredentialDeleteResult.fromResultIntentData(intent);
+    }
+
+    @Test(expected=MalformedDataException.class)
+    public void fromResultIntentData_invalidProto_throwsException() throws Exception {
+        Intent intent = new Intent();
+        intent.putExtra(ProtocolConstants.EXTRA_DELETE_RESULT, INVALID_PROTO.toByteArray());
+
+        CredentialDeleteResult.fromResultIntentData(intent);
+    }
+
     @Test
-    public void fromProtobuf() {
+    public void fromProtobuf() throws Exception {
         Protobufs.CredentialDeleteResult proto = Protobufs.CredentialDeleteResult.newBuilder()
                 .setResultCode(ResultCode.BAD_REQUEST)
                 .putAdditionalProps(ADDITIONAL_KEY, ByteString.copyFrom(ADDITIONAL_VALUE))
@@ -108,8 +149,13 @@ public class CredentialDeleteResultTest {
         checkAdditionalProps(result.getAdditionalProperties());
     }
 
+    @Test(expected=MalformedDataException.class)
+    public void fromProtobuf_invalidProtoData_throwsException() throws Exception {
+        CredentialDeleteResult.fromProtobuf(INVALID_PROTO);
+    }
+
     @Test
-    public void fromProtobufBytes() throws IOException {
+    public void fromProtobufBytes() throws Exception {
         byte[] protoBytes = Protobufs.CredentialDeleteResult.newBuilder()
                 .setResultCode(ResultCode.BAD_REQUEST)
                 .putAdditionalProps(ADDITIONAL_KEY, ByteString.copyFrom(ADDITIONAL_VALUE))
@@ -119,5 +165,21 @@ public class CredentialDeleteResultTest {
         CredentialDeleteResult result = CredentialDeleteResult.fromProtobufBytes(protoBytes);
         assertThat(result.getResultCode()).isEqualTo(CredentialDeleteResult.CODE_BAD_REQUEST);
         checkAdditionalProps(result.getAdditionalProperties());
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Test(expected = MalformedDataException.class)
+    public void fromProtobufBytes_nullArray_throwsException() throws Exception {
+        CredentialDeleteResult.fromProtobufBytes(null);
+    }
+
+    @Test(expected = MalformedDataException.class)
+    public void fromProtobufBytes_invalidProtoBytes_throwsException() throws Exception {
+        CredentialDeleteResult.fromProtobufBytes(INVALID_PROTO_BYTES);
+    }
+
+    @Test(expected = MalformedDataException.class)
+    public void fromProtobufBytes_invalidProto_throwsException() throws Exception {
+        CredentialDeleteResult.fromProtobufBytes(INVALID_PROTO.toByteArray());
     }
 }

@@ -37,6 +37,15 @@ import org.valid4j.errors.RequireViolation;
 @Config(manifest = Config.NONE)
 public class CredentialDeleteRequestTest {
 
+    // invalid as empty string keys are not permitted
+    private static final Protobufs.CredentialDeleteRequest INVALID_PROTO =
+            Protobufs.CredentialDeleteRequest.newBuilder()
+                    .putAdditionalProps("", ByteString.copyFrom(new byte[0]))
+                    .build();
+
+    private static final byte[] INVALID_PROTO_BYTES =
+            new byte[] { 1, 2, 3, 4, 5 };
+
     private static final Credential CREDENTIAL =
             new Credential.Builder(
                     "alice@example.com",
@@ -62,7 +71,7 @@ public class CredentialDeleteRequestTest {
     }
 
     @Test
-    public void fromProtobuf() {
+    public void fromProtobuf() throws Exception {
         Protobufs.CredentialDeleteRequest proto = Protobufs.CredentialDeleteRequest.newBuilder()
                 .setCredential(CREDENTIAL.toProtobuf())
                 .putAdditionalProps(ADDITIONAL_KEY, ByteString.copyFrom(ADDITIONAL_VALUE))
@@ -71,6 +80,16 @@ public class CredentialDeleteRequestTest {
         CredentialDeleteRequest request = CredentialDeleteRequest.fromProtobuf(proto);
         assertThat(request.getCredential()).isNotNull();
         checkAdditionalProps(request.getAdditionalProps());
+    }
+
+    @Test(expected = MalformedDataException.class)
+    public void fromProtobuf_nullProto_throwsException() throws Exception {
+        CredentialDeleteRequest.fromProtobuf(null);
+    }
+
+    @Test(expected = MalformedDataException.class)
+    public void fromProtobuf_invalidProto_throwsException() throws Exception {
+        CredentialDeleteRequest.fromProtobuf(INVALID_PROTO);
     }
 
     @Test
@@ -86,6 +105,21 @@ public class CredentialDeleteRequestTest {
         checkAdditionalProps(request.getAdditionalProps());
     }
 
+    @Test(expected = MalformedDataException.class)
+    public void fromProtobufBytes_nullArray_throwsException() throws Exception {
+        CredentialDeleteRequest.fromProtobufBytes(null);
+    }
+
+    @Test(expected = MalformedDataException.class)
+    public void fromProtobufBytes_invalidProtoBytes_throwsException() throws Exception {
+        CredentialDeleteRequest.fromProtobufBytes(INVALID_PROTO_BYTES);
+    }
+
+    @Test(expected = MalformedDataException.class)
+    public void fromProtobufBytes_invalidProto_throwsException() throws Exception {
+        CredentialDeleteRequest.fromProtobufBytes(INVALID_PROTO.toByteArray());
+    }
+
     @Test
     public void toProtobuf() {
         Protobufs.CredentialDeleteRequest proto =
@@ -99,7 +133,7 @@ public class CredentialDeleteRequestTest {
     }
 
     @Test
-    public void fromRequestIntent() throws IOException {
+    public void fromRequestIntent() throws Exception {
         byte[] protoBytes =
                 new CredentialDeleteRequest.Builder(CREDENTIAL)
                         .setAdditionalProperties(ADDITIONAL_PROPS)
@@ -114,5 +148,37 @@ public class CredentialDeleteRequestTest {
 
         assertThat(request.getCredential()).isNotNull();
         checkAdditionalProps(request.getAdditionalProps());
+    }
+
+    @Test(expected = MalformedDataException.class)
+    public void fromRequestIntent_nullIntent_throwsException() throws Exception {
+        CredentialDeleteRequest.fromRequestIntent(null);
+    }
+
+    @Test(expected = MalformedDataException.class)
+    public void fromRequestIntent_missingExtra_throwsException() throws Exception {
+        Intent intent = new Intent();
+        CredentialDeleteRequest.fromRequestIntent(intent);
+    }
+
+    @Test(expected = MalformedDataException.class)
+    public void fromRequestIntent_wrongExtraType_throwsException() throws Exception {
+        Intent intent = new Intent();
+        intent.putExtra(ProtocolConstants.EXTRA_DELETE_REQUEST, "notAByteArray");
+        CredentialDeleteRequest.fromRequestIntent(intent);
+    }
+
+    @Test(expected = MalformedDataException.class)
+    public void fromRequestIntent_invalidProtoBytes_throwsException() throws Exception {
+        Intent intent = new Intent();
+        intent.putExtra(ProtocolConstants.EXTRA_DELETE_REQUEST, INVALID_PROTO_BYTES);
+        CredentialDeleteRequest.fromRequestIntent(intent);
+    }
+
+    @Test(expected = MalformedDataException.class)
+    public void fromRequestIntent_invalidProto_throwsException() throws Exception {
+        Intent intent = new Intent();
+        intent.putExtra(ProtocolConstants.EXTRA_DELETE_REQUEST, INVALID_PROTO.toByteArray());
+        CredentialDeleteRequest.fromRequestIntent(intent);
     }
 }

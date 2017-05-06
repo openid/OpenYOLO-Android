@@ -23,12 +23,14 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import com.google.protobuf.ByteString;
-import java.io.IOException;
+import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.Collections;
 import java.util.Map;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.ClientVersionUtil;
 import org.openyolo.protocol.internal.CollectionConverter;
+import org.openyolo.protocol.internal.IntentProtocolBufferExtractor;
+import org.valid4j.errors.RequireViolation;
 
 /**
  * A request to delete a credential, to be sent to a credential provider on the device.
@@ -37,31 +39,56 @@ public final class CredentialDeleteRequest {
 
     /**
      * Creates a credential deletion request from its protocol buffer equivalent.
+     * @throws MalformedDataException if the protocol buffer is null or contains invalid data.
      */
-    public static CredentialDeleteRequest fromProtobuf(Protobufs.CredentialDeleteRequest proto) {
-        return new Builder(proto).build();
+    public static CredentialDeleteRequest fromProtobuf(
+            @Nullable Protobufs.CredentialDeleteRequest proto)
+            throws MalformedDataException {
+        if (proto == null) {
+            throw new MalformedDataException("credential delete proto is not defined");
+        }
+
+        try {
+            return new Builder(proto).build();
+        } catch (RequireViolation ex) {
+            throw new MalformedDataException("credential deletion request contains invalid data");
+        }
     }
 
     /**
      * Creates a credential deletion request from its protocol buffer equivalent, in byte array
      * form.
-     * @throws IOException if the protocol buffer cannot be parsed from the byte array.
+     * @throws MalformedDataException if the protocol buffer is null or cannot be parsed from the
+     *     byte array.
      */
     public static CredentialDeleteRequest fromProtobufBytes(
-            byte[] protobufBytes)
-            throws IOException {
-        return fromProtobuf(Protobufs.CredentialDeleteRequest.parseFrom(protobufBytes));
+            @Nullable byte[] protobufBytes)
+            throws MalformedDataException {
+        if (protobufBytes == null) {
+            throw new MalformedDataException("credential deletion request not defined");
+        }
+
+        try {
+            return fromProtobuf(Protobufs.CredentialDeleteRequest.parseFrom(protobufBytes));
+        } catch (InvalidProtocolBufferException ex) {
+            throw new MalformedDataException("unable to parse credential deletion request", ex);
+        }
     }
 
     /**
      * Extracts a credential deletion request from a request intent.
-     * @throws IOException if the protocol buffer cannot be parsed from the byte array.
+     * @throws MalformedDataException if the provided intent is null, is missing the byte array
+     *     extra for the request, or the request contains invalid data.
      */
     public static CredentialDeleteRequest fromRequestIntent(
-            Intent requestIntent)
-            throws IOException {
-        byte[] protoBytes = requestIntent.getByteArrayExtra(ProtocolConstants.EXTRA_DELETE_REQUEST);
-        return fromProtobufBytes(protoBytes);
+            @Nullable Intent requestIntent)
+            throws MalformedDataException {
+        return fromProtobuf(
+                IntentProtocolBufferExtractor.extract(
+                        ProtocolConstants.EXTRA_DELETE_REQUEST,
+                        Protobufs.CredentialDeleteRequest.parser(),
+                        "deletion request missing or contains invalid data",
+                        requestIntent));
     }
 
     @NonNull

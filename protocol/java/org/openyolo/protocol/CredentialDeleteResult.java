@@ -18,13 +18,15 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import com.google.protobuf.ByteString;
-import java.io.IOException;
+import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.openyolo.protocol.internal.AdditionalPropertiesUtil;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.CollectionConverter;
+import org.openyolo.protocol.internal.IntentProtocolBufferExtractor;
+import org.valid4j.errors.RequireViolation;
 
 /**
  * A response to a {@link CredentialDeleteRequest credential deletion request}. The status code
@@ -82,6 +84,12 @@ public final class CredentialDeleteResult {
     /**
      * Pre-built deletion result for a bad request. Carries no additional properties.
      */
+    public static final CredentialDeleteResult UNKNOWN =
+            new CredentialDeleteResult.Builder(CODE_UNKNOWN).build();
+
+    /**
+     * Pre-built deletion result for a bad request. Carries no additional properties.
+     */
     public static final CredentialDeleteResult BAD_REQUEST =
             new CredentialDeleteResult.Builder(CODE_BAD_REQUEST).build();
 
@@ -119,28 +127,55 @@ public final class CredentialDeleteResult {
     public static final CredentialDeleteResult USER_REFUSED =
             new CredentialDeleteResult.Builder(CODE_USER_REFUSED).build();
 
+    private static final String UNABLE_TO_EXTRACT_RESULT =
+            "Unable to extract or parse the credential deletion result";
+
     /**
      * Creates a credential delete result from its protocol buffer equivalent.
+     * @throws MalformedDataException if the protocol buffer contains invalid data.
      */
-    public static CredentialDeleteResult fromProtobuf(Protobufs.CredentialDeleteResult proto) {
-        return new CredentialDeleteResult.Builder(proto).build();
+    public static CredentialDeleteResult fromProtobuf(Protobufs.CredentialDeleteResult proto)
+            throws MalformedDataException {
+        try {
+            return new CredentialDeleteResult.Builder(proto).build();
+        } catch (RequireViolation ex) {
+            throw new MalformedDataException(
+                    "credential deletion result contains invalid data", ex);
+        }
     }
 
     /**
      * Creates a credential delete result from its protocol buffer equivalent, in byte array form.
-     * @throws IOException if the protocol buffer could not be parsed from the byte array.
+     * @throws MalformedDataException if the protocol buffer could not be parsed from the byte
+     *     array, or contains invalid data.
      */
-    public static CredentialDeleteResult fromProtobufBytes(byte[] protoBytes) throws IOException {
-        return fromProtobuf(Protobufs.CredentialDeleteResult.parseFrom(protoBytes));
+    public static CredentialDeleteResult fromProtobufBytes(@Nullable byte[] protoBytes)
+            throws MalformedDataException {
+        if (protoBytes == null) {
+            throw new MalformedDataException("credential deletion result bytes cannot be null");
+        }
+
+        try {
+            return fromProtobuf(Protobufs.CredentialDeleteResult.parseFrom(protoBytes));
+        } catch (InvalidProtocolBufferException ex) {
+            throw new MalformedDataException("credential deletion result could not be parsed",  ex);
+        }
     }
 
     /**
      * Extracts a credential deletion result from the result intent data a provider returns
      * on completion of their deletion activity.
-     * @throws IOException if the protocol buffer could not be parsed from the intent.
+     * @throws MalformedDataException if the protocol buffer could not be parsed from the intent.
      */
-    public static CredentialDeleteResult fromResultIntentData(Intent intent) throws IOException {
-        return fromProtobufBytes(intent.getByteArrayExtra(ProtocolConstants.EXTRA_DELETE_RESULT));
+    public static CredentialDeleteResult fromResultIntentData(
+            @Nullable Intent intent)
+            throws MalformedDataException {
+        return fromProtobuf(
+                IntentProtocolBufferExtractor.extract(
+                        ProtocolConstants.EXTRA_DELETE_RESULT,
+                        Protobufs.CredentialDeleteResult.parser(),
+                        UNABLE_TO_EXTRACT_RESULT,
+                        intent));
     }
 
     private final int mResultCode;

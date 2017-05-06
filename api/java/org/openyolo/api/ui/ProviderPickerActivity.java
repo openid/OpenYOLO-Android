@@ -141,6 +141,16 @@ public class ProviderPickerActivity extends AppCompatActivity {
         return createIntent(context, hintIntents, R.string.hint_picker_prompt);
     }
 
+    /**
+     * Creates an intent for display a list of providers to which a credential deletion request
+     * should be sent.
+     */
+    public static Intent createDeleteIntent(
+            @NonNull Context context,
+            @NonNull ArrayList<Intent> deleteIntents) {
+        return createIntent(context, deleteIntents, R.string.delete_picker_prompt);
+    }
+
     private final class ProviderAdapter extends ArrayAdapter<Intent> {
 
         private final List<Drawable> mProviderIcons;

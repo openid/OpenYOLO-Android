@@ -5,4 +5,5 @@
     <string name="possibly_unsafe">Possibly unsafe</string>
     <string name="save_picker_prompt">Save your account with:</string>
     <string name="hint_picker_prompt">Use account details stored in:</string>
+    <string name="delete_picker_prompt">Delete credential from:</string>
 </resources>

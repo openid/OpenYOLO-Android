@@ -14,14 +14,18 @@
 
 package org.openyolo.api;
 
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.openyolo.protocol.ProtocolConstants.CREDENTIAL_DATA_TYPE;
+import static org.openyolo.protocol.ProtocolConstants.DELETE_CREDENTIAL_ACTION;
 import static org.openyolo.protocol.ProtocolConstants.EXTRA_CREDENTIAL;
+import static org.openyolo.protocol.ProtocolConstants.EXTRA_DELETE_REQUEST;
 import static org.openyolo.protocol.ProtocolConstants.EXTRA_HINT_REQUEST;
 import static org.openyolo.protocol.ProtocolConstants.EXTRA_HINT_RESULT;
 import static org.openyolo.protocol.ProtocolConstants.EXTRA_RETRIEVE_RESULT;
 import static org.openyolo.protocol.ProtocolConstants.HINT_CREDENTIAL_ACTION;
 import static org.openyolo.protocol.ProtocolConstants.OPENYOLO_CATEGORY;
 import static org.openyolo.protocol.ProtocolConstants.SAVE_CREDENTIAL_ACTION;
+import static org.valid4j.Assertive.require;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -42,10 +46,13 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import org.openyolo.api.ui.ProviderPickerActivity;
 import org.openyolo.protocol.Credential;
+import org.openyolo.protocol.CredentialDeleteRequest;
+import org.openyolo.protocol.CredentialDeleteResult;
 import org.openyolo.protocol.CredentialRetrieveRequest;
 import org.openyolo.protocol.CredentialRetrieveResult;
 import org.openyolo.protocol.HintRetrieveRequest;
 import org.openyolo.protocol.HintRetrieveResult;
+import org.openyolo.protocol.MalformedDataException;
 import org.openyolo.protocol.Protobufs;
 import org.openyolo.protocol.Protobufs.CredentialRetrieveBbqResponse;
 import org.openyolo.protocol.RetrieveBbqResponse;
@@ -166,6 +173,47 @@ public class CredentialClient {
         return ProviderPickerActivity.createSaveIntent(mApplicationContext, saveIntents);
     }
 
+    /**
+     * Provides an intent to delete a credential. If no compatible credential providers exist
+     * on the device, {@code null} will be returned. The intent should be started with a call
+     * to {@link android.app.Activity#startActivityForResult(Intent, int) startActivityForResult}.
+     *
+     * <p>Upon completion of the request, the result data will be returned in the Intent passed
+     * to {@link android.app.Activity#onActivityResult(int, int, android.content.Intent)}, and
+     * can be extracted by calling {@link #getDeleteResult(Intent)}.
+     */
+    @Nullable
+    public Intent getDeleteIntent(@NonNull Credential credentialToDelete) {
+        require(credentialToDelete, notNullValue());
+        List<ComponentName> deleteProviders =
+                findProviders(DELETE_CREDENTIAL_ACTION);
+
+        if (deleteProviders.isEmpty()) {
+            return null;
+        }
+
+        CredentialDeleteRequest request =
+                new CredentialDeleteRequest.Builder(credentialToDelete).build();
+
+        byte[] encodedRequest = request.toProtobuf().toByteArray();
+
+        // if there is a preferred provider, directly invoke it.
+        ComponentName preferredDeleteActivity = getPreferredProvider(deleteProviders);
+        if (preferredDeleteActivity != null) {
+            return createDeleteIntent(preferredDeleteActivity, encodedRequest);
+        }
+
+        // otherwise, display a picker for all the providers
+        ArrayList<Intent> deleteIntents = new ArrayList<>(deleteProviders.size());
+        for (ComponentName providerActivity : deleteProviders) {
+            deleteIntents.add(createDeleteIntent(
+                    providerActivity,
+                    encodedRequest));
+        }
+
+        return ProviderPickerActivity.createDeleteIntent(mApplicationContext, deleteIntents);
+    }
+
     private Intent createIntent(ComponentName component, String action) {
         Intent intent = new Intent(action);
         intent.setClassName(
@@ -187,6 +235,14 @@ public class CredentialClient {
         Intent saveIntent = createIntent(providerActivity, SAVE_CREDENTIAL_ACTION);
         saveIntent.putExtra(EXTRA_CREDENTIAL, saveRequest);
         return saveIntent;
+    }
+
+    private Intent createDeleteIntent(
+            ComponentName providerActivity,
+            byte[] deleteRequest) {
+        Intent deleteIntent = createIntent(providerActivity, DELETE_CREDENTIAL_ACTION);
+        deleteIntent.putExtra(EXTRA_DELETE_REQUEST, deleteRequest);
+        return deleteIntent;
     }
 
     /**
@@ -247,6 +303,21 @@ public class CredentialClient {
         } catch (IOException ex) {
             Log.e(LOG_TAG, "hint result is malformed, returning default response");
             return createDefaultHintRetrieveResult();
+        }
+    }
+
+    /**
+     * Extracts the result of a credential deletion request from the intent data returned by
+     * a provider. If the result is missing or malformed, {@link CredentialDeleteResult#UNKNOWN}
+     * is returned.
+     */
+    @NonNull
+    public CredentialDeleteResult getDeleteResult(Intent resultData) {
+        try {
+            return CredentialDeleteResult.fromResultIntentData(resultData);
+        } catch (MalformedDataException ex) {
+            Log.w(LOG_TAG, "delete result is missing or malformed, returning default response", ex);
+            return CredentialDeleteResult.UNKNOWN;
         }
     }
 
