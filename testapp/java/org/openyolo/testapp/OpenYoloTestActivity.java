@@ -43,6 +43,7 @@ public final class OpenYoloTestActivity extends AppCompatActivity {
         demoPagerAdapter.addPage(new RetrieveTestPageFragment());
         demoPagerAdapter.addPage(new SaveTestPageFragment());
         demoPagerAdapter.addPage(new HintTestPageFragment());
+        demoPagerAdapter.addPage(new DeleteTestPageFragment());
 
         viewPager.setAdapter(demoPagerAdapter);
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);

@@ -37,6 +37,18 @@
     <string name="hint_manual_auth">User requests manual auth</string>
     <string name="hint_unknown_response">Unknown hint response</string>
 
+    <!-- Delete Test -->
+    <string name="delete_button_label">Delete Credential</string>
+    <string name="delete_button_content_description">Delete a credential</string>
+    <string name="no_available_delete_providers">"No available providers can delete this credential</string>
+    <string name="delete_result_deleted">Credential deleted</string>
+    <string name="delete_result_no_matching_credential">No matching credential to delete</string>
+    <string name="delete_result_provider_refused">Provider refused deletion</string>
+    <string name="delete_result_user_canceled">User canceled deletion</string>
+    <string name="delete_result_user_refused">User refused deletion</string>
+    <string name="delete_result_bad_request">Bad delete request</string>
+    <string name="delete_result_unknown_response">Unknown delete response</string>
+
     <!-- Credential -->
     <string name="id_field_hint">Identifier</string>
     <string name="generate_id_button_content_description">Generate a random identifier</string>
@@ -63,5 +75,6 @@
     <string name="unknown_response">Unknown response</string>
     <string name="response">Response</string>
     <string name="request">Request</string>
+    <string name="invalid_credential_data">Credential data is invalid</string>
 
 </resources>
