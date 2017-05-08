@@ -74,7 +74,7 @@ public class CredentialRetrieveRequest implements Parcelable {
     }
 
     /**
-     * Creats a {@link CredentialRetrieveRequest} from its protocol buffer equivalent.
+     * Creates a {@link CredentialRetrieveRequest} from its protocol buffer equivalent.
      */
     @NonNull
     public static CredentialRetrieveRequest fromProtobuf(

@@ -14,9 +14,6 @@
 
 package org.openyolo.testapp;
 
-import static android.app.Activity.RESULT_CANCELED;
-import static android.app.Activity.RESULT_OK;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.StringRes;
@@ -29,6 +26,8 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import org.openyolo.api.CredentialClient;
 import org.openyolo.protocol.Credential;
+import org.openyolo.protocol.CredentialSaveRequest;
+import org.openyolo.protocol.CredentialSaveResult;
 
 /**
  * Fragment which contains a method of testing the OpenYolo credential save flow.
@@ -68,8 +67,10 @@ public final class SaveTestPageFragment extends TestPageFragment {
 
     @OnClick(R.id.save_button)
     void onSave() {
-        Credential credential = mCredentialView.makeCredentialFromFields();
-        Intent saveIntent = mApi.getSaveIntent(credential);
+        final Credential credential = mCredentialView.makeCredentialFromFields();
+        final CredentialSaveRequest request = CredentialSaveRequest.fromCredential(credential);
+        final Intent saveIntent = mApi.getSaveIntent(request);
+
         if (saveIntent == null) {
             showSnackbar(R.string.no_available_save_providers);
             return;
@@ -91,13 +92,29 @@ public final class SaveTestPageFragment extends TestPageFragment {
             return;
         }
 
-        if (resultCode == RESULT_OK) {
-            showSnackbar(R.string.credential_saved);
-            return;
-        } else if (resultCode == RESULT_CANCELED) {
-            showSnackbar(R.string.credential_save_canceled);
-        } else {
-            showSnackbar(R.string.unknown_response);
+        CredentialSaveResult result = mApi.getCredentialSaveResult(data);
+
+        int resultMessageId;
+        switch (result.getResultCode()) {
+            case CredentialSaveResult.CODE_SAVED:
+                resultMessageId = R.string.save_result_saved;
+                break;
+            case CredentialSaveResult.CODE_BAD_REQUEST:
+                resultMessageId = R.string.save_result_bad_request;
+                break;
+            case CredentialSaveResult.CODE_PROVIDER_REFUSED:
+                resultMessageId = R.string.save_result_provider_refused;
+                break;
+            case CredentialSaveResult.CODE_USER_CANCELED:
+                resultMessageId = R.string.save_result_user_canceled;
+                break;
+            case CredentialSaveResult.CODE_USER_REFUSED:
+                resultMessageId = R.string.save_result_user_refused;
+                break;
+            default:
+                resultMessageId = R.string.save_result_unkown;
         }
+
+        showSnackbar(resultMessageId);
     }
 }

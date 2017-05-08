@@ -17,11 +17,12 @@ package org.openyolo.api;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.openyolo.protocol.ProtocolConstants.CREDENTIAL_DATA_TYPE;
 import static org.openyolo.protocol.ProtocolConstants.DELETE_CREDENTIAL_ACTION;
-import static org.openyolo.protocol.ProtocolConstants.EXTRA_CREDENTIAL;
 import static org.openyolo.protocol.ProtocolConstants.EXTRA_DELETE_REQUEST;
 import static org.openyolo.protocol.ProtocolConstants.EXTRA_HINT_REQUEST;
 import static org.openyolo.protocol.ProtocolConstants.EXTRA_HINT_RESULT;
 import static org.openyolo.protocol.ProtocolConstants.EXTRA_RETRIEVE_RESULT;
+import static org.openyolo.protocol.ProtocolConstants.EXTRA_SAVE_REQUEST;
+import static org.openyolo.protocol.ProtocolConstants.EXTRA_SAVE_RESULT;
 import static org.openyolo.protocol.ProtocolConstants.HINT_CREDENTIAL_ACTION;
 import static org.openyolo.protocol.ProtocolConstants.OPENYOLO_CATEGORY;
 import static org.openyolo.protocol.ProtocolConstants.SAVE_CREDENTIAL_ACTION;
@@ -50,6 +51,8 @@ import org.openyolo.protocol.CredentialDeleteRequest;
 import org.openyolo.protocol.CredentialDeleteResult;
 import org.openyolo.protocol.CredentialRetrieveRequest;
 import org.openyolo.protocol.CredentialRetrieveResult;
+import org.openyolo.protocol.CredentialSaveRequest;
+import org.openyolo.protocol.CredentialSaveResult;
 import org.openyolo.protocol.HintRetrieveRequest;
 import org.openyolo.protocol.HintRetrieveResult;
 import org.openyolo.protocol.MalformedDataException;
@@ -144,22 +147,21 @@ public class CredentialClient {
      * be returned. Otherwise, {@link android.app.Activity#RESULT_CANCELED} will be returned.
      */
     @Nullable
-    public Intent getSaveIntent(Credential credentialToSave) {
-        List<ComponentName> saveProviders =
-                findProviders(SAVE_CREDENTIAL_ACTION);
+    public Intent getSaveIntent(final CredentialSaveRequest saveRequest) {
+        List<ComponentName> saveProviders = findProviders(SAVE_CREDENTIAL_ACTION);
 
         if (saveProviders.isEmpty()) {
             return null;
         }
 
-        byte[] encodedCredential = credentialToSave.toProtobuf().toByteArray();
+        byte[] encodedSaveRequest = saveRequest.toProtocolBuffer().toByteArray();
 
         // if there is a preferred provider, directly invoke it.
         ComponentName preferredSaveActivity = getPreferredProvider(saveProviders);
         if (preferredSaveActivity != null) {
             return createSaveIntent(
                     preferredSaveActivity,
-                    encodedCredential);
+                    encodedSaveRequest);
         }
 
         // otherwise, display a picker for all the providers.
@@ -167,7 +169,7 @@ public class CredentialClient {
         for (ComponentName providerActivity : saveProviders) {
             saveIntents.add(createSaveIntent(
                     providerActivity,
-                    encodedCredential));
+                    encodedSaveRequest));
         }
 
         return ProviderPickerActivity.createSaveIntent(mApplicationContext, saveIntents);
@@ -231,9 +233,9 @@ public class CredentialClient {
 
     private Intent createSaveIntent(
             ComponentName providerActivity,
-            byte[] saveRequest) {
+            byte[] encodedSaveRequest) {
         Intent saveIntent = createIntent(providerActivity, SAVE_CREDENTIAL_ACTION);
-        saveIntent.putExtra(EXTRA_CREDENTIAL, saveRequest);
+        saveIntent.putExtra(EXTRA_SAVE_REQUEST, encodedSaveRequest);
         return saveIntent;
     }
 
@@ -304,6 +306,35 @@ public class CredentialClient {
             Log.e(LOG_TAG, "hint result is malformed, returning default response");
             return createDefaultHintRetrieveResult();
         }
+    }
+
+    /**
+     * Extracts the result of a credential save request from the intent data returned by a provider.
+     */
+    public CredentialSaveResult getCredentialSaveResult(Intent resultData) {
+        if (resultData == null) {
+            Log.i(LOG_TAG, "resultData is null, returning default response");
+            return createDefaultCredentialSaveResult();
+        }
+
+        final byte[] resultBytes = resultData.getByteArrayExtra(EXTRA_SAVE_RESULT);
+        if (resultBytes == null) {
+            Log.i(LOG_TAG, "No save result found in result data, returning default response");
+            return createDefaultCredentialSaveResult();
+        }
+
+        try {
+            return CredentialSaveResult.fromProtobufBytes(resultBytes);
+        } catch (IOException ex) {
+            Log.e(LOG_TAG, "save result is malformed, returning default response");
+            return createDefaultCredentialSaveResult();
+        }
+    }
+
+    @NonNull
+    private static CredentialSaveResult createDefaultCredentialSaveResult() {
+        return new CredentialSaveResult.Builder(CredentialSaveResult.CODE_UNKNOWN)
+                .build();
     }
 
     /**

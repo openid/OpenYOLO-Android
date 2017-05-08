@@ -86,13 +86,6 @@
             <intent-filter>
                 <action android:name="org.openyolo.save"/>
                 <category android:name="org.openyolo" />
-                <!--
-                as this app only supports saving email based credentials, this is
-                declared using a data filter.
-                -->
-                <data
-                    android:scheme="openyolo"
-                    android:host="email" />
             </intent-filter>
         </activity>
 

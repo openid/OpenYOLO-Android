@@ -25,7 +25,8 @@ import java.io.IOException;
 import java.util.List;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
 import org.openyolo.protocol.AuthenticationDomain;
-import org.openyolo.protocol.Credential;
+import org.openyolo.protocol.CredentialSaveRequest;
+import org.openyolo.protocol.CredentialSaveResult;
 import org.openyolo.protocol.ProtocolConstants;
 
 /**
@@ -36,42 +37,46 @@ public class SaveCredentialActivity extends AppCompatActivity {
 
     private static final String LOG_TAG = "SaveCredential";
 
-    private Credential mCredential;
+    private CredentialSaveRequest mRequest;
     private String mCallingPackage;
     private List<AuthenticationDomain> mAuthDomainsForApp;
-    private CredentialStorageClient mClient;
+    private CredentialStorageClient mStorageClient;
 
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (!getIntent().hasExtra(ProtocolConstants.EXTRA_CREDENTIAL)) {
-            Log.w(LOG_TAG, "No credential included in request");
-            finish(RESULT_CANCELED);
+        final byte[] encodedRequest =
+                getIntent().getByteArrayExtra(ProtocolConstants.EXTRA_SAVE_REQUEST);
+
+        // Ensure the intent contains a save request
+        if (null == encodedRequest) {
+            Log.w(LOG_TAG, "No save request included in intent");
+            finishWithResult(CredentialSaveResult.BAD_REQUEST);
             return;
         }
 
+        // Ensure the request can successfully be parsed from it's encoded form
         try {
-            mCredential = Credential.fromProtoBytes(
-                    getIntent().getByteArrayExtra(ProtocolConstants.EXTRA_CREDENTIAL));
+            mRequest = CredentialSaveRequest.fromProtoBytes(encodedRequest);
         } catch (IOException ex) {
-            Log.w(LOG_TAG, "Failed to decode credential for save request");
-            finish(RESULT_CANCELED);
+            Log.w(LOG_TAG, "Failed to decode save request");
+            finishWithResult(CredentialSaveResult.BAD_REQUEST);
             return;
         }
 
         if (!verifyCaller()) {
             Log.w(LOG_TAG, "Rejecting attempt to forge save request for "
-                    + mCredential.getAuthenticationDomain());
-            finish(RESULT_CANCELED);
+                    + mRequest.getCredential().getAuthenticationDomain());
+            finishWithResult(CredentialSaveResult.BAD_REQUEST);
             return;
         }
 
         CredentialStorageClient.connect(this, new CredentialStorageClient.ConnectedCallback() {
             @Override
             public void onStorageConnected(final CredentialStorageClient client) {
-                mClient = client;
+                mStorageClient = client;
                 runOnUiThread(new AfterStorageConnect());
             }
         });
@@ -80,19 +85,19 @@ public class SaveCredentialActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mClient != null) {
-            mClient.disconnect(this);
+        if (mStorageClient != null) {
+            mStorageClient.disconnect(this);
         }
     }
 
     @UiThread
-    private void finish(int resultCode) {
-        setResult(resultCode);
+    private void finishWithResult(CredentialSaveResult result) {
+        setResult(result.getResultCode(), result.toResultDataIntent());
         finish();
     }
 
     private boolean verifyCaller() {
-        ComponentName callingActivity = getCallingActivity();
+        final ComponentName callingActivity = getCallingActivity();
         if (callingActivity == null) {
             Log.w(LOG_TAG, "No calling activity found for save call");
             return false;
@@ -104,10 +109,11 @@ public class SaveCredentialActivity extends AppCompatActivity {
         mCallingPackage = callingActivity.getPackageName();
         mAuthDomainsForApp = AuthenticationDomain.listForPackage(this, mCallingPackage);
 
-        if (!mAuthDomainsForApp.contains(mCredential.getAuthenticationDomain())) {
+        final AuthenticationDomain authDomain = mRequest.getCredential().getAuthenticationDomain();
+        if (!mAuthDomainsForApp.contains(authDomain)) {
             Log.w(LOG_TAG, "App " + mCallingPackage
                     + " is not provably associated to authentication domain "
-                    + mCredential.getAuthenticationDomain()
+                    + authDomain
                     + " for the credential to be saved.");
             return false;
         }
@@ -120,20 +126,22 @@ public class SaveCredentialActivity extends AppCompatActivity {
         @Override
         public void run() {
             try {
-                if (mClient.isOnNeverSaveList(mAuthDomainsForApp)) {
-                    finish(RESULT_CANCELED);
-                } else {
-                    // start confirm activity
-                    Intent confirmIntent = SaveCredentialConfirmationActivity.createIntent(
-                            SaveCredentialActivity.this,
-                            mCallingPackage,
-                            mCredential);
-                    confirmIntent.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
-                    startActivity(confirmIntent);
-                    finish();
+                // Ensure authentication domain is not on never save list
+                if (mStorageClient.isOnNeverSaveList(mAuthDomainsForApp)) {
+                    finishWithResult(CredentialSaveResult.PROVIDER_REFUSED);
+                    return;
                 }
+
+                // Start confirm activity
+                Intent confirmIntent = SaveCredentialConfirmationActivity.createIntent(
+                        SaveCredentialActivity.this,
+                        mCallingPackage,
+                        mRequest.getCredential());
+                confirmIntent.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
+                startActivity(confirmIntent);
+                finish();
             } catch (IOException ex) {
-                finish(RESULT_CANCELED);
+                finishWithResult(CredentialSaveResult.UNSPECIFIED);
             }
         }
     }

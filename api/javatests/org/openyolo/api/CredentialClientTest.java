@@ -39,6 +39,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.Credential;
+import org.openyolo.protocol.CredentialSaveRequest;
+import org.openyolo.protocol.CredentialSaveResult;
 import org.openyolo.protocol.HintRetrieveRequest;
 import org.openyolo.protocol.CredentialRetrieveResult;
 import org.openyolo.protocol.ProtocolConstants;
@@ -46,7 +48,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 /**
- * Battery of tests for CredentialClient
+ * Units tests for {@link CredentialClient}.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
@@ -68,6 +70,8 @@ public class CredentialClientTest {
     private static final String UNKNOWN_PROVIDER_1 = "com.example.superpassword";
 
     private static final String UNKNOWN_PROVIDER_2 = "com.example.locker";
+
+    private static final byte[] INVALID_PROTO = new byte[] { 0, 1, 2, 3 };
 
     @Mock
     private Context mockContext;
@@ -212,7 +216,9 @@ public class CredentialClientTest {
     @SuppressWarnings("WrongConstant")
     @Test
     public void testGetSaveIntent_noProviders() throws Exception {
-        Intent saveIntent = credentialClient.getSaveIntent(testCredential);
+        final CredentialSaveRequest request = CredentialSaveRequest.fromCredential(testCredential);
+        final Intent saveIntent = credentialClient.getSaveIntent(request);
+
         assertThat(saveIntent).isNull();
     }
 
@@ -221,7 +227,9 @@ public class CredentialClientTest {
     public void getSaveIntent_singleKnownProvider() throws Exception {
         addKnownProviders(DASHLANE);
 
-        Intent saveIntent = credentialClient.getSaveIntent(testCredential);
+        final CredentialSaveRequest request = CredentialSaveRequest.fromCredential(testCredential);
+        final Intent saveIntent = credentialClient.getSaveIntent(request);
+
         assertThat(saveIntent).isNotNull();
         assertThat(saveIntent.getComponent().getPackageName()).isEqualTo(DASHLANE);
     }
@@ -234,7 +242,9 @@ public class CredentialClientTest {
 
         // with an unknown provider, the heuristic determines is no preferred provider.
         // Therefore a provider picker should be displayed.
-        Intent saveIntent = credentialClient.getSaveIntent(testCredential);
+        final CredentialSaveRequest request = CredentialSaveRequest.fromCredential(testCredential);
+        final Intent saveIntent = credentialClient.getSaveIntent(request);
+
         assertThat(saveIntent).isNotNull();
         assertThat(saveIntent.getComponent().getClassName())
                 .endsWith("ProviderPickerActivity");
@@ -247,7 +257,9 @@ public class CredentialClientTest {
 
         // due to the preferred provider selection heuristics, we expect that Dashlane will be
         // selected for direct invocation.
-        Intent saveIntent = credentialClient.getSaveIntent(testCredential);
+        final CredentialSaveRequest request = CredentialSaveRequest.fromCredential(testCredential);
+        final Intent saveIntent = credentialClient.getSaveIntent(request);
+
         assertThat(saveIntent).isNotNull();
         assertThat(saveIntent.getComponent().getPackageName()).isEqualTo(DASHLANE);
     }
@@ -260,7 +272,9 @@ public class CredentialClientTest {
         // as there are two known providers, and neither is Google, the preferred provider
         // heuristics should determine there are no preferred providers. Therefore, a provider
         // picker should be launched.
-        Intent saveIntent = credentialClient.getSaveIntent(testCredential);
+        final CredentialSaveRequest request = CredentialSaveRequest.fromCredential(testCredential);
+        final Intent saveIntent = credentialClient.getSaveIntent(request);
+
         assertThat(saveIntent).isNotNull();
         assertThat(saveIntent.getComponent().getClassName())
                 .endsWith("ProviderPickerActivity");
@@ -273,7 +287,9 @@ public class CredentialClientTest {
 
         // with three known providers, the preferred provider heuristic determines there is no
         // preferred provider. Therefore, a provider picker should be displayed.
-        Intent saveIntent = credentialClient.getSaveIntent(testCredential);
+        final CredentialSaveRequest request = CredentialSaveRequest.fromCredential(testCredential);
+        final Intent saveIntent = credentialClient.getSaveIntent(request);
+
         assertThat(saveIntent).isNotNull();
         assertThat(saveIntent.getComponent().getClassName())
                 .endsWith("ProviderPickerActivity");
@@ -282,14 +298,54 @@ public class CredentialClientTest {
     @SuppressWarnings("WrongConstant")
     @Test
     public void getSaveIntent_noKnownProviders() throws Exception {
-        addUnknownProviders("com.example.superpassword", "com.example.locker");
+        addUnknownProviders(UNKNOWN_PROVIDER_1, UNKNOWN_PROVIDER_2);
 
         // With no known providers, the preferred provider heuristic will determine there is no
         // preferred provider. therefore, a provider picker should be displayed.
-        Intent saveIntent = credentialClient.getSaveIntent(testCredential);
+        final CredentialSaveRequest request = CredentialSaveRequest.fromCredential(testCredential);
+        final Intent saveIntent = credentialClient.getSaveIntent(request);
+
         assertThat(saveIntent).isNotNull();
         assertThat(saveIntent.getComponent().getClassName())
                 .endsWith("ProviderPickerActivity");
+    }
+
+    @Test
+    public void getCredentialSaveResult_withNullIntent_returnsDefaultResult() {
+        final CredentialSaveResult result =
+                credentialClient.getCredentialSaveResult(null /* intent*/);
+
+        assertThat(result.getResultCode()).isEqualTo(CredentialSaveResult.CODE_UNKNOWN);
+        assertThat(result.getAdditionalProperties()).isEmpty();
+    }
+
+    @Test
+    public void getCredentialSaveResult_missingExtra_returnsDefaultResult() {
+        final Intent intent = new Intent();
+        final CredentialSaveResult result = credentialClient.getCredentialSaveResult(intent);
+
+        assertThat(result.getResultCode()).isEqualTo(CredentialSaveResult.CODE_UNKNOWN);
+        assertThat(result.getAdditionalProperties()).isEmpty();
+    }
+
+    @Test
+    public void getCredentialSaveResult_withInvalidProto_returnsDefaultResult() {
+        final Intent intent = new Intent();
+        intent.putExtra(ProtocolConstants.EXTRA_SAVE_RESULT, INVALID_PROTO);
+        final CredentialSaveResult result = credentialClient.getCredentialSaveResult(intent);
+
+        assertThat(result.getResultCode()).isEqualTo(CredentialSaveResult.CODE_UNKNOWN);
+        assertThat(result.getAdditionalProperties()).isEmpty();
+    }
+
+    @Test
+    public void getCredentialSaveResult_validResult_returnsResult() {
+        final CredentialSaveResult result =
+                credentialClient.getCredentialSaveResult(
+                        CredentialSaveResult.SAVED.toResultDataIntent());
+
+        assertThat(result.getResultCode()).isEqualTo(CredentialSaveResult.CODE_SAVED);
+        assertThat(result.getAdditionalProperties()).isEmpty();
     }
 
     @Test

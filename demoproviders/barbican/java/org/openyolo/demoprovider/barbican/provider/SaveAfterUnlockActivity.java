@@ -22,6 +22,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import java.io.IOException;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
+import org.openyolo.protocol.CredentialSaveResult;
 import org.openyolo.protocol.Protobufs.Credential;
 
 
@@ -58,13 +59,12 @@ public class SaveAfterUnlockActivity extends AppCompatActivity {
         CredentialStorageClient.connect(this, new CredentialStorageClient.ConnectedCallback() {
             @Override
             public void onStorageConnected(CredentialStorageClient client) {
-                final boolean success;
                 try {
                     client.upsertCredential(mCredential);
-                    runOnUiThread(new SendResultRunnable(RESULT_OK));
+                    runOnUiThread(new SendResultRunnable(CredentialSaveResult.SAVED));
                 } catch (IOException e) {
                     Log.w(LOG_TAG, "Failed to store credential after save", e);
-                    runOnUiThread(new SendResultRunnable(RESULT_CANCELED));
+                    runOnUiThread(new SendResultRunnable(CredentialSaveResult.UNSPECIFIED));
                 }
 
                 client.disconnect(SaveAfterUnlockActivity.this);
@@ -73,15 +73,15 @@ public class SaveAfterUnlockActivity extends AppCompatActivity {
     }
 
     private class SendResultRunnable implements Runnable {
-        private int mResultCode;
+        private final CredentialSaveResult mResult;
 
-        SendResultRunnable(int resultCode) {
-            mResultCode = resultCode;
+        SendResultRunnable(CredentialSaveResult result) {
+            mResult = result;
         }
 
         @Override
         public void run() {
-            setResult(mResultCode);
+            setResult(mResult.getResultCode(), mResult.toResultDataIntent());
             finish();
         }
     }

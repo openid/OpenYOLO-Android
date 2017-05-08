@@ -34,6 +34,7 @@ import org.openyolo.demoprovider.barbican.R;
 import org.openyolo.demoprovider.barbican.UnlockActivity;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
 import org.openyolo.protocol.Credential;
+import org.openyolo.protocol.CredentialSaveResult;
 
 /**
  * Confirms with the user whether they want to save a credential provided by the
@@ -78,7 +79,7 @@ public class SaveCredentialConfirmationActivity extends AppCompatActivity {
                     getIntent().getByteArrayExtra(EXTRA_CREDENTIAL));
         } catch (IOException e) {
             Log.e(LOG_TAG, "Unable to decode credential", e);
-            finish(RESULT_CANCELED);
+            finishWithResult(CredentialSaveResult.UNSPECIFIED);
         }
 
         try {
@@ -104,8 +105,8 @@ public class SaveCredentialConfirmationActivity extends AppCompatActivity {
         mSavePromptView.setText(String.format(savePromptTemplate, mCallingAppName).trim());
     }
 
-    private void finish(int resultCode) {
-        setResult(resultCode);
+    private void finishWithResult(CredentialSaveResult result) {
+        setResult(result.getResultCode(), result.toResultDataIntent());
         finish();
     }
 
@@ -123,17 +124,17 @@ public class SaveCredentialConfirmationActivity extends AppCompatActivity {
         CredentialStorageClient client = getStorageClient();
         if (client == null) {
             Log.w(LOG_TAG, "Unable to establish storage connection in a timely manner");
-            finish(RESULT_CANCELED);
+            finishWithResult(CredentialSaveResult.UNSPECIFIED);
             return;
         }
 
         if (client.isUnlocked()) {
             try {
                 client.upsertCredential(mCredential.toProtobuf());
-                finish(RESULT_OK);
+                finishWithResult(CredentialSaveResult.SAVED);
             } catch (IOException e) {
                 Log.w(LOG_TAG, "Failed to write credential to storage");
-                finish(RESULT_CANCELED);
+                finishWithResult(CredentialSaveResult.UNSPECIFIED);
             }
         } else {
             Intent saveAfterUnlock = UnlockActivity.createIntent(
@@ -150,7 +151,7 @@ public class SaveCredentialConfirmationActivity extends AppCompatActivity {
     void onNeverSaveClicked() {
         CredentialStorageClient client = getStorageClient();
         if (client == null) {
-            finish(RESULT_CANCELED);
+            finishWithResult(CredentialSaveResult.USER_REFUSED);
             return;
         }
 
@@ -160,7 +161,7 @@ public class SaveCredentialConfirmationActivity extends AppCompatActivity {
             Log.w(LOG_TAG, "Failed to add app to never save list", e);
         }
 
-        finish(RESULT_CANCELED);
+        finishWithResult(CredentialSaveResult.USER_REFUSED);
     }
 
     private CredentialStorageClient getStorageClient() {

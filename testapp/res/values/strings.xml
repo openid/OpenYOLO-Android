@@ -24,8 +24,13 @@
     <string name="save_button_label">Save Credential</string>
     <string name="save_button_content_description">Save a credential</string>
 
-    <string name="credential_saved">Credential saved</string>
-    <string name="credential_save_canceled">Credential save canceled</string>
+    <string name="save_result_unkown">Unknown save result</string>
+    <string name="save_result_saved">Credential Saved</string>
+    <string name="save_result_bad_request">Malformed save request</string>
+    <string name="save_result_provider_refused">Provider refused save request</string>
+    <string name="save_result_user_canceled">User canceled save request</string>
+    <string name="save_result_user_refused">User refused save request</string>
+
     <string name="no_available_save_providers">"No available providers can save this credential</string>
 
     <!-- Hint Test -->

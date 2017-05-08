@@ -102,7 +102,7 @@ public final class CredentialRetrieveResult {
             new CredentialRetrieveResult.Builder(CODE_USER_CANCELED).build();
 
     /**
-     * Creates a credential retrieve request from its protocol buffer byte equivalent.
+     * Creates a credential retrieve result from its protocol buffer byte equivalent.
      * @throws IOException if the request could not be parsed or validated.
      */
     public static CredentialRetrieveResult fromProtobufBytes(byte[] protobufBytes)
@@ -111,7 +111,7 @@ public final class CredentialRetrieveResult {
     }
 
     /**
-     * Creates a credential retrieve request from its protocol buffer equivalent.
+     * Creates a credential retrieve result from its protocol buffer equivalent.
      */
     public static CredentialRetrieveResult fromProtobuf(Protobufs.CredentialRetrieveResult proto) {
         return new CredentialRetrieveResult.Builder(proto).build();

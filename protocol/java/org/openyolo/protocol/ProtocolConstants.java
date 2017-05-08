@@ -25,11 +25,6 @@ public final class ProtocolConstants {
     public static final String CREDENTIAL_DATA_TYPE = "org.openyolo.credential";
 
     /**
-     * The extra value key used to store the credential in a retrieve intent response.
-     */
-    public static final String EXTRA_CREDENTIAL = "org.openyolo.retrieve.credential";
-
-    /**
      * The extra value key used to carry a credential retrieve request.
      */
     public static final String EXTRA_RETRIEVE_REQUEST = "org.openyolo.credential.retrieve.request";
@@ -50,6 +45,16 @@ public final class ProtocolConstants {
     public static final String EXTRA_HINT_RESULT = "org.openyolo.hint.result";
 
     /**
+     * The extra key value used to carry a credential save request.
+     */
+    public static final String EXTRA_SAVE_REQUEST = "org.openyolo.credential.save.request";
+
+    /**
+     * The extra key value used to carry a credential save result.
+     */
+    public static final String EXTRA_SAVE_RESULT = "org.openyolo.credential.save.result";
+
+    /**
      * The category used for all OpenYOLO-related intents.
      */
     public static final String OPENYOLO_CATEGORY = "org.openyolo";
@@ -67,7 +72,7 @@ public final class ProtocolConstants {
     /**
      * The action used for save intents.
      */
-    public static final String SAVE_CREDENTIAL_ACTION = "org.openyolo.save";
+    public static final String SAVE_CREDENTIAL_ACTION = "org.openyolo.credential.save";
 
     /**
      * The action used for delete intents.
