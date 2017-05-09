@@ -84,7 +84,7 @@
             android:exported="true"
             android:excludeFromRecents="true">
             <intent-filter>
-                <action android:name="org.openyolo.save"/>
+                <action android:name="org.openyolo.credential.save"/>
                 <category android:name="org.openyolo" />
             </intent-filter>
         </activity>
