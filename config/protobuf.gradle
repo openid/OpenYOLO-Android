@@ -36,12 +36,7 @@ Dependency javaliteDep = project.dependencies.add(protoDepsConfig.name, [
 ])
 
 def makeExecutable = { file ->
-    Files.setPosixFilePermissions(
-            file.toPath(),
-            [
-                    PosixFilePermission.OWNER_EXECUTE,
-                    PosixFilePermission.GROUP_EXECUTE
-            ].toSet())
+    file.setExecutable(true /* isExecutable */, false /* forOwnerOnly */);
 }
 
 /**
