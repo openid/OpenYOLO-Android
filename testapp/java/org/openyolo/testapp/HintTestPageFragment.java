@@ -41,8 +41,14 @@ public final class HintTestPageFragment extends TestPageFragment {
     @BindView(R.id.authentication_methods_input)
     AuthenticationMethodsInputView mAuthenticationMethodsInputView;
 
+    @BindView(R.id.token_providers_input)
+    TokenProviderInputView mTokenProviderInputView;
+
     @BindView(R.id.hint_credential)
     CredentialView mCredentialView;
+
+    @BindView(R.id.id_token_view)
+    IdTokenView mIdTokenView;
 
     private CredentialClient mApi;
 
@@ -83,6 +89,7 @@ public final class HintTestPageFragment extends TestPageFragment {
         Hint hint = result.getHint();
         if (hint != null) {
             mCredentialView.setFieldsFromHint(hint);
+            mIdTokenView.setIdToken(hint.getIdToken());
             return;
         }
 
@@ -118,10 +125,12 @@ public final class HintTestPageFragment extends TestPageFragment {
             return;
         }
 
-        HintRetrieveRequest.Builder requestBuilder =
-                new HintRetrieveRequest.Builder(authenticationMethods);
+        HintRetrieveRequest request =
+                new HintRetrieveRequest.Builder(authenticationMethods)
+                        .setTokenProviders(mTokenProviderInputView.getTokenProviders())
+                        .build();
 
-        Intent hintIntent = mApi.getHintRetrieveIntent(requestBuilder.build());
+        Intent hintIntent = mApi.getHintRetrieveIntent(request);
         if (hintIntent == null) {
             showSnackbar(R.string.no_available_hint_providers);
             return;

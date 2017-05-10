@@ -80,8 +80,16 @@
     <string name="authentication_field_required">Must select or enter valid authentication method</string>
     <string name="request_failed">OpenYOLO request failed</string>
     <string name="unknown_response">Unknown response</string>
-    <string name="response">Response</string>
-    <string name="request">Request</string>
+    <string name="response">Response Properties</string>
+    <string name="request">Request Properties</string>
     <string name="invalid_credential_data">Credential data is invalid</string>
+  <string name="token_providers_header">Supported token providers</string>
+    <string name="use_google_token_provider">Request Google ID tokens</string>
+    <string name="token_provider_uri_field_hint">Token provider URI</string>
+    <string name="client_id_field_hint">Client ID</string>
+    <string name="nonce_field_hint">Nonce</string>
+    <string name="clear_token_provider">Clear</string>
+    <string name="no_token">No token returned</string>
+    <string name="id_token_view_header">ID Token</string>
 
 </resources>

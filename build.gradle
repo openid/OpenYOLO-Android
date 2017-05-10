@@ -1,5 +1,4 @@
 apply from: 'config/localprops.gradle'
-apply from: 'config/keystore.gradle'
 
 buildscript {
     repositories {

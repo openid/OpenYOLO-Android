@@ -10,10 +10,24 @@ android {
         project.archivesBaseName = "openyolo-testapp"
         vectorDrawables.useSupportLibrary = true
     }
+
+    signingConfigs {
+        debugAndRelease {
+            storeFile file("${projectDir}/testapp.keystore")
+            storePassword "testapp"
+            keyAlias "testapp"
+            keyPassword "testapp"
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debugAndRelease
+        }
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.debugAndRelease
         }
     }
 }

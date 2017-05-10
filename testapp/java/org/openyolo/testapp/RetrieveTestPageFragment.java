@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.openyolo.api.CredentialClient;
 import org.openyolo.api.RetrieveCallback;
 import org.openyolo.protocol.AuthenticationMethod;
+import org.openyolo.protocol.Credential;
 import org.openyolo.protocol.CredentialRetrieveRequest;
 import org.openyolo.protocol.CredentialRetrieveResult;
 import org.openyolo.protocol.RetrieveBbqResponse;
@@ -44,8 +45,14 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
     @BindView(R.id.authentication_methods_input)
     AuthenticationMethodsInputView mAuthenticationMethodsInputView;
 
+    @BindView(R.id.token_providers_input)
+    TokenProviderInputView mTokenProviderInputView;
+
     @BindView(R.id.retrieve_credential)
     CredentialView mCredentialView;
+
+    @BindView(R.id.id_token_view)
+    IdTokenView mIdTokenView;
 
     private CredentialClient mApi;
 
@@ -83,8 +90,10 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
         }
 
         CredentialRetrieveResult result = mApi.getCredentialRetrieveResult(data);
-        if (result.getCredential() != null) {
-            mCredentialView.setFieldsFromCredential(result.getCredential());
+        Credential credential = result.getCredential();
+        if (credential != null) {
+            mCredentialView.setFieldsFromCredential(credential);
+            mIdTokenView.setIdToken(credential.getIdToken());
             return;
         }
 
@@ -121,7 +130,9 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
             return;
         }
         CredentialRetrieveRequest request =
-                CredentialRetrieveRequest.forAuthenticationMethods(authenticationMethods);
+                new CredentialRetrieveRequest.Builder(authenticationMethods)
+                        .setTokenProviders(mTokenProviderInputView.getTokenProviders())
+                        .build();
 
         mApi.retrieve(request, new HandleRetrieveResult());
     }

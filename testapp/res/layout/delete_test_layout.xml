@@ -13,10 +13,10 @@
     android:orientation="vertical">
 
     <TextView
-      style="@style/Headline"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="@string/request"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/request"
+        android:textAppearance="@style/TextAppearance.AppCompat.Headline"/>
 
     <org.openyolo.testapp.CredentialView
       android:id="@+id/credential_to_delete"

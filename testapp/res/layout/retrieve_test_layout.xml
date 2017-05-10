@@ -13,21 +13,27 @@
     android:orientation="vertical">
 
     <TextView
-      style="@style/Headline"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="@string/request"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/request"
+        android:textAppearance="@style/TextAppearance.AppCompat.Headline" />
 
     <TextView
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="@string/authentication_method_section_title"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/authentication_method_section_title"
+        android:paddingTop="8dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Title"/>
 
     <org.openyolo.testapp.AuthenticationMethodsInputView
       android:id="@+id/authentication_methods_input"
       android:layout_width="match_parent"
-      android:layout_height="wrap_content">
-    </org.openyolo.testapp.AuthenticationMethodsInputView>
+      android:layout_height="wrap_content" />
+
+    <org.openyolo.testapp.TokenProviderInputView
+      android:id="@+id/token_providers_input"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content" />
 
     <Button
       android:id="@+id/retrieve_button"
@@ -43,16 +49,23 @@
       android:theme="@style/GreenButtonThemeOverlay"/>
 
     <TextView
-      style="@style/Headline"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="@string/response"/>
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="16dp"
+        android:text="@string/response"
+        android:textAppearance="@style/TextAppearance.AppCompat.Headline" />
 
     <org.openyolo.testapp.CredentialView
       android:id="@+id/retrieve_credential"
       android:layout_width="match_parent"
       android:layout_height="wrap_content">
     </org.openyolo.testapp.CredentialView>
+
+    <org.openyolo.testapp.IdTokenView
+        android:id="@+id/id_token_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
   </LinearLayout>
 </android.support.v4.widget.NestedScrollView>
