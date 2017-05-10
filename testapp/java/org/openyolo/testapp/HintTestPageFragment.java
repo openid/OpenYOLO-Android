@@ -21,17 +21,15 @@ import android.support.design.widget.Snackbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import java.util.Set;
 import org.openyolo.api.CredentialClient;
 import org.openyolo.protocol.AuthenticationMethod;
-import org.openyolo.protocol.AuthenticationMethods;
 import org.openyolo.protocol.Hint;
 import org.openyolo.protocol.HintRetrieveRequest;
 import org.openyolo.protocol.HintRetrieveResult;
-import org.valid4j.errors.RequireViolation;
 
 /**
  * Fragment which contains a method of testing the OpenYolo credential hint flow.
@@ -40,8 +38,8 @@ public final class HintTestPageFragment extends TestPageFragment {
 
     private static final int RC_HINT = 0;
 
-    @BindView(R.id.authentication_method_text_input)
-    EditText mAuthenticationMethodInput;
+    @BindView(R.id.authentication_methods_input)
+    AuthenticationMethodsInputView mAuthenticationMethodsInputView;
 
     @BindView(R.id.hint_credential)
     CredentialView mCredentialView;
@@ -112,16 +110,16 @@ public final class HintTestPageFragment extends TestPageFragment {
     void onHint() {
         mCredentialView.clearFields();
 
-        String authMethodStr = mAuthenticationMethodInput.getText().toString();
-        AuthenticationMethod authMethod;
-        try {
-            authMethod = new AuthenticationMethod(authMethodStr);
-        } catch (RequireViolation ex) {
+        Set<AuthenticationMethod> authenticationMethods =
+                mAuthenticationMethodsInputView.getEnabledAuthenticationMethods();
+
+        if (authenticationMethods.isEmpty()) {
             showSnackbar(R.string.authentication_field_required);
             return;
         }
 
-        HintRetrieveRequest.Builder requestBuilder = new HintRetrieveRequest.Builder(authMethod);
+        HintRetrieveRequest.Builder requestBuilder =
+                new HintRetrieveRequest.Builder(authenticationMethods);
 
         Intent hintIntent = mApi.getHintRetrieveIntent(requestBuilder.build());
         if (hintIntent == null) {
@@ -130,21 +128,6 @@ public final class HintTestPageFragment extends TestPageFragment {
         }
 
         startActivityForResult(hintIntent, RC_HINT);
-    }
-
-    @OnClick(R.id.openyolo_email_provider_button)
-    void onEmailAuthenticationMethod() {
-        mAuthenticationMethodInput.setText(AuthenticationMethods.EMAIL.toString());
-    }
-
-    @OnClick(R.id.google_provider_button)
-    void onGoogleAuthenticationMethod() {
-        mAuthenticationMethodInput.setText(AuthenticationMethods.GOOGLE.toString());
-    }
-
-    @OnClick(R.id.facebook_provider_button)
-    void onFacebookAuthenticationMethod() {
-        mAuthenticationMethodInput.setText(AuthenticationMethods.FACEBOOK.toString());
     }
 
     private void showSnackbar(@StringRes int messageId) {

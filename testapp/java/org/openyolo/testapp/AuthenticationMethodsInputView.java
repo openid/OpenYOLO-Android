@@ -42,6 +42,12 @@ public final class AuthenticationMethodsInputView extends LinearLayout {
     @BindView(R.id.email_authentication_method_checkbox)
     CheckBox mEmailCheckBox;
 
+    @BindView(R.id.phone_authentication_method_checkbox)
+    CheckBox mPhoneCheckBox;
+
+    @BindView(R.id.username_authentication_method_checkbox)
+    CheckBox mUsernameCheckBox;
+
     @BindView(R.id.custom_authentication_method_checkbox)
     CheckBox mCustomAuthenticationMethodCheckBox;
 
@@ -108,6 +114,14 @@ public final class AuthenticationMethodsInputView extends LinearLayout {
 
         if (mEmailCheckBox.isChecked()) {
             authenticationMethods.add(AuthenticationMethods.EMAIL);
+        }
+
+        if (mPhoneCheckBox.isChecked()) {
+            authenticationMethods.add(AuthenticationMethods.PHONE);
+        }
+
+        if (mUsernameCheckBox.isChecked()) {
+            authenticationMethods.add(AuthenticationMethods.USER_NAME);
         }
 
         if (mCustomAuthenticationMethodCheckBox.isChecked()) {

@@ -19,6 +19,16 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:text="@string/email_authentication_method_checkbox_text"/>
+  <android.support.v7.widget.AppCompatCheckBox
+      android:id="@+id/phone_authentication_method_checkbox"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="@string/phone_authentication_method_checkbox_text"/>
+  <android.support.v7.widget.AppCompatCheckBox
+      android:id="@+id/username_authentication_method_checkbox"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="@string/username_authentication_method_checkbox_text"/>
 
   <LinearLayout
     android:layout_width="match_parent"

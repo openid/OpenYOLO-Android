@@ -18,6 +18,8 @@
     <string name="facebook_authentication_method_checkbox_text">https://facebook.com</string>
     <string name="google_authentication_method_checkbox_text">https://accounts.google.com</string>
     <string name="email_authentication_method_checkbox_text">openyolo://email</string>
+    <string name="phone_authentication_method_checkbox_text">openyolo://phone</string>
+    <string name="username_authentication_method_checkbox_text">openyolo://username</string>
 
 
     <!-- Save Test -->
