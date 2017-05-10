@@ -146,6 +146,11 @@ public class CredentialStorageService extends Service implements CredentialStora
     }
 
     @Override
+    public boolean hasCredential(Credential credential) throws IOException {
+        return mStorage.hasCredential(credential);
+    }
+
+    @Override
     public List<Credential> listCredentials(List<AuthenticationDomain> authDomains)
             throws IOException {
         checkUnlocked();
@@ -171,7 +176,6 @@ public class CredentialStorageService extends Service implements CredentialStora
 
     @Override
     public void deleteCredential(Credential credential) throws IOException {
-        checkUnlocked();
         mStorage.deleteCredential(credential);
     }
 

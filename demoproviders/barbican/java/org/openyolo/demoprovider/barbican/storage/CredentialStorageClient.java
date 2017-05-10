@@ -147,6 +147,11 @@ public class CredentialStorageClient implements CredentialStorageApi {
         return mApi.listCredentials(authDomains);
     }
 
+    @Override
+    public boolean hasCredential(Credential credential) throws IOException {
+        return mApi.hasCredential(credential);
+    }
+
     /**
      * Callback interface for notifing callers when the client is connected.
      */

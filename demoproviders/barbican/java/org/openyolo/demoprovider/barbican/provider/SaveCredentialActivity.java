@@ -118,7 +118,6 @@ public class SaveCredentialActivity extends AppCompatActivity {
             return false;
         }
 
-
         return true;
     }
 

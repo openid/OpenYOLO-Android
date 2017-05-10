@@ -30,9 +30,17 @@
         <xliff:g example="Netflix" id="appName">%1$s</xliff:g>
         to Barbican?
     </string>
+    <string name="delete_prompt_template">
+        Would you like to delete the account
+        <xliff:g example="alice@example.com" id="accountId">%1$s</xliff:g>
+        for
+        <xliff:g example="Netflix" id="appName">%2$s</xliff:g>?
+    </string>
     <string name="action_wipe_contentDescription">Wipe associations for save</string>
     <string name="remove_unpaired_api_dialog_title">Remove this App from the \"Never Save\" list?</string>
     <string name="openyolo_simple_yes">Yes</string>
     <string name="openyolo_simple_no">No</string>
     <string name="ask_delete_credential">Delete credential?</string>
+    <string name="delete_yes">Yes</string>
+    <string name="delete_no">No thanks</string>
 </resources>

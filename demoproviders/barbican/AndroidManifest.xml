@@ -120,9 +120,19 @@
             android:excludeFromRecents="true"
             android:exported="false" />
 
+        <activity android:name=".provider.DeleteCredentialActivity"
+            android:theme="@style/AppTheme.Dialog"
+            android:exported="true"
+            android:excludeFromRecents="true">
+            <intent-filter>
+                <action android:name="org.openyolo.credential.delete"/>
+                <category android:name="org.openyolo" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".NeverSaveListActivity"
-            android:theme="@style/AppTheme"/>
+            android:theme="@style/AppTheme"
             android:exported="false" />
 
         <service

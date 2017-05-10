@@ -25,6 +25,7 @@ import android.support.annotation.Nullable;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.ClientVersionUtil;
@@ -140,7 +141,7 @@ public final class CredentialDeleteRequest {
         private Credential mCredential;
 
         @NonNull
-        private Map<String, ByteString> mAdditionalProps;
+        private Map<String, ByteString> mAdditionalProps = new HashMap<>();
 
         /**
          * Starts the process of describing a credential deletion request, based on the properties

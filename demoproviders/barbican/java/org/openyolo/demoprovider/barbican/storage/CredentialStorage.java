@@ -26,13 +26,11 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.TreeSet;
 import org.openyolo.demoprovider.barbican.CredentialQualityScore;
-import org.openyolo.demoprovider.barbican.ProtoListUtil;
 import org.openyolo.demoprovider.barbican.Protobufs.AccountHint;
 import org.openyolo.demoprovider.barbican.Protobufs.CredentialMeta;
 import org.openyolo.protocol.AuthenticationDomain;
@@ -235,6 +233,17 @@ public final class CredentialStorage {
     }
 
     /**
+     * Determines whether the store contains a credential with the same authentication domain,
+     * authentication method and identifier as specified.
+     */
+    public boolean hasCredential(Credential credential) {
+        return getCredentialFile(
+                credential.getAuthDomain().getUri(),
+                credential.getAuthMethod().getUri(),
+                credential.getId()).exists();
+    }
+
+    /**
      * Returns a list of all stored credentials. Requires that the credential store is unlocked.
      * @throws IOException if the credentials could not be read.
      */
@@ -272,70 +281,32 @@ public final class CredentialStorage {
      */
     public void upsertCredential(Credential credential) throws IOException {
         checkUnlocked();
-        List<Credential> credentials = new ArrayList<>(
-                readCredentials(credential.getAuthDomain().getUri()));
 
-        // replace any existing equivalent
-        ListIterator<Credential> it = credentials.listIterator();
-        boolean existingFound = false;
-        while (it.hasNext() && !existingFound) {
-            Credential existing = it.next();
-            if (credential.getId().equals(existing.getId())
-                    && eq(credential.getAuthDomain(), existing.getAuthDomain())) {
-                existingFound = true;
-                it.set(credential);
-            }
+        initAuthDomainDir(credential.getAuthDomain().getUri());
+        File credentialFile = getCredentialFile(credential);
+        CipherOutputStream cipherOutputStream = IoUtil.encryptTo(credentialFile, mKey);
+        try {
+            credential.writeTo(cipherOutputStream);
+        } finally {
+            IoUtil.closeQuietly(cipherOutputStream, LOG_TAG);
         }
-
-        if (!existingFound) {
-            it.add(credential);
-        }
-
-        writeCredentials(credential.getAuthDomain().getUri(), credentials);
         upsertHint(credential);
     }
 
     /**
-     * Removes the specified credential (or one with the same authentication domain, identifier
-     * and "type") from the store. Requires that the store is unlocked.
+     * Removes the specified credential (or one with the same authentication domain,
+     * authentication method and identifier) from the store. Requires that the store is unlocked.
      * @throws IOException if the credential could not be deleted.
      */
     public void deleteCredential(Credential credential) throws IOException {
-        checkUnlocked();
-        List<Credential> credentials = new ArrayList<>(readCredentials(
-                credential.getAuthDomain().getUri()));
-
-        ListIterator<Credential> it = credentials.listIterator();
-        boolean existingFound = false;
-        while (it.hasNext() && !existingFound) {
-            Credential existing = it.next();
-            if (credentialsAreEquivalent(credential, existing)) {
-                existingFound = true;
-                it.remove();
-            }
+        File credentialFile = getCredentialFile(credential);
+        if (!credentialFile.exists()) {
+            return;
         }
 
-        if (existingFound) {
-            writeCredentials(credential.getAuthDomain().getUri(), credentials);
+        if (!credentialFile.delete()) {
+            throw new IOException("Failed to delete credential");
         }
-    }
-
-    private boolean credentialsAreEquivalent(Credential c1, Credential c2) {
-        if (c1 == null) {
-            return c2 == null;
-        }
-
-        if (c2 == null) {
-            return false;
-        }
-
-        return c1.getId().equals(c2.getId())
-                && c1.getAuthDomain().equals(c2.getAuthDomain())
-                && c1.getAuthMethod().equals(c2.getAuthMethod());
-    }
-
-    private boolean areEqual(Object o1, Object o2) {
-        return o1 == null ? o2 == null : o1.equals(o2);
     }
 
     /* **************************** store initialization ******************************************/
@@ -486,73 +457,65 @@ public final class CredentialStorage {
     }
 
     private File initAuthDomainDir(String authDomain) throws IOException {
-        File authorityDir = getAuthDomainDir(authDomain);
-        if (!authorityDir.exists()) {
-            if (!authorityDir.mkdirs()) {
+        File authDomainDir = getAuthDomainDir(authDomain);
+        if (!authDomainDir.exists()) {
+            if (!authDomainDir.mkdirs()) {
                 throw new IOException("failed to create authority dir");
             }
         }
 
-        return authorityDir;
+        return authDomainDir;
     }
 
     private void deleteAuthDomainDir(String authDomain) throws IOException {
-        File credsFile = getCredentialsFile(authDomain);
-        if (credsFile.exists()) {
-            if (!credsFile.delete()) {
-                throw new IOException("failed to delete credentials file");
-            }
-        }
-
-        File authorityDir = getAuthDomainDir(authDomain);
-        if (authorityDir.exists()) {
-            if (!authorityDir.delete()) {
-                throw new IOException("failed to delete authority directory");
-            }
-        }
-    }
-
-    private File getCredentialsFile(String authDomain) {
-        return getCredentialsFile(getAuthDomainDir(authDomain));
-    }
-
-    private File getCredentialsFile(File authDomainDir) {
-        return new File(authDomainDir, "creds");
-    }
-
-    /* **************************** credential manipulation ***************************************/
-
-    private void writeCredentials(String authDomain, List<Credential> credentials)
-            throws IOException {
-        if (credentials.size() == 0) {
-            deleteAuthDomainDir(authDomain);
+        File authDomainDir = getAuthDomainDir(authDomain);
+        if (!authDomainDir.exists()) {
             return;
         }
 
-        initAuthDomainDir(authDomain);
-        CipherOutputStream stream = null;
-        try {
-            stream = IoUtil.encryptTo(getCredentialsFile(authDomain), mKey);
-            ProtoListUtil.writeMessageListTo(stream, credentials);
-        } finally {
-            IoUtil.closeQuietly(stream, LOG_TAG);
+        boolean success = true;
+        for (File credentialFile : authDomainDir.listFiles()) {
+            success &= credentialFile.delete();
+        }
+
+        success &= authDomainDir.delete();
+        if (!success) {
+            throw new IOException("Failed to delete auth domain directory");
         }
     }
+
+    private File getCredentialFile(String authDomain, String authMethod, String identifier) {
+        return new File(getAuthDomainDir(authDomain), toBlakeHash(authMethod + "|||" + identifier));
+    }
+
+    private File getCredentialFile(Credential credential) {
+        return getCredentialFile(
+                credential.getAuthDomain().getUri(),
+                credential.getAuthMethod().getUri(),
+                credential.getId());
+    }
+
+    /* **************************** credential manipulation ***************************************/
 
     private List<Credential> readCredentials(String authDomain) throws IOException {
         return readCredentials(getAuthDomainDir(authDomain));
     }
 
     private List<Credential> readCredentials(File authDomain) throws IOException {
-        File credentialsFile = getCredentialsFile(authDomain);
-        if (!credentialsFile.exists()) {
-            return Collections.emptyList();
+        ArrayList<Credential> credentials = new ArrayList<>();
+        if (authDomain.exists()) {
+            for (File credentialFile : authDomain.listFiles()) {
+                credentials.add(readCredential(credentialFile));
+            }
         }
+        return credentials;
+    }
 
+    private Credential readCredential(File credentialFile) throws IOException {
         CipherInputStream stream = null;
         try {
-            stream = IoUtil.decryptFrom(credentialsFile, mKey);
-            return ProtoListUtil.readMessageList(stream, Credential.parser());
+            stream = IoUtil.decryptFrom(credentialFile, mKey);
+            return Credential.parseFrom(stream);
         } finally {
             IoUtil.closeQuietly(stream, LOG_TAG);
         }

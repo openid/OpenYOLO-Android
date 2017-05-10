@@ -16,8 +16,6 @@ package org.openyolo.demoprovider.barbican.provider;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -82,13 +80,7 @@ public class SaveCredentialConfirmationActivity extends AppCompatActivity {
             finishWithResult(CredentialSaveResult.UNSPECIFIED);
         }
 
-        try {
-            PackageManager pm = getPackageManager();
-            ApplicationInfo info = pm.getApplicationInfo(getCallingPackage(), 0);
-            mCallingAppName = pm.getApplicationLabel(info).toString();
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
+        mCallingAppName = CallerUtil.getCallingAppName(this);
 
         CredentialStorageClient.connect(this, new CredentialStorageClient.ConnectedCallback() {
             @Override

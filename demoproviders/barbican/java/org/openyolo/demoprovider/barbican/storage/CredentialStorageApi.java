@@ -127,4 +127,11 @@ public interface CredentialStorageApi {
      * @throws IOException if the credential could not be deleted.
      */
     void deleteCredential(Credential credential) throws IOException;
+
+    /**
+     * Determines whether the store contains a credential with the same authentication domain,
+     * authentication method and identifier as the credential specified.
+     * @throws IOException if the credential store could not be read.
+     */
+    boolean hasCredential(Credential credential) throws IOException;
 }
