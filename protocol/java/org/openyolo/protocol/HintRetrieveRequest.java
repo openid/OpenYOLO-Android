@@ -14,10 +14,9 @@
 
 package org.openyolo.protocol;
 
-import static java.util.Collections.unmodifiableMap;
-import static java.util.Collections.unmodifiableSet;
 import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.openyolo.protocol.internal.CustomMatchers.isHttpsUriStr;
 import static org.openyolo.protocol.internal.CustomMatchers.notNullOrEmptyString;
 import static org.valid4j.Assertive.require;
 
@@ -25,8 +24,10 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import com.google.protobuf.ByteString;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -36,6 +37,7 @@ import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.ClientVersionUtil;
 import org.openyolo.protocol.internal.CollectionConverter;
 import org.openyolo.protocol.internal.NoopValueConverter;
+import org.openyolo.protocol.internal.TokenRequestInfoConverters;
 
 /**
  * A request for a login hint, to be sent to credential providers on the device. Hints provide
@@ -54,10 +56,13 @@ public class HintRetrieveRequest implements Parcelable {
     private final Set<AuthenticationMethod> mAuthMethods;
 
     @NonNull
+    private final Map<String, TokenRequestInfo> mTokenProviders;
+
+    @NonNull
     private final PasswordSpecification mPasswordSpec;
 
     @NonNull
-    private final Map<String, byte[]> mAdditionalProperties;
+    private final Map<String, ByteString> mAdditionalProperties;
 
     /**
      * Creates a hint request for email and password based accounts.
@@ -84,13 +89,11 @@ public class HintRetrieveRequest implements Parcelable {
                 .build();
     }
 
-    private HintRetrieveRequest(
-            @NonNull Set<AuthenticationMethod> authMethods,
-            @NonNull PasswordSpecification passwordSpec,
-            @NonNull Map<String, byte[]> additionalParams) {
-        mAuthMethods = authMethods;
-        mPasswordSpec = passwordSpec;
-        mAdditionalProperties = additionalParams;
+    private HintRetrieveRequest(@NonNull Builder builder) {
+        mAuthMethods = Collections.unmodifiableSet(builder.mAuthMethods);
+        mTokenProviders = Collections.unmodifiableMap(builder.mTokenProviders);
+        mPasswordSpec = builder.mPasswordSpec;
+        mAdditionalProperties = Collections.unmodifiableMap(builder.mAdditionalProps);
     }
 
     /**
@@ -99,6 +102,15 @@ public class HintRetrieveRequest implements Parcelable {
     @NonNull
     public Set<AuthenticationMethod> getAuthenticationMethods() {
         return mAuthMethods;
+    }
+
+    /**
+     * The token providers supported by the requester, with the per-provider request info
+     * message.
+     */
+    @NonNull
+    public Map<String, TokenRequestInfo> getTokenProviders() {
+        return mTokenProviders;
     }
 
     /**
@@ -117,7 +129,9 @@ public class HintRetrieveRequest implements Parcelable {
      */
     @NonNull
     public Map<String, byte[]> getAdditionalProperties() {
-        return mAdditionalProperties;
+        return CollectionConverter.convertMapValues(
+                mAdditionalProperties,
+                ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY);
     }
 
     /**
@@ -128,7 +142,7 @@ public class HintRetrieveRequest implements Parcelable {
     public String getAdditionalPropertyAsString(@NonNull String key) {
         require(key, notNullValue());
         if (mAdditionalProperties.containsKey(key)) {
-            return new String(mAdditionalProperties.get(key), Charset.forName("UTF-8"));
+            return mAdditionalProperties.get(key).toString(Charset.forName("UTF-8"));
         }
         return null;
     }
@@ -139,7 +153,7 @@ public class HintRetrieveRequest implements Parcelable {
     @Nullable
     public byte[] getAdditionalProperty(@NonNull String key) {
         require(key, notNullValue());
-        return mAdditionalProperties.get(key);
+        return mAdditionalProperties.get(key).toByteArray();
     }
 
     @Override
@@ -165,10 +179,11 @@ public class HintRetrieveRequest implements Parcelable {
                         CollectionConverter.toList(
                                 mAuthMethods,
                                 AuthenticationMethodConverters.OBJECT_TO_PROTOBUF))
-                .putAllAdditionalProps(
-                    CollectionConverter.convertMapValues(
-                            mAdditionalProperties,
-                            ByteStringConverters.BYTE_ARRAY_TO_BYTE_STRING))
+                .putAllSupportedTokenProviders(
+                        CollectionConverter.convertMapValues(
+                                mTokenProviders,
+                                TokenRequestInfoConverters.OBJECT_TO_PROTOBUF))
+                .putAllAdditionalProps(mAdditionalProperties)
                 .setPasswordSpec(mPasswordSpec.toProtocolBuffer())
                 .build();
     }
@@ -179,7 +194,8 @@ public class HintRetrieveRequest implements Parcelable {
     public static final class Builder {
 
         private Set<AuthenticationMethod> mAuthMethods = new HashSet<>();
-        private Map<String, byte[]> mAdditionalProps = new HashMap<>();
+        private Map<String, ByteString> mAdditionalProps = new HashMap<>();
+        private Map<String, TokenRequestInfo> mTokenProviders = new HashMap<>();
         private PasswordSpecification mPasswordSpec = PasswordSpecification.DEFAULT;
 
         /**
@@ -192,6 +208,9 @@ public class HintRetrieveRequest implements Parcelable {
             setAuthenticationMethods(CollectionConverter.toSet(
                     requestProto.getAuthMethodsList(),
                     AuthenticationMethodConverters.PROTOBUF_TO_OBJECT));
+            setTokenProviders(CollectionConverter.convertMapValues(
+                    requestProto.getSupportedTokenProvidersMap(),
+                    TokenRequestInfoConverters.PROTOBUF_TO_OBJECT));
             setPasswordSpecification(
                     new PasswordSpecification.Builder(requestProto.getPasswordSpec()).build());
             setAdditionalProperties(
@@ -268,6 +287,51 @@ public class HintRetrieveRequest implements Parcelable {
         }
 
         /**
+         * Specifies the token providers supported by the requester, and any token provider
+         * specific information required to acquire usable ID tokens. A null map is treated
+         * as equivalent to an empty map. Keys must be valid https URIs. Null token request info
+         * messages are treated as equivalent to the {@link TokenRequestInfo#DEFAULT default} token
+         * request info message.
+         */
+        public Builder setTokenProviders(@Nullable Map<String, TokenRequestInfo> tokenProviders) {
+            if (tokenProviders == null) {
+                mTokenProviders.clear();
+                return this;
+            }
+
+            for (Map.Entry<String, TokenRequestInfo> entry : tokenProviders.entrySet()) {
+                addTokenProvider(entry.getKey(), entry.getValue());
+            }
+            return this;
+        }
+
+        /**
+         * Adds a token provider supported by the requester, with the default token request info
+         * message specified.
+         */
+        public Builder addTokenProvider(@NonNull String tokenProviderUri) {
+            addTokenProvider(tokenProviderUri, TokenRequestInfo.DEFAULT);
+            return this;
+        }
+
+        /**
+         * Adds a token provider supported by the requester, with the specified token request info
+         * message for token retrieval. A null token request info message is treated as equivalent
+         * to the {@link TokenRequestInfo#DEFAULT default} token request info message.
+         */
+        public Builder addTokenProvider(
+                @NonNull String tokenProviderUri,
+                @Nullable TokenRequestInfo info) {
+            require(tokenProviderUri, isHttpsUriStr());
+            if (info == null) {
+                info = TokenRequestInfo.DEFAULT;
+            }
+
+            mTokenProviders.put(tokenProviderUri, info);
+            return this;
+        }
+
+        /**
          * Specifies additional, non-standard hint request parameters. The provided map
          * must be non-null, and contain only non-empty keys and non-null values.
          */
@@ -276,7 +340,9 @@ public class HintRetrieveRequest implements Parcelable {
             require(additionalParams, notNullValue());
             require(additionalParams.keySet(), everyItem(notNullOrEmptyString()));
             require(additionalParams.values(), everyItem(notNullValue()));
-            mAdditionalProps = additionalParams;
+            mAdditionalProps = CollectionConverter.convertMapValues(
+                    additionalParams,
+                    ByteStringConverters.BYTE_ARRAY_TO_BYTE_STRING);
             return this;
         }
 
@@ -300,7 +366,7 @@ public class HintRetrieveRequest implements Parcelable {
         public Builder addAdditionalProperty(@NonNull String name, @NonNull byte[] value) {
             require(name, notNullOrEmptyString());
             require(value, notNullValue());
-            mAdditionalProps.put(name, value);
+            mAdditionalProps.put(name, ByteString.copyFrom(value));
             return this;
         }
 
@@ -321,10 +387,7 @@ public class HintRetrieveRequest implements Parcelable {
          */
         @NonNull
         public HintRetrieveRequest build() {
-            return new HintRetrieveRequest(
-                    unmodifiableSet(mAuthMethods),
-                    mPasswordSpec,
-                    unmodifiableMap(mAdditionalProps));
+            return new HintRetrieveRequest(this);
         }
     }
 

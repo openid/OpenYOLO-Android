@@ -48,9 +48,9 @@ public class HintRetrieveRequestTest {
                 AuthenticationMethods.EMAIL,
                 AuthenticationMethods.GOOGLE)
                 .addAuthenticationMethod(AuthenticationMethods.FACEBOOK)
-                .addAdditionalProperty("a", new byte[] { 1, 2, 3})
-                .addAdditionalProperty("b", "hello")
+                .setTokenProviders(TestConstants.createTokenProviderMap())
                 .setPasswordSpecification(originalSpec)
+                .setAdditionalProperties(TestConstants.ADDITIONAL_PROPS)
                 .build();
 
         assertThat(request.getAuthenticationMethods())
@@ -59,19 +59,10 @@ public class HintRetrieveRequestTest {
                         AuthenticationMethods.GOOGLE,
                         AuthenticationMethods.FACEBOOK);
 
-
-        assertThat(request.getAdditionalProperties())
-                .containsOnly(
-                        entry("a", new byte[] {1, 2, 3}),
-                        entry("b", "hello".getBytes(Charset.forName("UTF-8"))));
+        TestConstants.checkTokenProviderMap(request.getTokenProviders());
+        TestConstants.checkAdditionalProps(request.getAdditionalProperties());
 
         assertThat(originalSpec).isEqualTo(request.getPasswordSpecification());
-
-        assertThat(request.getAdditionalProperty("a")).isEqualTo(new byte[] {1, 2, 3});
-        assertThat(request.getAdditionalPropertyAsString("b")).isEqualTo("hello");
-
-        assertThat(request.getAdditionalProperty("c")).isNull();
-        assertThat(request.getAdditionalPropertyAsString("d")).isNull();
     }
 
     @Test
@@ -134,6 +125,8 @@ public class HintRetrieveRequestTest {
                                 .allow(PasswordSpecification.ALPHANUMERIC)
                                 .require(PasswordSpecification.NUMERALS, 1)
                                 .build())
+                .setTokenProviders(TestConstants.createTokenProviderMap())
+                .setAdditionalProperties(TestConstants.ADDITIONAL_PROPS)
                 .build();
 
         Parcel p = Parcel.obtain();
@@ -146,6 +139,9 @@ public class HintRetrieveRequestTest {
                     .containsOnlyElementsOf(request.getAuthenticationMethods());
             assertThat(read.getPasswordSpecification())
                     .isEqualTo(request.getPasswordSpecification());
+
+            TestConstants.checkTokenProviderMap(read.getTokenProviders());
+            TestConstants.checkAdditionalProps(read.getAdditionalProperties());
         } finally {
             p.recycle();
         }

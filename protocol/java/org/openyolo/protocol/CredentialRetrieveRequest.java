@@ -15,15 +15,15 @@
 package org.openyolo.protocol;
 
 import static java.util.Collections.EMPTY_SET;
-import static java.util.Collections.unmodifiableMap;
-import static java.util.Collections.unmodifiableSet;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.openyolo.protocol.internal.CustomMatchers.isHttpsUriStr;
 import static org.openyolo.protocol.internal.CustomMatchers.notNullOrEmptyString;
+import static org.valid4j.Assertive.require;
 import static org.valid4j.Validation.validate;
 
 import android.content.Intent;
@@ -33,6 +33,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -42,6 +43,7 @@ import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.ClientVersionUtil;
 import org.openyolo.protocol.internal.CollectionConverter;
 import org.openyolo.protocol.internal.NoopValueConverter;
+import org.openyolo.protocol.internal.TokenRequestInfoConverters;
 
 /**
  * A request for credentials, to be sent to credential providers on the device.
@@ -116,22 +118,34 @@ public class CredentialRetrieveRequest implements Parcelable {
     private final Set<AuthenticationMethod> mAuthMethods;
 
     @NonNull
+    private final Map<String, TokenRequestInfo> mTokenProviders;
+
+    @NonNull
     private final Map<String, byte[]> mAdditionalProps;
 
-    private CredentialRetrieveRequest(
-            @NonNull Set<AuthenticationMethod> authMethods,
-            @NonNull Map<String, byte[]> additionalParams) {
-        mAuthMethods = authMethods;
-        mAdditionalProps = additionalParams;
+    private CredentialRetrieveRequest(Builder builder) {
+        mAuthMethods = Collections.unmodifiableSet(builder.mAuthMethods);
+        mTokenProviders = Collections.unmodifiableMap(builder.mTokenProviders);
+        mAdditionalProps = Collections.unmodifiableMap(builder.mAdditionalParams);
     }
 
     /**
-     * The set of authentication methods that the requestor supports. This is used to filter the set
+     * The set of authentication methods that the requester supports. This is used to filter the set
      * of credentials saved by the provider. At least one authentication method must be specified.
      */
     @NonNull
     public Set<AuthenticationMethod> getAuthenticationMethods() {
         return mAuthMethods;
+    }
+
+    /**
+     * The set of token providers that the requester supports. These are used by the
+     * credential provider and the OpenYOLO client library to attempt to acquire a "proof of access"
+     * ID token for any returned credential.
+     */
+    @NonNull
+    public Map<String, TokenRequestInfo> getTokenProviders() {
+        return mTokenProviders;
     }
 
     /**
@@ -188,6 +202,10 @@ public class CredentialRetrieveRequest implements Parcelable {
                         CollectionConverter.toList(
                                 mAuthMethods,
                                 AuthenticationMethodConverters.OBJECT_TO_PROTOBUF))
+                .putAllSupportedTokenProviders(
+                        CollectionConverter.convertMapValues(
+                                mTokenProviders,
+                                TokenRequestInfoConverters.OBJECT_TO_PROTOBUF))
                 .putAllAdditionalProps(
                         CollectionConverter.convertMapValues(
                                 mAdditionalProps,
@@ -201,6 +219,7 @@ public class CredentialRetrieveRequest implements Parcelable {
     public static final class Builder {
 
         private Set<AuthenticationMethod> mAuthMethods = new HashSet<>();
+        private Map<String, TokenRequestInfo> mTokenProviders = new HashMap<>();
         private Map<String, byte[]> mAdditionalParams = new HashMap<>();
 
         /**
@@ -213,6 +232,11 @@ public class CredentialRetrieveRequest implements Parcelable {
             setAuthenticationMethods(CollectionConverter.toSet(
                     requestProto.getAuthMethodsList(),
                     AuthenticationMethodConverters.PROTOBUF_TO_OBJECT));
+
+            setTokenProviders(CollectionConverter.convertMapValues(
+                    requestProto.getSupportedTokenProvidersMap(),
+                    TokenRequestInfoConverters.PROTOBUF_TO_OBJECT));
+
             setAdditionalProperties(
                     CollectionConverter.convertMapValues(
                             requestProto.getAdditionalPropsMap(),
@@ -248,6 +272,51 @@ public class CredentialRetrieveRequest implements Parcelable {
             validate(authMethods, not(equalTo(EMPTY_SET)), IllegalArgumentException.class);
 
             mAuthMethods = authMethods;
+            return this;
+        }
+
+        /**
+         * Specifies the token providers supported by the requester, and any token provider
+         * specific information required to acquire usable ID tokens. A null map is treated
+         * as equivalent to an empty map. Keys must be valid https URIs. Null token request info
+         * messages are treated as equivalent to the {@link TokenRequestInfo#DEFAULT default} token
+         * request info message.
+         */
+        public Builder setTokenProviders(@Nullable Map<String, TokenRequestInfo> tokenProviders) {
+            if (tokenProviders == null) {
+                mTokenProviders.clear();
+                return this;
+            }
+
+            for (Map.Entry<String, TokenRequestInfo> entry : tokenProviders.entrySet()) {
+                addTokenProvider(entry.getKey(), entry.getValue());
+            }
+            return this;
+        }
+
+        /**
+         * Adds a token provider supported by the requester, with the default token request info
+         * message specified.
+         */
+        public Builder addTokenProvider(@NonNull String tokenProviderUri) {
+            addTokenProvider(tokenProviderUri, TokenRequestInfo.DEFAULT);
+            return this;
+        }
+
+        /**
+         * Adds a token provider supported by the requester, with the specified token request info
+         * message for token retrieval. A null token request info message is treated as equivalent
+         * to the {@link TokenRequestInfo#DEFAULT default} token request info message.
+         */
+        public Builder addTokenProvider(
+                @NonNull String tokenProviderUri,
+                @Nullable TokenRequestInfo info) {
+            require(tokenProviderUri, isHttpsUriStr());
+            if (info == null) {
+                info = TokenRequestInfo.DEFAULT;
+            }
+
+            mTokenProviders.put(tokenProviderUri, info);
             return this;
         }
 
@@ -302,9 +371,7 @@ public class CredentialRetrieveRequest implements Parcelable {
          */
         @NonNull
         public CredentialRetrieveRequest build() {
-            return new CredentialRetrieveRequest(
-                    unmodifiableSet(mAuthMethods),
-                    unmodifiableMap(mAdditionalParams));
+            return new CredentialRetrieveRequest(this);
         }
     }
 

@@ -161,6 +161,33 @@ public class CredentialTest {
     }
 
     @Test
+    public void builderSetIdToken_validInput_shouldSucceed() {
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
+                .setIdToken(TestConstants.ALICE_ID_TOKEN)
+                .build();
+
+        assertThat(cr.getIdToken()).isEqualTo(TestConstants.ALICE_ID_TOKEN);
+    }
+
+    @Test
+    public void builderSetIdToken_nullValue_shouldSucceed() {
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
+                .setIdToken(null)
+                .build();
+
+        assertThat(cr.getIdToken()).isNull();
+    }
+
+    @Test
+    public void builderSetIdToken_emptyValue_shouldSucceed() {
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
+                .setIdToken("")
+                .build();
+
+        assertThat(cr.getIdToken()).isNull();
+    }
+
+        @Test
     public void testBuilder_setDisplayName() {
         Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
                 .setDisplayName("Alice")

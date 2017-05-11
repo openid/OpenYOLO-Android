@@ -355,6 +355,16 @@ public final class Credential implements Parcelable {
         }
 
         /**
+         * Specifies the ID token for the credential. If a null or empty value is provided, this
+         * is equivalent to remove the ID token from the credential.
+         */
+        @NonNull
+        public Builder setIdToken(String idToken) {
+            this.mIdToken = nullifyEmptyString(idToken);
+            return this;
+        }
+
+        /**
          * Specifies the display name for the credential. If a null or empty value is provided,
          * this is equivalent to removing the display name from the credential.
          */

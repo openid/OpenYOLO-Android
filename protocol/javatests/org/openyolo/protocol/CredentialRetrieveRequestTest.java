@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.openyolo.protocol.internal.ClientVersionUtil;
@@ -33,41 +32,24 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 /**
- * Battery of tests for CredentialRetrieveRequest
+ * Tests for {@link CredentialRetrieveRequest}.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
 public class CredentialRetrieveRequestTest {
 
-    private static final byte[] testBytes = new byte[]
-            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-
-    private CredentialRetrieveRequest request;
-
-    @Before
-    public void setUp() {
-        request = new CredentialRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
-                .addAdditionalProperty("a", "b")
-                .addAdditionalProperty("c", testBytes)
-                .build();
-    }
-
     @Test
-    public void testWriteAndRead() {
-        Parcel p = Parcel.obtain();
-        try {
-            request.writeToParcel(p, 0);
-            p.setDataPosition(0);
-            CredentialRetrieveRequest deserialized = CredentialRetrieveRequest.CREATOR.createFromParcel(p);
-            assertThat(deserialized).isNotNull();
-            assertThat(deserialized.getAuthenticationMethods())
-                    .isEqualTo(request.getAuthenticationMethods());
-            assertMapsEqual(
-                    deserialized.getAdditionalProperties(),
-                    request.getAdditionalProperties());
-        } finally {
-            p.recycle();
-        }
+    public void build_validInputs_shouldSucceed() {
+        CredentialRetrieveRequest request = new CredentialRetrieveRequest.Builder(
+                AuthenticationMethods.EMAIL)
+                .setTokenProviders(TestConstants.createTokenProviderMap())
+                .setAdditionalProperties(TestConstants.ADDITIONAL_PROPS)
+                .build();
+
+        assertThat(request.getAuthenticationMethods()).hasSize(1);
+        assertThat(request.getAuthenticationMethods()).contains(AuthenticationMethods.EMAIL);
+        TestConstants.checkTokenProviderMap(request.getTokenProviders());
+        TestConstants.checkAdditionalProps(request.getAdditionalProperties());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -78,6 +60,29 @@ public class CredentialRetrieveRequestTest {
     @Test(expected = IllegalArgumentException.class)
     public void builderProtoConstructor_withNull_throwsIllegalArgumentException() {
         new CredentialRetrieveRequest.Builder((Protobufs.CredentialRetrieveRequest) null);
+    }
+
+    @Test
+    public void testWriteAndRead() {
+        CredentialRetrieveRequest request = new CredentialRetrieveRequest.Builder(
+                AuthenticationMethods.EMAIL)
+                .setTokenProviders(TestConstants.createTokenProviderMap())
+                .setAdditionalProperties(TestConstants.ADDITIONAL_PROPS)
+                .build();
+
+        Parcel p = Parcel.obtain();
+        try {
+            request.writeToParcel(p, 0);
+            p.setDataPosition(0);
+            CredentialRetrieveRequest deserialized = CredentialRetrieveRequest.CREATOR.createFromParcel(p);
+            assertThat(deserialized).isNotNull();
+            assertThat(deserialized.getAuthenticationMethods())
+                    .isEqualTo(request.getAuthenticationMethods());
+            TestConstants.checkTokenProviderMap(deserialized.getTokenProviders());
+            TestConstants.checkAdditionalProps(deserialized.getAdditionalProperties());
+        } finally {
+            p.recycle();
+        }
     }
 
     @Test
@@ -101,26 +106,6 @@ public class CredentialRetrieveRequestTest {
 
         assertThat(request.getAuthenticationMethods())
             .containsOnly(AuthenticationMethods.GOOGLE, AuthenticationMethods.FACEBOOK);
-    }
-
-    @Test
-    public void testGetAdditionalProperties() {
-        assertThat(request.getAdditionalProperties()).isNotNull();
-        assertThat(request.getAdditionalProperties()).hasSize(2);
-        assertThat(request.getAdditionalPropertyAsString("a")).isEqualTo("b");
-        assertThat(request.getAdditionalProperty("c")).isEqualTo(testBytes);
-    }
-
-    @Test
-    public void testGetAuthMethods() {
-        assertThat(request.getAuthenticationMethods()).hasSize(1);
-        assertThat(request.getAuthenticationMethods())
-                .containsOnly(AuthenticationMethods.EMAIL);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testAdapter_nullArray() throws IOException {
-        Protobufs.CredentialRetrieveRequest.parseFrom((byte[]) null);
     }
 
     @Test

@@ -45,6 +45,13 @@ public final class CustomMatchers {
     }
 
     /**
+     * Matcher for HTTPS web URIs, in string form.
+     */
+    public static Matcher<String> isHttpsUriStr() {
+        return StringUriMatcher.HTTPS_URI_STR;
+    }
+
+    /**
      * Matcher for OpenYOLO authentication methods, in string form.
      */
     public static Matcher<String> isValidAuthenticationMethod() {
@@ -130,6 +137,9 @@ public final class CustomMatchers {
     }
 
     private static final class StringUriMatcher extends CustomTypeSafeMatcher<String> {
+
+        static final StringUriMatcher HTTPS_URI_STR =
+                new StringUriMatcher(UriMatcher.HTTPS_ONLY_MATCHER);
 
         static final StringUriMatcher AUTHENTICATION_DOMAIN_STR =
                 new StringUriMatcher(UriMatcher.AUTHENTICATION_DOMAIN);
