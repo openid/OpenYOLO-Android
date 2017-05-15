@@ -19,8 +19,11 @@ package org.openyolo.protocol;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
+import com.google.protobuf.ByteString;
 import java.util.HashMap;
 import java.util.Map;
+import org.openyolo.protocol.internal.ByteStringConverters;
+import org.openyolo.protocol.internal.CollectionConverter;
 
 /** Collection of shared test constants */
 public final class TextFixtures {
@@ -37,6 +40,15 @@ public final class TextFixtures {
             MAP_INSTANCE = new HashMap<>();
             MAP_INSTANCE.put(PROPERTY_A_NAME, PROPERTY_A_VALUE);
             MAP_INSTANCE.put(PROPERTY_B_NAME, PROPERTY_B_VALUE);
+        }
+
+        public static void assertEqualTo(Map<String, ByteString> map, boolean dummy) {
+            Map<String, byte[]> byteMap =
+                    CollectionConverter.convertMapValues(
+                            map,
+                            ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY);
+
+            assertEqualTo(byteMap);
         }
 
         public static void assertEqualTo(Map<String, byte[]> map) {

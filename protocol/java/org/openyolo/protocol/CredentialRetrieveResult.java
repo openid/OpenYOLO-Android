@@ -14,18 +14,15 @@
 
 package org.openyolo.protocol;
 
-import static org.hamcrest.CoreMatchers.everyItem;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.openyolo.protocol.internal.CustomMatchers.notNullOrEmptyString;
-import static org.valid4j.Assertive.require;
-
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import com.google.protobuf.ByteString;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import org.openyolo.protocol.internal.AdditionalPropertiesUtil;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.CollectionConverter;
 
@@ -125,13 +122,10 @@ public final class CredentialRetrieveResult {
     @NonNull
     private Map<String, ByteString> mAdditionalProps;
 
-    private CredentialRetrieveResult(
-            int resultCode,
-            Credential credential,
-            Map<String, ByteString> additionalProps) {
-        mResultCode = resultCode;
-        mCredential = credential;
-        mAdditionalProps = additionalProps;
+    private CredentialRetrieveResult(Builder builder) {
+        mResultCode = builder.mResultCode;
+        mCredential = builder.mCredential;
+        mAdditionalProps = Collections.unmodifiableMap(builder.mAdditionalProps);
     }
 
     /**
@@ -208,7 +202,7 @@ public final class CredentialRetrieveResult {
         /**
          * Seeds a credential retrieval result from its protocol buffer equivalent.
          */
-        public Builder(Protobufs.CredentialRetrieveResult proto) {
+        private Builder(Protobufs.CredentialRetrieveResult proto) {
             setResultCode(proto.getResultCodeValue());
             setCredentialFromProto(proto.getCredential());
             setAdditionalPropertiesFromProto(proto.getAdditionalPropsMap());
@@ -235,8 +229,12 @@ public final class CredentialRetrieveResult {
          * Specifies the credential being returned as part of this result, in protocol buffer
          * form. Can be null.
          */
-        public Builder setCredentialFromProto(@Nullable Protobufs.Credential credential) {
-            mCredential = credential != null ? Credential.fromProtobuf(credential) : null;
+        private Builder setCredentialFromProto(@Nullable Protobufs.Credential credential) {
+            if (!Protobufs.Credential.getDefaultInstance().equals(credential)) {
+                mCredential = Credential.fromProtobuf(credential);
+            } else {
+                mCredential = null;
+            }
             return this;
         }
 
@@ -246,23 +244,16 @@ public final class CredentialRetrieveResult {
          * be empty.
          */
         public Builder setAdditionalProperties(Map<String, byte[]> additionalProperties) {
-            require(additionalProperties, notNullValue());
-            require(additionalProperties.keySet(), everyItem(notNullOrEmptyString()));
-            require(additionalProperties.values(), everyItem(notNullValue()));
-
             mAdditionalProps =
-                    CollectionConverter.convertMapValues(
-                            additionalProperties,
-                            ByteStringConverters.BYTE_ARRAY_TO_BYTE_STRING);
+                    AdditionalPropertiesUtil.validateAdditionalProperties(additionalProperties);
             return this;
         }
 
-        Builder setAdditionalPropertiesFromProto(Map<String, ByteString> additionalProperties) {
-            require(additionalProperties, notNullValue());
-            require(additionalProperties.keySet(), everyItem(notNullOrEmptyString()));
-            require(additionalProperties.values(), everyItem(notNullValue()));
-
-            mAdditionalProps = additionalProperties;
+        private Builder setAdditionalPropertiesFromProto(
+                Map<String, ByteString> additionalProperties) {
+            mAdditionalProps =
+                    AdditionalPropertiesUtil.validateAdditionalPropertiesFromProto(
+                            additionalProperties);
             return this;
         }
 
@@ -270,7 +261,7 @@ public final class CredentialRetrieveResult {
          * Finalizes the creation of the credential retrieval result.
          */
         public CredentialRetrieveResult build() {
-            return new CredentialRetrieveResult(mResultCode, mCredential, mAdditionalProps);
+            return new CredentialRetrieveResult(this);
         }
     }
 }
