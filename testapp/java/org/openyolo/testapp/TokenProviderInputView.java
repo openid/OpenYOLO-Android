@@ -38,7 +38,7 @@ public class TokenProviderInputView extends LinearLayout {
             "https://accounts.google.com";
 
     private static final String GOOGLE_CLIENT_ID =
-            "304746752269-k0i6b4qsant0mi47612phok7ihveohmp.apps.googleusercontent.com";
+            "304746752269-lah6bs2tt2pos45kr64obv3tblu6v2ma.apps.googleusercontent.com";
 
     @BindView(R.id.use_google)
     Button mUseGoogleSettings;
