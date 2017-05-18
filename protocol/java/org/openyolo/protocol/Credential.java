@@ -248,7 +248,7 @@ public final class Credential implements Parcelable {
          * provided protocol buffer representation of the credential. The protocol buffer
          * must contain valid data for a credential.
          */
-        public Builder(@NonNull Protobufs.Credential proto) {
+        private Builder(@NonNull Protobufs.Credential proto) {
             // required properties
             setIdentifier(proto.getId());
             setAuthenticationMethod(
@@ -260,6 +260,7 @@ public final class Credential implements Parcelable {
 
             // optional properties
 
+            setIdToken(proto.getIdToken());
             setDisplayName(proto.getDisplayName());
             setDisplayPicture(proto.getDisplayPictureUri());
             setPassword(proto.getPassword());

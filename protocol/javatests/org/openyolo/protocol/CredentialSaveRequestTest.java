@@ -25,6 +25,7 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.openyolo.protocol.TextFixtures.ValidFacebookCredential;
 import org.openyolo.protocol.TextFixtures.ValidProperties;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.ClientVersionUtil;
@@ -53,7 +54,7 @@ public final class CredentialSaveRequestTest {
     }
 
     private static final class ValidRequest {
-        public static final Credential CREDENTIAL = ValidCredential.INSTANCE;
+        public static final Credential CREDENTIAL = ValidFacebookCredential.INSTANCE;
         public static final Map<String, byte[]> ADDITIONAL_PROPERTIES = ValidProperties.MAP_INSTANCE;
 
         public static final CredentialSaveRequest INSTANCE =
@@ -62,12 +63,12 @@ public final class CredentialSaveRequestTest {
                         .build();
 
         public static void assertEqualTo(CredentialSaveRequest request) {
-            ValidCredential.assertEqualTo(request.getCredential());
+            ValidFacebookCredential.assertEqualTo(request.getCredential());
             ValidProperties.assertEqualTo(request.getAdditionalProperties());
         }
 
         public static void assertEqualTo(Protobufs.CredentialSaveRequest request) {
-            ValidCredential.assertEqualTo(request.getCredential());
+            ValidFacebookCredential.assertEqualTo(request.getCredential());
             assertThat(request.getClientVersion()).isEqualTo(ValidClientVersion.INSTANCE);
 
             final Map<String, byte[]> additionalProperties =
@@ -76,26 +77,6 @@ public final class CredentialSaveRequestTest {
                             ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY);
 
             ValidProperties.assertEqualTo(additionalProperties);
-        }
-    }
-
-    private static final class ValidCredential {
-        public final static String ID = "Credential ID";
-        public final static String AUTHENTICATION_DOMAIN_STRING = "https://.google.com";
-        public final static AuthenticationMethod AUTHENTICATION_METHOD =
-                AuthenticationMethods.FACEBOOK;
-        public final static AuthenticationDomain AUTHENTICATION_DOMAIN =
-                new AuthenticationDomain(AUTHENTICATION_DOMAIN_STRING);
-
-        public final static Credential INSTANCE =
-                new Credential.Builder(ID, AUTHENTICATION_METHOD, AUTHENTICATION_DOMAIN).build();
-
-        public static void assertEqualTo(Credential credential) {
-            assertThat(credential.getIdentifier()).isEqualTo(ID);
-        }
-
-        public static void assertEqualTo(Protobufs.Credential credential) {
-            assertThat(credential.getId()).isEqualTo(ID);
         }
     }
 
@@ -121,9 +102,9 @@ public final class CredentialSaveRequestTest {
     @Test
     public void forCredential_withValidCredential_returnsRequestForCredential() {
         final CredentialSaveRequest request =
-                CredentialSaveRequest.fromCredential(ValidCredential.INSTANCE);
+                CredentialSaveRequest.fromCredential(ValidFacebookCredential.INSTANCE);
 
-        assertThat(request.getCredential()).isSameAs(ValidCredential.INSTANCE);
+        assertThat(request.getCredential()).isSameAs(ValidFacebookCredential.INSTANCE);
         assertThat(request.getAdditionalProperties()).isEmpty();
     }
 
@@ -149,9 +130,9 @@ public final class CredentialSaveRequestTest {
     @Test
     public void builder_withValidCredential_resultIsEqual() {
         final CredentialSaveRequest request =
-                new CredentialSaveRequest.Builder(ValidCredential.INSTANCE).build();
+                new CredentialSaveRequest.Builder(ValidRequest.CREDENTIAL).build();
 
-        assertThat(request.getCredential()).isSameAs(ValidCredential.INSTANCE);
+        assertThat(request.getCredential()).isSameAs(ValidRequest.CREDENTIAL);
         assertThat(request.getAdditionalProperties()).isEmpty();
     }
 
@@ -165,7 +146,7 @@ public final class CredentialSaveRequestTest {
         final CredentialSaveRequest request =
                 new CredentialSaveRequest.Builder(ValidRequest.INSTANCE.toProtocolBuffer()).build();
 
-        assertThat(request.getCredential().getIdentifier()).isEqualTo(ValidCredential.ID);
+        ValidRequest.assertEqualTo(request);
     }
 
     @Test(expected = RequireViolation.class)

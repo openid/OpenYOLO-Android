@@ -19,6 +19,7 @@ package org.openyolo.protocol;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
+import android.net.Uri;
 import com.google.protobuf.ByteString;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,6 +56,46 @@ public final class TextFixtures {
             assertThat(map).hasSize(2);
             assertThat(map.get(PROPERTY_A_NAME)).isEqualTo(PROPERTY_A_VALUE);
             assertThat(map.get(PROPERTY_B_NAME)).isEqualTo(PROPERTY_B_VALUE);
+        }
+    }
+
+    public static final class ValidFacebookCredential {
+        public final static String ID = "bob@facebook.com";
+        public final static String ID_TOKEN = "'His name is bob' - xoxo facebook";
+        public final static AuthenticationMethod AUTHENTICATION_METHOD =
+                AuthenticationMethods.FACEBOOK;
+        public final static String PASSWORD = "hunter2";
+        public final static String DISPLAY_NAME = "Bob";
+        public final static Uri DISPLAY_PICTURE_URL =
+                Uri.parse("https://pictures.facebook.com/bob_pics.jpeg");
+        public final static Map<String, byte[]> ADDITIONAL_PROPERTIES =
+                ValidProperties.MAP_INSTANCE;
+        public final static String AUTHENTICATION_DOMAIN_STRING = "https://accounts.google.com";
+        public final static AuthenticationDomain AUTHENTICATION_DOMAIN =
+                new AuthenticationDomain(AUTHENTICATION_DOMAIN_STRING);
+
+        public final static Credential INSTANCE =
+                new Credential.Builder(ID, AUTHENTICATION_METHOD, AUTHENTICATION_DOMAIN)
+                        .setDisplayName(DISPLAY_NAME)
+                        .setDisplayPicture(DISPLAY_PICTURE_URL)
+                        .setPassword(PASSWORD)
+                        .setIdToken(ID_TOKEN)
+                        .setAdditionalProperties(ADDITIONAL_PROPERTIES)
+                        .build();
+
+        public static void assertEqualTo(Credential credential) {
+            assertThat(credential.getIdentifier()).isEqualTo(ID);
+            assertThat(credential.getIdToken()).isEqualTo(ID_TOKEN);
+            assertThat(credential.getPassword()).isEqualTo(PASSWORD);
+            assertThat(credential.getDisplayName()).isEqualTo(DISPLAY_NAME);
+            assertThat(credential.getDisplayPicture()).isEqualTo(DISPLAY_PICTURE_URL);
+            ValidProperties.assertEqualTo(credential.getAdditionalProperties());
+            assertThat(credential.getAuthenticationMethod()).isEqualTo(AUTHENTICATION_METHOD);
+            assertThat(credential.getAuthenticationDomain()).isEqualTo(AUTHENTICATION_DOMAIN);
+        }
+
+        public static void assertEqualTo(Protobufs.Credential credential) {
+            assertEqualTo(Credential.fromProtobuf(credential));
         }
     }
 }

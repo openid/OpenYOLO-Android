@@ -23,6 +23,7 @@ import android.net.Uri;
 import android.os.Parcel;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.openyolo.protocol.TextFixtures.ValidFacebookCredential;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.valid4j.errors.RequireViolation;
@@ -38,6 +39,14 @@ public class CredentialTest {
     public static final String AUTH_DOMAIN_STR = "https://www.example.com";
     public static final AuthenticationDomain AUTH_DOMAIN =
             new AuthenticationDomain(AUTH_DOMAIN_STR);
+
+    @Test
+    public void fromProtobuf_withValidCredential_returnsEquivalentCredential() {
+        Credential credential =
+                Credential.fromProtobuf(ValidFacebookCredential.INSTANCE.toProtobuf());
+
+        ValidFacebookCredential.assertEqualTo(credential);
+    }
 
     @Test(expected = RequireViolation.class)
     @SuppressWarnings("ConstantConditions")
