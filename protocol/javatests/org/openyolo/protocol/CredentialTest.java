@@ -23,10 +23,9 @@ import android.net.Uri;
 import android.os.Parcel;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.openyolo.protocol.TextFixtures.ValidFacebookCredential;
+import org.openyolo.protocol.TestFixtures.ValidFacebookCredential;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.valid4j.errors.RequireViolation;
 
 /**
  * Tests for {@link Credential}.
@@ -41,57 +40,57 @@ public class CredentialTest {
             new AuthenticationDomain(AUTH_DOMAIN_STR);
 
     @Test
-    public void fromProtobuf_withValidCredential_returnsEquivalentCredential() {
+    public void fromProtobuf_withValidCredential_returnsEquivalentCredential() throws Exception {
         Credential credential =
                 Credential.fromProtobuf(ValidFacebookCredential.INSTANCE.toProtobuf());
 
         ValidFacebookCredential.assertEqualTo(credential);
     }
 
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     @SuppressWarnings("ConstantConditions")
     public void testBuilder_nullIdentifier() {
         new Credential.Builder(null, EMAIL, AUTH_DOMAIN);
     }
 
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     @SuppressWarnings("ConstantConditions")
     public void testBuilder_nullAuthMethod() {
         new Credential.Builder(EMAIL_ID, null, AUTH_DOMAIN);
     }
 
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     @SuppressWarnings("ConstantConditions")
     public void testBuilder_nullAuthDomain() {
         new Credential.Builder(EMAIL_ID, EMAIL, null);
     }
 
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuilder_emptyIdentifier() {
         new Credential.Builder("", EMAIL, AUTH_DOMAIN);
     }
 
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuilder_emptyAuthMethod() {
         new Credential.Builder(EMAIL_ID, "", AUTH_DOMAIN_STR);
     }
 
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuilder_authMethodWithoutScheme() {
         new Credential.Builder(EMAIL_ID, "www.example.com", AUTH_DOMAIN_STR);
     }
 
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuilder_authMethodWithPath() {
         new Credential.Builder(EMAIL_ID, "https://www.example.com/path", AUTH_DOMAIN_STR);
     }
 
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuilder_authMethodWithQuery() {
         new Credential.Builder(EMAIL_ID, "https://www.example.com?a=b", AUTH_DOMAIN_STR);
     }
 
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuilder_authMethodWithFragment() {
         new Credential.Builder(EMAIL_ID, "https://www.example.com#a", AUTH_DOMAIN_STR);
     }
@@ -119,7 +118,7 @@ public class CredentialTest {
         assertThat(cr.getIdentifier()).isEqualTo("bob@example.com");
     }
 
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     @SuppressWarnings("ConstantConditions")
     public void testBuilder_setIdentifier_toNull() {
         new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
@@ -127,7 +126,7 @@ public class CredentialTest {
             .build();
     }
 
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuilder_setIdentifier_toEmpty() {
         new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
                 .setIdentifier("")

@@ -27,7 +27,7 @@ import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.CollectionConverter;
 
 /** Collection of shared test constants */
-public final class TextFixtures {
+public final class TestFixtures {
     public static final class ValidProperties {
         public static final String PROPERTY_A_NAME = "Property A";
         public static final byte[] PROPERTY_A_VALUE = new byte [] { 0, 1 };
@@ -58,6 +58,9 @@ public final class TextFixtures {
             assertThat(map.get(PROPERTY_B_NAME)).isEqualTo(PROPERTY_B_VALUE);
         }
     }
+
+    public static final byte[] INVALID_PROTO_BYES =
+            new byte[] { 'i', 'n', 'v', 'a', 'l', 'i', 'd' };
 
     public static final class ValidFacebookCredential {
         public final static String ID = "bob@facebook.com";
@@ -94,7 +97,7 @@ public final class TextFixtures {
             assertThat(credential.getAuthenticationDomain()).isEqualTo(AUTHENTICATION_DOMAIN);
         }
 
-        public static void assertEqualTo(Protobufs.Credential credential) {
+        public static void assertEqualTo(Protobufs.Credential credential) throws Exception {
             assertEqualTo(Credential.fromProtobuf(credential));
         }
     }

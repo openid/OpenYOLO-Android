@@ -23,7 +23,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.openyolo.protocol.internal.CustomMatchers.isHttpsUriStr;
 import static org.openyolo.protocol.internal.CustomMatchers.notNullOrEmptyString;
-import static org.valid4j.Assertive.require;
 import static org.valid4j.Validation.validate;
 
 import android.content.Intent;
@@ -32,7 +31,6 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -77,37 +75,46 @@ public class CredentialRetrieveRequest implements Parcelable {
 
     /**
      * Creates a {@link CredentialRetrieveRequest} from its protocol buffer equivalent.
+     * @throws MalformedDataException if the given protocol buffer is not valid.
      */
     @NonNull
     public static CredentialRetrieveRequest fromProtobuf(
-            @NonNull Protobufs.CredentialRetrieveRequest proto) {
+            @NonNull Protobufs.CredentialRetrieveRequest proto) throws MalformedDataException {
+        validate(proto, notNullValue(), MalformedDataException.class);
+
         return new CredentialRetrieveRequest.Builder(proto).build();
     }
 
     /**
      * Creates a {@link CredentialRetrieveRequest} from its protocol buffer byte array equivalent.
-     * @throws IOException if the request could not be parsed and validated.
+     * @throws MalformedDataException if the given protocol buffer is not valid.
      */
     @NonNull
     public static CredentialRetrieveRequest fromProtobufBytes(
             @NonNull byte[] protoBytes)
-            throws IOException {
-        return fromProtobuf(Protobufs.CredentialRetrieveRequest.parseFrom(protoBytes));
+            throws MalformedDataException {
+        validate(protoBytes, notNullValue(), MalformedDataException.class);
+
+        try {
+            return fromProtobuf(Protobufs.CredentialRetrieveRequest.parseFrom(protoBytes));
+        } catch (IOException ex) {
+            throw new MalformedDataException(ex);
+        }
     }
 
     /**
      * Extracts a {@link CredentialRetrieveRequest} from the intent extra that is used to carry
      * a request from the client to the provider activity.
      *
-     * @throws IOException if the intent does not contain a retrieve request, or the contained
-     *     request could not be parsed and validated.
+     * @throws MalformedDataException if the intent does not contain a retrieve request, or the
+     *     contained request could not be parsed and validated.
      */
     @NonNull
     public static CredentialRetrieveRequest fromRequestIntent(
             @NonNull Intent requestIntent)
-            throws IOException {
+            throws MalformedDataException {
         if (!requestIntent.hasExtra(ProtocolConstants.EXTRA_RETRIEVE_REQUEST)) {
-            throw new IOException("credential retrieve request missing in intent data");
+            throw new MalformedDataException("credential retrieve request missing in intent data");
         }
 
         return fromProtobufBytes(
@@ -156,30 +163,6 @@ public class CredentialRetrieveRequest implements Parcelable {
         return mAdditionalProps;
     }
 
-    /**
-     * Retrieves the value of the named additional parameter, where the value is a UTF-8 encoded
-     * string.
-     */
-    @Nullable
-    public String getAdditionalPropertyAsString(@NonNull String key) {
-        validate(key, notNullValue(), IllegalArgumentException.class);
-
-        if (mAdditionalProps.containsKey(key)) {
-            return new String(mAdditionalProps.get(key), Charset.forName("UTF-8"));
-        }
-        return null;
-    }
-
-    /**
-     * Retrieves the raw, byte-array value of the named additional parameter.
-     */
-    @Nullable
-    public byte[] getAdditionalProperty(@NonNull String key) {
-        validate(key, notNullValue(), IllegalArgumentException.class);
-
-        return mAdditionalProps.get(key);
-    }
-
     @Override
     public int describeContents() {
         return 0;
@@ -225,22 +208,28 @@ public class CredentialRetrieveRequest implements Parcelable {
         /**
          * Starts the process of creating a retrieve request using the data contained in the
          * provided protocol buffer representation.
+         * @throws MalformedDataException if the given protocol buffer is not valid.
          */
-        public Builder(@NonNull Protobufs.CredentialRetrieveRequest requestProto) {
-            validate(requestProto, notNullValue(), IllegalArgumentException.class);
+        private Builder(@NonNull Protobufs.CredentialRetrieveRequest requestProto)
+                throws MalformedDataException {
+            validate(requestProto, notNullValue(), MalformedDataException.class);
 
-            setAuthenticationMethods(CollectionConverter.toSet(
-                    requestProto.getAuthMethodsList(),
-                    AuthenticationMethodConverters.PROTOBUF_TO_OBJECT));
+            try {
+                setAuthenticationMethods(CollectionConverter.toSet(
+                        requestProto.getAuthMethodsList(),
+                        AuthenticationMethodConverters.PROTOBUF_TO_OBJECT));
 
-            setTokenProviders(CollectionConverter.convertMapValues(
-                    requestProto.getSupportedTokenProvidersMap(),
-                    TokenRequestInfoConverters.PROTOBUF_TO_OBJECT));
+                setTokenProviders(CollectionConverter.convertMapValues(
+                        requestProto.getSupportedTokenProvidersMap(),
+                        TokenRequestInfoConverters.PROTOBUF_TO_OBJECT));
 
-            setAdditionalProperties(
-                    CollectionConverter.convertMapValues(
-                            requestProto.getAdditionalPropsMap(),
-                            ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY));
+                setAdditionalProperties(
+                        CollectionConverter.convertMapValues(
+                                requestProto.getAdditionalPropsMap(),
+                                ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY));
+            } catch (IllegalArgumentException ex) {
+                throw new MalformedDataException(ex);
+            }
         }
 
         /**
@@ -311,7 +300,8 @@ public class CredentialRetrieveRequest implements Parcelable {
         public Builder addTokenProvider(
                 @NonNull String tokenProviderUri,
                 @Nullable TokenRequestInfo info) {
-            require(tokenProviderUri, isHttpsUriStr());
+            validate(tokenProviderUri, isHttpsUriStr(), IllegalArgumentException.class);
+
             if (info == null) {
                 info = TokenRequestInfo.DEFAULT;
             }
@@ -341,32 +331,6 @@ public class CredentialRetrieveRequest implements Parcelable {
         }
 
         /**
-         * Adds an additional parameter, where the value will be encoded as a UTF-8 string. Both the
-         * parameter name and value must be non-null.
-         *
-         * @see CredentialRetrieveRequest#getAdditionalPropertyAsString(String)
-         */
-        public Builder addAdditionalProperty(
-                @NonNull String name,
-                @NonNull String value) {
-            validate(value, notNullValue(), IllegalArgumentException.class);
-
-            addAdditionalProperty(name, value.getBytes(Charset.forName("UTF-8")));
-            return this;
-        }
-
-        /**
-         * Adds an additional parameter. Both the parameter name and value must be non-null.
-         */
-        public Builder addAdditionalProperty(String name, byte[] value) {
-            validate(name, notNullOrEmptyString(), IllegalArgumentException.class);
-            validate(value, notNullValue(), IllegalArgumentException.class);
-
-            mAdditionalParams.put(name, value);
-            return this;
-        }
-
-        /**
          * Creates a {@link CredentialRetrieveRequest} using the properties set on the builder.
          */
         @NonNull
@@ -386,10 +350,8 @@ public class CredentialRetrieveRequest implements Parcelable {
             in.readByteArray(protoBytes);
 
             try {
-                return new CredentialRetrieveRequest.Builder(
-                        Protobufs.CredentialRetrieveRequest.parseFrom(protoBytes))
-                        .build();
-            } catch (IOException ex) {
+                return CredentialRetrieveRequest.fromProtobufBytes(protoBytes);
+            } catch (MalformedDataException ex) {
                 throw new IllegalStateException("Unable to read proto from parcel", ex);
             }
         }

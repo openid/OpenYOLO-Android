@@ -14,7 +14,8 @@
 
 package org.openyolo.protocol;
 
-import static org.valid4j.Assertive.require;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.valid4j.Validation.validate;
 
 import android.support.annotation.NonNull;
 import java.io.IOException;
@@ -29,17 +30,34 @@ public final class AuthenticationMethod implements Comparable<AuthenticationMeth
 
     /**
      * Creates an authentication method from its protocol buffer equivalent, in byte form.
-     * @throws IOException if the protocol buffer cannot be parsed.
+     * @throws MalformedDataException if the given protocol buffer byte array is null or the parsed
+     *     protocol buffer is not valid.
      */
-    public static AuthenticationMethod fromProtobufBytes(byte[] protoBufBytes) throws IOException {
-        return fromProtobuf(Protobufs.AuthenticationMethod.parseFrom(protoBufBytes));
+    public static AuthenticationMethod fromProtobufBytes(@NonNull byte[] protoBufBytes)
+            throws MalformedDataException {
+        validate(protoBufBytes, notNullValue(), MalformedDataException.class);
+
+        try {
+            return fromProtobuf(Protobufs.AuthenticationMethod.parseFrom(protoBufBytes));
+        } catch (IOException ex) {
+            throw new MalformedDataException(ex);
+        }
     }
 
     /**
      * Creates an authentication method from its protocol buffer equivalent.
+     * @throws MalformedDataException if the given protocol buffer is null or the parsed protocol
+     *      buffer is not valid.
      */
-    public static AuthenticationMethod fromProtobuf(Protobufs.AuthenticationMethod authMethod) {
-        return new AuthenticationMethod(authMethod.getUri());
+    public static AuthenticationMethod fromProtobuf(
+            @NonNull Protobufs.AuthenticationMethod authMethod) throws MalformedDataException {
+        validate(authMethod, notNullValue(), MalformedDataException.class);
+
+        try {
+            return new AuthenticationMethod(authMethod.getUri());
+        } catch (IllegalArgumentException ex) {
+            throw new MalformedDataException(ex);
+        }
     }
 
     private final String mUri;
@@ -48,7 +66,10 @@ public final class AuthenticationMethod implements Comparable<AuthenticationMeth
      * Creates an authentication method from a URI string.
      */
     public AuthenticationMethod(@NonNull String authMethodUriStr) {
-        mUri = require(authMethodUriStr, CustomMatchers.isValidAuthenticationMethod());
+        mUri = validate(
+                authMethodUriStr,
+                CustomMatchers.isValidAuthenticationMethod(),
+                IllegalArgumentException.class);
     }
 
     /**

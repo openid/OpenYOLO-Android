@@ -25,10 +25,10 @@ import android.view.Window;
 import android.widget.TextView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import java.io.IOException;
 import org.openyolo.demoprovider.barbican.R;
 import org.openyolo.protocol.Credential;
 import org.openyolo.protocol.CredentialRetrieveResult;
+import org.openyolo.protocol.MalformedDataException;
 import org.openyolo.protocol.Protobufs;
 
 /**
@@ -111,8 +111,8 @@ public class AutoSignInActivity extends AppCompatActivity {
         byte[] credentialBytes = getIntent().getByteArrayExtra(EXTRA_CREDENTIAL);
         try {
             return Credential.fromProtoBytes(credentialBytes);
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to decode credential");
+        } catch (MalformedDataException ex) {
+            throw new IllegalStateException("Unable to decode credential", ex);
         }
     }
 

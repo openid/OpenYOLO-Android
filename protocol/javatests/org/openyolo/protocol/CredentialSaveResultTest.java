@@ -23,12 +23,11 @@ import android.content.Intent;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.openyolo.protocol.TextFixtures.ValidProperties;
+import org.openyolo.protocol.TestFixtures.ValidProperties;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.CollectionConverter;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.valid4j.errors.RequireViolation;
 
 /** Unit tests for {@link CredentialSaveResult} */
 @RunWith(RobolectricTestRunner.class)
@@ -92,9 +91,9 @@ public final class CredentialSaveResultTest {
         ValidResult.assertEqualTo(CredentialSaveResult.fromProtobufBytes(encodedResult));
     }
 
-    @Test(expected = RequireViolation.class)
-    public void builder_withNullProto_throwsRequiresViolation() {
-        new CredentialSaveResult.Builder(null);
+    @Test(expected = MalformedDataException.class)
+    public void fromProto_withNullProto_throwsMalformedDataException() throws Exception {
+        CredentialSaveResult.fromProtobuf(null);
     }
 
     @Test

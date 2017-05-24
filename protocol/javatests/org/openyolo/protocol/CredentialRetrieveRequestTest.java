@@ -20,10 +20,8 @@ package org.openyolo.protocol;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
 import android.os.Parcel;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,9 +55,9 @@ public class CredentialRetrieveRequestTest {
         new CredentialRetrieveRequest.Builder(new HashSet<AuthenticationMethod>());
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void builderProtoConstructor_withNull_throwsIllegalArgumentException() {
-        new CredentialRetrieveRequest.Builder((Protobufs.CredentialRetrieveRequest) null);
+    @Test(expected = MalformedDataException.class)
+    public void fromProto_withNull_throwsMalformedDataException() throws Exception {
+        CredentialRetrieveRequest.fromProtobuf(null);
     }
 
     @Test
@@ -133,13 +131,6 @@ public class CredentialRetrieveRequestTest {
             assertThat(proto.getClientVersion().getPatch()).isEqualTo(patch);
         } finally {
             ClientVersionUtil.setClientVersion(null);
-        }
-    }
-
-    private static <T, U> void assertMapsEqual(Map<T, U> a, Map<T, U> b) {
-        assertThat(a.keySet()).isEqualTo(b.keySet());
-        for (T key : a.keySet()) {
-            assertThat(a.get(key)).isEqualTo(b.get(key));
         }
     }
 }

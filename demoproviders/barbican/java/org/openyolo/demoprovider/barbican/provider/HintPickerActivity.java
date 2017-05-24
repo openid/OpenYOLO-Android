@@ -39,6 +39,7 @@ import org.openyolo.protocol.AuthenticationMethods;
 import org.openyolo.protocol.Hint;
 import org.openyolo.protocol.HintRetrieveRequest;
 import org.openyolo.protocol.HintRetrieveResult;
+import org.openyolo.protocol.MalformedDataException;
 import org.openyolo.protocol.ProtocolConstants;
 
 public class HintPickerActivity
@@ -64,7 +65,7 @@ public class HintPickerActivity
         try {
             mRequest = HintRetrieveRequest.fromProtoBytes(
                     getIntent().getByteArrayExtra(ProtocolConstants.EXTRA_HINT_REQUEST));
-        } catch (IOException ex) {
+        } catch (MalformedDataException ex) {
             Log.w(LOG_TAG, "Failed to decode hint request from intent", ex);
             setResultAndFinish(HintRetrieveResult.BAD_REQUEST);
             return;

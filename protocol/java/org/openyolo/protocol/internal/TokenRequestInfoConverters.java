@@ -14,6 +14,7 @@
 
 package org.openyolo.protocol.internal;
 
+import org.openyolo.protocol.MalformedDataException;
 import org.openyolo.protocol.Protobufs;
 import org.openyolo.protocol.TokenRequestInfo;
 
@@ -42,7 +43,11 @@ public final class TokenRequestInfoConverters {
             implements ValueConverter<Protobufs.TokenRequestInfo, TokenRequestInfo> {
         @Override
         public TokenRequestInfo convert(Protobufs.TokenRequestInfo proto) {
-            return new TokenRequestInfo.Builder(proto).build();
+            try {
+                return TokenRequestInfo.fromProtobuf(proto);
+            } catch (MalformedDataException ex) {
+                throw new IllegalArgumentException(ex);
+            }
         }
     }
 

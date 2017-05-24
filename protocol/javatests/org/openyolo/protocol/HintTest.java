@@ -20,15 +20,12 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 
 import android.net.Uri;
 import android.os.Parcel;
-import java.io.IOException;
-import java.net.IDN;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.valid4j.errors.RequireViolation;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
@@ -55,7 +52,7 @@ public class HintTest {
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void build_nullId_shouldThrowException() {
         new Hint.Builder(
                 null,// id
@@ -63,7 +60,7 @@ public class HintTest {
                 .build();
     }
 
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void build_emptyId_shouldThrowException() {
         new Hint.Builder(
                 "", // id
@@ -72,7 +69,7 @@ public class HintTest {
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void build_nullAuthMethod_shouldThrowException() {
         new Hint.Builder(
                 ALICE_ID,
@@ -81,7 +78,7 @@ public class HintTest {
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void build_nullAuthMethodStr_shouldThrowException() {
         new Hint.Builder(
                 ALICE_ID,
@@ -89,7 +86,7 @@ public class HintTest {
                 .build();
     }
 
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void build_emptyAuthMethodStr_shouldThrowException() {
         new Hint.Builder(
                 ALICE_ID,
@@ -139,7 +136,7 @@ public class HintTest {
         assertThat(hint.getDisplayPictureUri()).isNull();
     }
 
-    @Test(expected=RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void builderSetDisplayPictureUri_nonHttp_shouldThrowException() {
         Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL)
                 .setDisplayPictureUri(Uri.parse("gopher://hello"))
@@ -263,7 +260,7 @@ public class HintTest {
     }
 
     @Test
-    public void fromProtobuf() {
+    public void fromProtobuf() throws Exception {
         Protobufs.Hint proto = Protobufs.Hint.newBuilder()
                 .setId(ALICE_ID)
                 .setAuthMethod(AuthenticationMethods.EMAIL.toProtobuf())
@@ -283,7 +280,7 @@ public class HintTest {
     }
 
     @Test
-    public void fromProtobufBytes() throws IOException {
+    public void fromProtobufBytes() throws Exception {
         Protobufs.Hint proto = Protobufs.Hint.newBuilder()
                 .setId(ALICE_ID)
                 .setAuthMethod(AuthenticationMethods.EMAIL.toProtobuf())

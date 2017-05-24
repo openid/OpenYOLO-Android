@@ -14,26 +14,24 @@
 
 package org.openyolo.protocol;
 
-import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.openyolo.protocol.internal.CustomMatchers.isWebUri;
 import static org.openyolo.protocol.internal.CustomMatchers.notNullOrEmptyString;
 import static org.openyolo.protocol.internal.CustomMatchers.nullOr;
 import static org.openyolo.protocol.internal.StringUtil.nullifyEmptyString;
-import static org.valid4j.Assertive.require;
+import static org.valid4j.Validation.validate;
 
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 import com.google.protobuf.ByteString;
-import java.io.IOException;
+import com.google.protobuf.InvalidProtocolBufferException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.openyolo.protocol.internal.AuthenticationDomainConverters;
-import org.openyolo.protocol.internal.AuthenticationMethodConverters;
+import org.openyolo.protocol.internal.AdditionalPropertiesUtil;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.CollectionConverter;
 
@@ -56,16 +54,25 @@ public final class Credential implements Parcelable {
 
     /**
      * Creates a credential from its protocol buffer equivalent, in byte form.
-     * @throws IOException if the protocol buffer cannot be parsed.
+     * @throws MalformedDataException if the given protocol buffer is invalid.
      */
-    public static Credential fromProtoBytes(byte[] credentialProtoBytes) throws IOException {
-        return fromProtobuf(Protobufs.Credential.parseFrom(credentialProtoBytes));
+    public static Credential fromProtoBytes(@NonNull byte[] credentialProtoBytes)
+            throws MalformedDataException {
+        validate(credentialProtoBytes, notNullValue(), MalformedDataException.class);
+
+        try {
+            return fromProtobuf(Protobufs.Credential.parseFrom(credentialProtoBytes));
+        } catch (InvalidProtocolBufferException ex) {
+            throw new MalformedDataException(ex);
+        }
     }
 
     /**
      * Creates a credential from its protocol buffer equivalent.
+     * @throws MalformedDataException if the given protocol buffer is invalid.
      */
-    public static Credential fromProtobuf(Protobufs.Credential credential) {
+    public static Credential fromProtobuf(Protobufs.Credential credential)
+            throws MalformedDataException {
         return new Credential.Builder(credential).build();
     }
 
@@ -93,23 +100,15 @@ public final class Credential implements Parcelable {
     @NonNull
     private final Map<String, ByteString> mAdditionalProps;
 
-    private Credential(
-            @NonNull String id,
-            @NonNull AuthenticationDomain authDomain,
-            @NonNull AuthenticationMethod authMethod,
-            @Nullable String displayName,
-            @Nullable Uri displayPicture,
-            @Nullable String password,
-            @Nullable String idToken,
-            @NonNull Map<String, ByteString> additionalProps) {
-        mId = id;
-        mAuthDomain = authDomain;
-        mAuthMethod = authMethod;
-        mDisplayName = displayName;
-        mDisplayPicture = displayPicture;
-        mPassword = password;
-        mIdToken = idToken;
-        mAdditionalProps = additionalProps;
+    private Credential(Builder builder) {
+        mId = builder.mId;
+        mAuthDomain = builder.mAuthDomain;
+        mAuthMethod = builder.mAuthMethod;
+        mDisplayName = builder.mDisplayName;
+        mDisplayPicture = builder.mDisplayPicture;
+        mPassword = builder.mPassword;
+        mIdToken = builder.mIdToken;
+        mAdditionalProps = Collections.unmodifiableMap(builder.mAdditionalProps);
     }
 
     /**
@@ -247,27 +246,28 @@ public final class Credential implements Parcelable {
          * Starts the process of creating a credential, based on the properties of the
          * provided protocol buffer representation of the credential. The protocol buffer
          * must contain valid data for a credential.
+         * @throws MalformedDataException if the given protocol buffer is invalid.
          */
-        private Builder(@NonNull Protobufs.Credential proto) {
-            // required properties
-            setIdentifier(proto.getId());
-            setAuthenticationMethod(
-                    AuthenticationMethodConverters.PROTOBUF_TO_OBJECT
-                            .convert(proto.getAuthMethod()));
-            setAuthenticationDomain(
-                    AuthenticationDomainConverters.PROTOBUF_TO_OBJECT
-                            .convert(proto.getAuthDomain()));
+        private Builder(@NonNull Protobufs.Credential proto) throws MalformedDataException {
+            try {
+                // required properties
+                setIdentifier(proto.getId());
+                setAuthenticationMethod(AuthenticationMethod.fromProtobuf(proto.getAuthMethod()));
+                setAuthenticationDomain(AuthenticationDomain.fromProtobuf(proto.getAuthDomain()));
 
-            // optional properties
+                // optional properties
 
-            setIdToken(proto.getIdToken());
-            setDisplayName(proto.getDisplayName());
-            setDisplayPicture(proto.getDisplayPictureUri());
-            setPassword(proto.getPassword());
-            setAdditionalProperties(
-                    CollectionConverter.convertMapValues(
-                            proto.getAdditionalPropsMap(),
-                            ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY));
+                setIdToken(proto.getIdToken());
+                setDisplayName(proto.getDisplayName());
+                setDisplayPicture(proto.getDisplayPictureUri());
+                setPassword(proto.getPassword());
+                setAdditionalProperties(
+                        CollectionConverter.convertMapValues(
+                                proto.getAdditionalPropsMap(),
+                                ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY));
+            } catch (IllegalArgumentException ex) {
+                throw new MalformedDataException(ex);
+            }
         }
 
         /**
@@ -317,7 +317,7 @@ public final class Credential implements Parcelable {
          */
         @NonNull
         public Builder setIdentifier(@NonNull String identifier) {
-            require(!TextUtils.isEmpty(identifier), "identifier must not be null or empty");
+            validate(identifier, notNullOrEmptyString(), IllegalArgumentException.class);
             mId = identifier;
             return this;
         }
@@ -328,7 +328,7 @@ public final class Credential implements Parcelable {
          */
         @NonNull
         public Builder setAuthenticationDomain(@NonNull AuthenticationDomain domain) {
-            require(domain, notNullValue());
+            validate(domain, notNullValue(), IllegalArgumentException.class);
             mAuthDomain = domain;
             return this;
         }
@@ -340,7 +340,7 @@ public final class Credential implements Parcelable {
          */
         @NonNull
         public Builder setAuthenticationMethod(@NonNull AuthenticationMethod authMethod) {
-            require(authMethod, notNullValue());
+            validate(authMethod, notNullValue(), IllegalArgumentException.class);
             mAuthMethod = authMethod;
             return this;
         }
@@ -382,7 +382,7 @@ public final class Credential implements Parcelable {
          */
         @NonNull
         public Builder setDisplayPicture(@Nullable Uri displayPicture) {
-            require(displayPicture, nullOr(isWebUri()));
+            validate(displayPicture, nullOr(isWebUri()), IllegalArgumentException.class);
             mDisplayPicture = displayPicture;
             return this;
         }
@@ -401,17 +401,9 @@ public final class Credential implements Parcelable {
          * Specifies any additional, non-standard properties associated with the credential.
          */
         public Builder setAdditionalProperties(@Nullable Map<String, byte[]> additionalProps) {
-            if (additionalProps == null) {
-                mAdditionalProps.clear();
-                return this;
-            }
+            mAdditionalProps =
+                AdditionalPropertiesUtil.validateAdditionalProperties(additionalProps);
 
-            require(additionalProps.keySet(), everyItem(notNullOrEmptyString()));
-            require(additionalProps.values(), everyItem(notNullValue()));
-
-            mAdditionalProps = CollectionConverter.convertMapValues(
-                    additionalProps,
-                    ByteStringConverters.BYTE_ARRAY_TO_BYTE_STRING);
             return this;
         }
 
@@ -420,15 +412,7 @@ public final class Credential implements Parcelable {
          */
         @NonNull
         public Credential build() {
-            return new Credential(
-                    mId,
-                    mAuthDomain,
-                    mAuthMethod,
-                    mDisplayName,
-                    mDisplayPicture,
-                    mPassword,
-                    mIdToken,
-                    mAdditionalProps);
+            return new Credential(this);
         }
     }
 
@@ -440,9 +424,8 @@ public final class Credential implements Parcelable {
             source.readByteArray(encodedBytes);
 
             try {
-                Protobufs.Credential proto = Protobufs.Credential.parseFrom(encodedBytes);
-                return new Credential.Builder(proto).build();
-            } catch (IOException ex) {
+                return Credential.fromProtoBytes(encodedBytes);
+            } catch (MalformedDataException ex) {
                 throw new IllegalStateException("Unable to decode credential proto", ex);
             }
         }

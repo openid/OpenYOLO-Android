@@ -35,7 +35,7 @@ public final class AuthenticationMethodConverters {
             PROTOBUF_TO_OBJECT = new ProtobufToObjectConverter();
 
     private static final class ObjectToProtobufConverter
-            implements ValueConverter<AuthenticationMethod, Protobufs.AuthenticationMethod> {
+            implements ValueConverter<AuthenticationMethod,Protobufs.AuthenticationMethod> {
 
         @Override
         public Protobufs.AuthenticationMethod convert(AuthenticationMethod value) {

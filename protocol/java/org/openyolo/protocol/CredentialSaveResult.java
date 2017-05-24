@@ -15,7 +15,7 @@
 package org.openyolo.protocol;
 
 import static org.hamcrest.core.IsNull.notNullValue;
-import static org.valid4j.Assertive.require;
+import static org.valid4j.Validation.validate;
 
 import android.content.Intent;
 import android.support.annotation.NonNull;
@@ -121,17 +121,27 @@ public final class CredentialSaveResult {
 
     /**
      * Creates a credential save result from its protocol buffer byte equivalent.
-     * @throws IOException if the result could not be parsed or validated.
+     * @throws MalformedDataException if the result could not be parsed or validated.
      */
     public static CredentialSaveResult fromProtobufBytes(byte[] protobufBytes)
-            throws IOException {
-        return fromProtobuf(Protobufs.CredentialSaveResult.parseFrom(protobufBytes));
+            throws MalformedDataException {
+        validate(protobufBytes, notNullValue(), MalformedDataException.class);
+
+        try {
+            return fromProtobuf(Protobufs.CredentialSaveResult.parseFrom(protobufBytes));
+        } catch (IOException ex) {
+            throw new MalformedDataException(ex);
+        }
     }
 
     /**
      * Creates a credential save result from its protocol buffer equivalent.
+     * @throws MalformedDataException if the result could not be parsed or validated.
      */
-    public static CredentialSaveResult fromProtobuf(Protobufs.CredentialSaveResult proto) {
+    public static CredentialSaveResult fromProtobuf(Protobufs.CredentialSaveResult proto)
+            throws MalformedDataException {
+        validate(proto, notNullValue(), MalformedDataException.class);
+
         return new CredentialSaveResult.Builder(proto).build();
     }
 
@@ -193,15 +203,20 @@ public final class CredentialSaveResult {
         /**
          * Starts the process of describing a credential retrieve result given the mandatory status
          * code.
+         * @throws MalformedDataException if the given protocol buffer was not valid.
          */
-        public Builder(Protobufs.CredentialSaveResult proto) {
-            require(proto, notNullValue());
+        private Builder(Protobufs.CredentialSaveResult proto) throws MalformedDataException {
+            validate(proto, notNullValue(), MalformedDataException.class);
 
-            setResultCode(proto.getResultCodeValue());
-            setAdditionalProperties(
-                    CollectionConverter.convertMapValues(
-                            proto.getAdditionalPropsMap(),
-                            ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY));
+            try {
+                setResultCode(proto.getResultCodeValue());
+                setAdditionalProperties(
+                        CollectionConverter.convertMapValues(
+                                proto.getAdditionalPropsMap(),
+                                ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY));
+            } catch (IllegalArgumentException ex) {
+                throw new MalformedDataException(ex);
+            }
         }
 
         /**

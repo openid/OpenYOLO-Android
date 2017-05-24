@@ -17,7 +17,7 @@ package org.openyolo.protocol;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.openyolo.protocol.internal.AdditionalPropertiesUtil.validateAdditionalProperties;
 import static org.openyolo.protocol.internal.AdditionalPropertiesUtil.validateAdditionalPropertiesFromProto;
-import static org.valid4j.Assertive.require;
+import static org.valid4j.Validation.validate;
 
 import android.content.Intent;
 import android.support.annotation.NonNull;
@@ -31,7 +31,6 @@ import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.ClientVersionUtil;
 import org.openyolo.protocol.internal.CollectionConverter;
 import org.openyolo.protocol.internal.IntentProtocolBufferExtractor;
-import org.valid4j.errors.RequireViolation;
 
 /**
  * A request to delete a credential, to be sent to a credential provider on the device.
@@ -39,35 +38,13 @@ import org.valid4j.errors.RequireViolation;
 public final class CredentialDeleteRequest {
 
     /**
-     * Creates a credential deletion request from its protocol buffer equivalent.
-     * @throws MalformedDataException if the protocol buffer is null or contains invalid data.
-     */
-    public static CredentialDeleteRequest fromProtobuf(
-            @Nullable Protobufs.CredentialDeleteRequest proto)
-            throws MalformedDataException {
-        if (proto == null) {
-            throw new MalformedDataException("credential delete proto is not defined");
-        }
-
-        try {
-            return new Builder(proto).build();
-        } catch (RequireViolation ex) {
-            throw new MalformedDataException("credential deletion request contains invalid data");
-        }
-    }
-
-    /**
      * Creates a credential deletion request from its protocol buffer equivalent, in byte array
      * form.
-     * @throws MalformedDataException if the protocol buffer is null or cannot be parsed from the
-     *     byte array.
+     * @throws MalformedDataException if the given protocol buffer is invalid.
      */
-    public static CredentialDeleteRequest fromProtobufBytes(
-            @Nullable byte[] protobufBytes)
+    public static CredentialDeleteRequest fromProtobufBytes(@NonNull byte[] protobufBytes)
             throws MalformedDataException {
-        if (protobufBytes == null) {
-            throw new MalformedDataException("credential deletion request not defined");
-        }
+        validate(protobufBytes, notNullValue(), MalformedDataException.class);
 
         try {
             return fromProtobuf(Protobufs.CredentialDeleteRequest.parseFrom(protobufBytes));
@@ -75,6 +52,19 @@ public final class CredentialDeleteRequest {
             throw new MalformedDataException("unable to parse credential deletion request", ex);
         }
     }
+
+    /**
+     * Creates a credential deletion request from its protocol buffer equivalent.
+     * @throws MalformedDataException if the given protocol buffer is invalid.
+     */
+    public static CredentialDeleteRequest fromProtobuf(
+            @NonNull Protobufs.CredentialDeleteRequest proto)
+            throws MalformedDataException {
+        validate(proto, notNullValue(), MalformedDataException.class);
+
+        return new Builder(proto).build();
+    }
+
 
     /**
      * Extracts a credential deletion request from a request intent.
@@ -147,9 +137,13 @@ public final class CredentialDeleteRequest {
          * Starts the process of describing a credential deletion request, based on the properties
          * contained in the provided protocol buffer.
          */
-        public Builder(Protobufs.CredentialDeleteRequest proto) {
-            setCredentialFromProto(proto.getCredential());
-            setAdditionalPropertiesFromProto(proto.getAdditionalPropsMap());
+        private Builder(Protobufs.CredentialDeleteRequest proto) throws MalformedDataException {
+            try {
+                setCredential(Credential.fromProtobuf(proto.getCredential()));
+                setAdditionalPropertiesFromProto(proto.getAdditionalPropsMap());
+            } catch (IllegalArgumentException ex) {
+                throw new MalformedDataException(ex);
+            }
         }
 
         /**
@@ -164,14 +158,9 @@ public final class CredentialDeleteRequest {
          * Specifies the credential to be deleted. Must not be null.
          */
         public Builder setCredential(@NonNull Credential credential) {
-            require(credential, notNullValue());
-            mCredential = credential;
-            return this;
-        }
+            validate(credential, notNullValue(), IllegalArgumentException.class);
 
-        private Builder setCredentialFromProto(@Nullable Protobufs.Credential credentialProto) {
-            require(credentialProto, notNullValue());
-            setCredential(Credential.fromProtobuf(credentialProto));
+            mCredential = credential;
             return this;
         }
 

@@ -17,7 +17,7 @@ package org.openyolo.protocol.internal;
 import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.openyolo.protocol.internal.CustomMatchers.notNullOrEmptyString;
-import static org.valid4j.Assertive.require;
+import static org.valid4j.Validation.validate;
 
 import android.support.annotation.Nullable;
 import com.google.protobuf.ByteString;
@@ -39,8 +39,14 @@ public final class AdditionalPropertiesUtil {
             return new HashMap<>();
         }
 
-        require(additionalProps.keySet(), everyItem(notNullOrEmptyString()));
-        require(additionalProps.values(), everyItem(notNullValue()));
+        validate(
+                additionalProps.keySet(),
+                everyItem(notNullOrEmptyString()),
+                IllegalArgumentException.class);
+        validate(
+                additionalProps.values(),
+                everyItem(notNullValue()),
+                IllegalArgumentException.class);
 
         return CollectionConverter.convertMapValues(
                 additionalProps,
@@ -57,8 +63,14 @@ public final class AdditionalPropertiesUtil {
             return new HashMap<>();
         }
 
-        require(additionalProps.keySet(), everyItem(notNullOrEmptyString()));
-        require(additionalProps.values(), everyItem(notNullValue()));
+        validate(
+                additionalProps.keySet(),
+                everyItem(notNullOrEmptyString()),
+                IllegalArgumentException.class);
+        validate(
+                additionalProps.values(),
+                everyItem(notNullValue()),
+                IllegalArgumentException.class);
 
         return additionalProps;
     }

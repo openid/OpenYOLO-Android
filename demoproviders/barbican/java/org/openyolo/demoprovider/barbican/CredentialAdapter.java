@@ -30,13 +30,13 @@ import java.util.Collections;
 import java.util.List;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
 import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.MalformedDataException;
 import org.openyolo.protocol.Protobufs.Credential;
 
 /**
  * RecyclerView adapter for displaying stored credentials.
  */
-class CredentialAdapter
-        extends RecyclerView.Adapter<CredentialAdapter.ViewHolder> {
+class CredentialAdapter extends RecyclerView.Adapter<CredentialAdapter.ViewHolder> {
 
     private List<Credential> mCredentials;
     private CredentialStorageClient mClient;
@@ -90,18 +90,22 @@ class CredentialAdapter
             String appLabel = credential.getAuthDomain().toString();
             Drawable appIcon = null;
 
-            AuthenticationDomain domain =
-                    AuthenticationDomain.fromProtobuf(credential.getAuthDomain());
-            if (domain.isAndroidAuthDomain()) {
-                String packageName = domain.getAndroidPackageName();
-                PackageManager pm = itemView.getContext().getPackageManager();
-                try {
-                    ApplicationInfo info = pm.getApplicationInfo(packageName, 0);
-                    appLabel = pm.getApplicationLabel(info).toString();
-                    appIcon = pm.getApplicationIcon(info);
-                } catch (PackageManager.NameNotFoundException e) {
-                    // will just show the raw info
+            try {
+                AuthenticationDomain domain =
+                        AuthenticationDomain.fromProtobuf(credential.getAuthDomain());
+                if (domain.isAndroidAuthDomain()) {
+                    String packageName = domain.getAndroidPackageName();
+                    PackageManager pm = itemView.getContext().getPackageManager();
+                    try {
+                        ApplicationInfo info = pm.getApplicationInfo(packageName, 0);
+                        appLabel = pm.getApplicationLabel(info).toString();
+                        appIcon = pm.getApplicationIcon(info);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        // will just show the raw info
+                    }
                 }
+            } catch (MalformedDataException ex) {
+                // will just show the raw info
             }
 
             mAuthorityView.setText(appLabel);

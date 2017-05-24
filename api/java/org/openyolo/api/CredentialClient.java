@@ -273,7 +273,7 @@ public class CredentialClient {
 
         try {
             return CredentialRetrieveResult.fromProtobufBytes(resultBytes);
-        } catch (IOException ex) {
+        } catch (MalformedDataException ex) {
             Log.e(LOG_TAG, "validation of result proto failed, returning default response", ex);
             return createDefaultCredentialRetrieveResult();
         }
@@ -302,8 +302,8 @@ public class CredentialClient {
 
         try {
             return HintRetrieveResult.fromProtobufBytes(resultBytes);
-        } catch (IOException ex) {
-            Log.e(LOG_TAG, "hint result is malformed, returning default response");
+        } catch (MalformedDataException ex) {
+            Log.e(LOG_TAG, "hint result is malformed, returning default response", ex);
             return createDefaultHintRetrieveResult();
         }
     }
@@ -325,8 +325,8 @@ public class CredentialClient {
 
         try {
             return CredentialSaveResult.fromProtobufBytes(resultBytes);
-        } catch (IOException ex) {
-            Log.e(LOG_TAG, "save result is malformed, returning default response");
+        } catch (MalformedDataException ex) {
+            Log.e(LOG_TAG, "save result is malformed, returning default response", ex);
             return createDefaultCredentialSaveResult();
         }
     }

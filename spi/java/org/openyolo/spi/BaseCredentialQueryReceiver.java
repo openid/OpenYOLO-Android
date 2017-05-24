@@ -20,12 +20,11 @@ import android.util.Log;
 import com.google.bbq.BaseBroadcastQueryReceiver;
 import com.google.bbq.Protobufs.BroadcastQuery;
 import com.google.bbq.QueryResponseSender;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.CredentialRetrieveRequest;
-import org.openyolo.protocol.Protobufs;
+import org.openyolo.protocol.MalformedDataException;
 
 /**
  * Partial implementation of an OpenYOLO request receiver, that should be extended by providers.
@@ -44,20 +43,12 @@ public abstract class BaseCredentialQueryReceiver extends BaseBroadcastQueryRece
 
     @Override
     protected void processQuery(@NonNull Context context, @NonNull BroadcastQuery query) {
-        Protobufs.CredentialRetrieveRequest requestProto;
-
-        try {
-            requestProto = Protobufs.CredentialRetrieveRequest.parseFrom(query.getQueryMessage());
-        } catch (NullPointerException | IOException ex) {
-            Log.w(mLogTag, "Failed to parse credential request message", ex);
-            new QueryResponseSender(context).sendResponse(query, null);
-            return;
-        }
 
         CredentialRetrieveRequest request;
         try {
-            request = new CredentialRetrieveRequest.Builder(requestProto).build();
-        } catch (NullPointerException | IllegalArgumentException ex) {
+            byte[] encodedProto = query.getQueryMessage().toByteArray();
+            request = CredentialRetrieveRequest.fromProtobufBytes(encodedProto);
+        } catch (MalformedDataException ex) {
             Log.w(mLogTag, "Credential request message failed field validation", ex);
             new QueryResponseSender(context).sendResponse(query, null);
             return;

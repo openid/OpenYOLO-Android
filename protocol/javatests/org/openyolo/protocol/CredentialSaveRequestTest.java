@@ -20,19 +20,17 @@ package org.openyolo.protocol;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
 import android.os.Parcel;
-import java.io.IOException;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.openyolo.protocol.TextFixtures.ValidFacebookCredential;
-import org.openyolo.protocol.TextFixtures.ValidProperties;
+import org.openyolo.protocol.TestFixtures.ValidProperties;
+import org.openyolo.protocol.TestFixtures.ValidFacebookCredential;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.ClientVersionUtil;
 import org.openyolo.protocol.internal.CollectionConverter;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.valid4j.errors.RequireViolation;
 
 /** Unit tests for {@link CredentialSaveRequest} */
 @RunWith(RobolectricTestRunner.class)
@@ -67,7 +65,7 @@ public final class CredentialSaveRequestTest {
             ValidProperties.assertEqualTo(request.getAdditionalProperties());
         }
 
-        public static void assertEqualTo(Protobufs.CredentialSaveRequest request) {
+        public static void assertEqualTo(Protobufs.CredentialSaveRequest request) throws Exception {
             ValidFacebookCredential.assertEqualTo(request.getCredential());
             assertThat(request.getClientVersion()).isEqualTo(ValidClientVersion.INSTANCE);
 
@@ -85,8 +83,8 @@ public final class CredentialSaveRequestTest {
         ClientVersionUtil.setClientVersion(ValidClientVersion.INSTANCE);
     }
 
-    @Test(expected = IOException.class)
-    public void fromProtoBytes_withNull_throwsIOException() throws Exception {
+    @Test(expected = MalformedDataException.class)
+    public void fromProtoBytes_withNull_throwsMalformedDataException() throws Exception {
         CredentialSaveRequest.fromProtoBytes(null /* bytes */);
     }
 
@@ -100,7 +98,20 @@ public final class CredentialSaveRequestTest {
     }
 
     @Test
-    public void forCredential_withValidCredential_returnsRequestForCredential() {
+    public void fromProto_withValidProto_resultIsEqual() throws Exception {
+        final CredentialSaveRequest request =
+            CredentialSaveRequest.fromProtobuf(ValidRequest.INSTANCE.toProtocolBuffer());
+
+        ValidRequest.assertEqualTo(request);
+    }
+
+    @Test(expected = MalformedDataException.class)
+    public void fromProto_withNullProto_throwsMalformedDataException() throws Exception {
+        CredentialSaveRequest.fromProtobuf(null);
+    }
+
+    @Test
+    public void fromCredential_withValidCredential_returnsRequestForCredential() {
         final CredentialSaveRequest request =
                 CredentialSaveRequest.fromCredential(ValidFacebookCredential.INSTANCE);
 
@@ -120,7 +131,7 @@ public final class CredentialSaveRequestTest {
     }
 
     @Test
-    public void toProtocolBuffer_withValidCredential_containsClientVersion() {
+    public void toProtocolBuffer_withValidCredential_containsClientVersion() throws Exception {
         final Protobufs.CredentialSaveRequest protoRequest =
                 ValidRequest.INSTANCE.toProtocolBuffer();
 
@@ -136,22 +147,9 @@ public final class CredentialSaveRequestTest {
         assertThat(request.getAdditionalProperties()).isEmpty();
     }
 
-    @Test(expected = RequireViolation.class)
-    public void builder_withNullCredential_throwsRequiresViolation() {
+    @Test(expected = IllegalArgumentException.class)
+    public void builder_withNullCredential_throwsIllegalArgumentException() {
         new CredentialSaveRequest.Builder((Credential) null);
-    }
-
-    @Test
-    public void builder_withValidProto_resultIsEqual() {
-        final CredentialSaveRequest request =
-                new CredentialSaveRequest.Builder(ValidRequest.INSTANCE.toProtocolBuffer()).build();
-
-        ValidRequest.assertEqualTo(request);
-    }
-
-    @Test(expected = RequireViolation.class)
-    public void builder_withNullProto_throwsRequiresViolation() {
-        new CredentialSaveRequest.Builder((Protobufs.CredentialSaveRequest) null);
     }
 
     public void builder_setAdditionalPropertiesWithNull_returnsEmptyMap() {

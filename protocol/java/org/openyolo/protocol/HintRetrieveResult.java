@@ -14,6 +14,9 @@
 
 package org.openyolo.protocol;
 
+import static org.hamcrest.core.IsNull.notNullValue;
+import static org.valid4j.Validation.validate;
+
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -104,18 +107,26 @@ public final class HintRetrieveResult {
 
     /**
      * Creates a hint result from its protocol buffer equivalent.
+     * @throws MalformedDataException if the given protocol buffer is not valid.
      */
-    public static HintRetrieveResult fromProtobuf(Protobufs.HintRetrieveResult proto) {
+    public static HintRetrieveResult fromProtobuf(Protobufs.HintRetrieveResult proto)
+            throws MalformedDataException {
         return new HintRetrieveResult.Builder(proto).build();
     }
 
     /**
      * Creates a hint result from its protocol buffer equivalent, in byte array form.
-     * @throws IOException if the protocol buffer cannot be parsed from the byte array.
+     * @throws MalformedDataException if the given protocol buffer is not valid.
      */
     public static HintRetrieveResult fromProtobufBytes(byte[] protoBytes)
-            throws IOException {
-        return fromProtobuf(Protobufs.HintRetrieveResult.parseFrom(protoBytes));
+            throws MalformedDataException {
+        validate(protoBytes, notNullValue(), MalformedDataException.class);
+
+        try {
+            return fromProtobuf(Protobufs.HintRetrieveResult.parseFrom(protoBytes));
+        } catch (IOException ex) {
+            throw new MalformedDataException(ex);
+        }
     }
 
     private final int mResultCode;
@@ -126,13 +137,10 @@ public final class HintRetrieveResult {
     @NonNull
     private final Map<String, ByteString> mAdditionalProps;
 
-    private HintRetrieveResult(
-            int resultCode,
-            @Nullable Hint hint,
-            @NonNull Map<String, ByteString> additionalProps) {
-        mResultCode = resultCode;
-        mHint = hint;
-        mAdditionalProps = additionalProps;
+    private HintRetrieveResult(Builder builder) {
+        mResultCode = builder.mResultCode;
+        mHint = builder.mHint;
+        mAdditionalProps = Collections.unmodifiableMap(builder.mAdditionalProps);
     }
 
     /**
@@ -207,10 +215,16 @@ public final class HintRetrieveResult {
          * Starts the process of describing a hint retrieve result, based on the properties
          * contained in the provided protocol buffer.
          */
-        public Builder(@NonNull Protobufs.HintRetrieveResult proto) {
-            setResultCode(proto.getResultCodeValue());
-            setAdditionalPropertiesFromProto(proto.getAdditionalPropsMap());
-            setHintFromProto(proto.getHint());
+        private Builder(@NonNull Protobufs.HintRetrieveResult proto) throws MalformedDataException {
+            validate(proto, notNullValue(), MalformedDataException.class);
+
+            try {
+                setResultCode(proto.getResultCodeValue());
+                setAdditionalPropertiesFromProto(proto.getAdditionalPropsMap());
+                setHintFromProto(proto.getHint());
+            } catch (IllegalArgumentException ex) {
+                throw new MalformedDataException(ex);
+            }
         }
 
         /**
@@ -237,8 +251,14 @@ public final class HintRetrieveResult {
             return this;
         }
 
-        private Builder setHintFromProto(@Nullable Protobufs.Hint hint) {
-            mHint = (hint != null) ? Hint.fromProtobuf(hint) : null;
+        private Builder setHintFromProto(@Nullable Protobufs.Hint hint)
+                throws MalformedDataException {
+            if (null == hint) {
+                mHint = null;
+            } else {
+                mHint = Hint.fromProtobuf(hint);
+            }
+
             return this;
         }
 
@@ -263,10 +283,7 @@ public final class HintRetrieveResult {
          * Creates the hint retrieve result, from the specified properties.
          */
         public HintRetrieveResult build() {
-            return new HintRetrieveResult(
-                    mResultCode,
-                    mHint,
-                    Collections.unmodifiableMap(mAdditionalProps));
+            return new HintRetrieveResult(this);
         }
     }
 }

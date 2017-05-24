@@ -20,15 +20,13 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.assertj.core.api.Java6Assertions.failBecauseExceptionWasNotThrown;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.openyolo.protocol.TestConstants.INVALID_PROTO_BYTES;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
-import android.net.Uri;
-import java.util.ArrayList;
-import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,12 +34,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.openyolo.protocol.AuthenticationDomain;
-import org.openyolo.protocol.internal.AuthenticationDomainConverters;
-import org.openyolo.protocol.internal.CollectionConverter;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.valid4j.errors.RequireViolation;
 
 /**
  * Unit tests for {@link AuthenticationDomain}.
@@ -75,6 +69,18 @@ public class AuthenticationDomainTest {
         return packageInfo;
     }
 
+    private static final class ValidAuthDomain {
+        private static final String VALID_PACKAGE_NAME = "com.example.app";
+        private static final String VALID_FINGERPRINT =
+                "2qKVvu1OLulMJAFbVq9ia08h759E8rPUD8QckJAKa_G0hnxDxXzaVNG2_Uhps_I8"
+                        + "7V4Lo8BdCxaA307H0HYkAw==";
+
+        private static final String VALID_AUTHENTICATION_DOMAIN_STRING =
+                "android://" + VALID_FINGERPRINT + "@" + VALID_PACKAGE_NAME;
+        public static final AuthenticationDomain INSTANCE =
+                new AuthenticationDomain(VALID_AUTHENTICATION_DOMAIN_STRING);
+    }
+
     @Mock
     PackageManager mockPackageManager;
     @Mock
@@ -88,6 +94,42 @@ public class AuthenticationDomainTest {
                 .thenReturn(VALID_PACKAGE_INFO);
         when(mockContext.getPackageName()).thenReturn(VALID_PACKAGE_NAME);
         when(mockContext.getPackageManager()).thenReturn(mockPackageManager);
+    }
+
+    @Test
+    public void fromProtobufBytes_withValidInput_returnsEquivalent() throws Exception {
+        byte[] encodedAuthDomain = ValidAuthDomain.INSTANCE.toProtobuf().toByteArray();
+
+        AuthenticationDomain authenticationDomain =
+                AuthenticationDomain.fromProtobufBytes(encodedAuthDomain);
+
+        assertThat(authenticationDomain).isEqualTo(ValidAuthDomain.INSTANCE);
+    }
+
+    @Test(expected = MalformedDataException.class)
+    public void fromProtobufBytes_withMalformedBytes_throwsMalformedDataException() throws Exception {
+        AuthenticationDomain.fromProtobufBytes(INVALID_PROTO_BYTES);
+    }
+
+    @Test(expected = MalformedDataException.class)
+    public void fromProtobufBytes_withInvalidUri_throwsInvalidProtoBufferException() throws Exception {
+        byte[] invalidProtoBytes =
+                Protobufs.AuthenticationDomain.newBuilder()
+                        .setUri("Invalid uri")
+                        .build()
+                        .toByteArray();
+
+        AuthenticationDomain.fromProtobufBytes(invalidProtoBytes);
+    }
+
+    @Test(expected = MalformedDataException.class)
+    public void fromProtobuf_withInvalidUri_throwsInvalidProtoBufferException() throws Exception {
+        Protobufs.AuthenticationDomain invalidProto =
+            Protobufs.AuthenticationDomain.newBuilder()
+                .setUri("Invalid uri")
+                .build();
+
+        AuthenticationDomain.fromProtobuf(invalidProto);
     }
 
     @Test
@@ -124,8 +166,9 @@ public class AuthenticationDomainTest {
         assertThat(AuthenticationDomain.listForPackage(mockContext, VALID_PACKAGE_NAME)).isEmpty();
     }
 
-    @Test(expected = RequireViolation.class)
-    public void CreateAndroidAuthDomain_withNullDomain_throwsRequireViolation() throws Exception{
+    @Test(expected = IllegalArgumentException.class)
+    public void CreateAndroidAuthDomain_withNullDomain_throwsIllegalArgumentException()
+            throws Exception{
         AuthenticationDomain.createAndroidAuthDomain(null /* authDomain */, mock(Signature.class));
     }
 
@@ -168,26 +211,6 @@ public class AuthenticationDomainTest {
 
             failBecauseExceptionWasNotThrown(IllegalStateException.class);
         } catch (IllegalStateException ex) {}
-    }
-
-    @Test
-    public void stringsToAuthDomainsConverter_withValidInput_returnsExpectValues()
-            throws Exception {
-        List<String> domains = new ArrayList<>();
-        domains.add("https://www.google.com");
-        domains.add("https://www.yahoo.com");
-        domains.add("https://www.facebook.com");
-
-        List<AuthenticationDomain> result =
-                CollectionConverter.toList(
-                        domains,
-                        AuthenticationDomainConverters.STRING_TO_DOMAIN);
-
-        assertThat(result.size()).isEqualTo(3);
-
-        assertThat(result.get(0).toString()).isEqualTo(domains.get(0));
-        assertThat(result.get(1).toString()).isEqualTo(domains.get(1));
-        assertThat(result.get(2).toString()).isEqualTo(domains.get(2));
     }
 
     @Test

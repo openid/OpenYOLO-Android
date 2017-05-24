@@ -27,6 +27,13 @@ public class MalformedDataException extends OpenYoloException {
     }
 
     /**
+     * Specifies the root cause of the exception.
+     */
+    public MalformedDataException(Throwable cause) {
+        super(cause);
+    }
+
+    /**
      * Specifies the root cause of the exception, and a higher-level description for debugging.
      */
     public MalformedDataException(String message, Throwable rootCause) {

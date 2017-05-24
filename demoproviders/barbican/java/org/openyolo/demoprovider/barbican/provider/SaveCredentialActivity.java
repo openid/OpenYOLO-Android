@@ -27,6 +27,7 @@ import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
 import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.CredentialSaveRequest;
 import org.openyolo.protocol.CredentialSaveResult;
+import org.openyolo.protocol.MalformedDataException;
 import org.openyolo.protocol.ProtocolConstants;
 
 /**
@@ -60,8 +61,8 @@ public class SaveCredentialActivity extends AppCompatActivity {
         // Ensure the request can successfully be parsed from it's encoded form
         try {
             mRequest = CredentialSaveRequest.fromProtoBytes(encodedRequest);
-        } catch (IOException ex) {
-            Log.w(LOG_TAG, "Failed to decode save request");
+        } catch (MalformedDataException ex) {
+            Log.w(LOG_TAG, "Failed to decode save request", ex);
             finishWithResult(CredentialSaveResult.BAD_REQUEST);
             return;
         }

@@ -15,7 +15,7 @@
 package org.openyolo.protocol;
 
 import static org.hamcrest.core.IsNull.notNullValue;
-import static org.valid4j.Assertive.require;
+import static org.valid4j.Validation.validate;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -30,7 +30,6 @@ import org.openyolo.protocol.internal.AdditionalPropertiesUtil;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.ClientVersionUtil;
 import org.openyolo.protocol.internal.CollectionConverter;
-import org.openyolo.protocol.internal.CredentialConverter;
 
 /**
  * A request to save a given {@link Credential credential}. To make the request the client
@@ -56,28 +55,33 @@ public final class CredentialSaveRequest implements Parcelable {
 
     /**
      * Creates a credential save request from its protocol buffer byte array form.
-     * @throws IOException if the given save request could not be decoded.
+     * @throws MalformedDataException if the given protocol buffer was invalid.
      *
      * @see #toProtocolBuffer()
      */
-    public static CredentialSaveRequest fromProtoBytes(byte[] credentialSaveRequestBytes)
-            throws IOException {
-        if (credentialSaveRequestBytes == null) {
-            throw new IOException("Unable to decode credential save request from null array");
+    public static CredentialSaveRequest fromProtoBytes(byte[] protoBytes)
+            throws MalformedDataException {
+        validate(protoBytes, notNullValue(), MalformedDataException.class);
+
+        try {
+            Protobufs.CredentialSaveRequest request =
+                    Protobufs.CredentialSaveRequest.parseFrom(protoBytes);
+            return new CredentialSaveRequest.Builder(request).build();
+        } catch (IOException ex) {
+            throw new MalformedDataException(ex);
         }
-
-        Protobufs.CredentialSaveRequest request =
-                Protobufs.CredentialSaveRequest.parseFrom(credentialSaveRequestBytes);
-
-        return new CredentialSaveRequest.Builder(request).build();
     }
 
     /**
      * Creates a credential save request from its protocol buffer form.
+     * @throws MalformedDataException if the given protocol buffer was invalid.
      *
      * @see #toProtocolBuffer()
      */
-    public static CredentialSaveRequest fromProtobuf(Protobufs.CredentialSaveRequest request) {
+    public static CredentialSaveRequest fromProtobuf(Protobufs.CredentialSaveRequest request)
+            throws MalformedDataException {
+        validate(request, notNullValue(), MalformedDataException.class);
+
         return new CredentialSaveRequest.Builder(request).build();
     }
 
@@ -147,14 +151,19 @@ public final class CredentialSaveRequest implements Parcelable {
          *
          * @see CredentialSaveRequest#toProtocolBuffer()
          */
-        public Builder(@NonNull Protobufs.CredentialSaveRequest request) {
-            require(request, notNullValue());
+        private Builder(@NonNull Protobufs.CredentialSaveRequest request)
+                throws MalformedDataException {
+            validate(request, notNullValue(), MalformedDataException.class);
 
-            setCredential(CredentialConverter.PROTO_TO_CREDENTIAL.convert(request.getCredential()));
-            setAdditionalProperties(
-                    CollectionConverter.convertMapValues(
-                            request.getAdditionalPropsMap(),
-                            ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY));
+            try {
+                setCredential(Credential.fromProtobuf(request.getCredential()));
+                setAdditionalProperties(
+                        CollectionConverter.convertMapValues(
+                                request.getAdditionalPropsMap(),
+                                ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY));
+            } catch (IllegalArgumentException ex) {
+                throw new MalformedDataException(ex);
+            }
         }
 
         /**
@@ -172,7 +181,7 @@ public final class CredentialSaveRequest implements Parcelable {
          * @see Credential
          */
         public Builder setCredential(@NonNull Credential credential) {
-            require(credential, notNullValue());
+            validate(credential, notNullValue(), IllegalArgumentException.class);
 
             mCredential = credential;
             return this;
@@ -207,7 +216,7 @@ public final class CredentialSaveRequest implements Parcelable {
 
             try {
                 return CredentialSaveRequest.fromProtoBytes(encodedRequest);
-            } catch (IOException ex) {
+            } catch (MalformedDataException ex) {
                 throw new IllegalStateException("Unable to read proto from parcel", ex);
             }
         }

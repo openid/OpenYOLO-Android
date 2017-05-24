@@ -28,9 +28,8 @@ import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.Credential;
 import org.openyolo.protocol.CredentialRetrieveRequest;
 import org.openyolo.protocol.CredentialRetrieveResult;
+import org.openyolo.protocol.MalformedDataException;
 import org.openyolo.protocol.ProtocolConstants;
-import org.openyolo.protocol.internal.CollectionConverter;
-import org.openyolo.protocol.internal.CredentialConverter;
 
 /**
  * A UI-less activity that determines how to retrieve a requested credential. If the credential
@@ -72,7 +71,7 @@ public class RetrieveCredentialActivity
 
         try {
             mRequest = CredentialRetrieveRequest.fromRequestIntent(getIntent());
-        } catch (IOException e) {
+        } catch (MalformedDataException ex) {
             setResultAndFinish(CredentialRetrieveResult.BAD_REQUEST);
         }
     }
@@ -105,11 +104,14 @@ public class RetrieveCredentialActivity
 
             List<Credential> credentials;
             try {
-                credentials = CollectionConverter.toList(
-                        client.listCredentials(authDomains),
-                        CredentialConverter.PROTO_TO_CREDENTIAL);
+                credentials =
+                        CredentialTransformUtils.fromProtoList(client.listCredentials(authDomains));
             } catch (IOException ex) {
                 Log.w(LOG_TAG, "Failed to list credentials for retrieve", ex);
+                finish();
+                return;
+            } catch (MalformedDataException ex) {
+                Log.w(LOG_TAG, "Unable to parse credentials from their protocol buffer form", ex);
                 finish();
                 return;
             }

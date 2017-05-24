@@ -23,12 +23,10 @@ import static org.openyolo.protocol.TestConstants.checkAdditionalPropsFromProto;
 
 import android.content.Intent;
 import com.google.protobuf.ByteString;
-import java.io.IOException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.valid4j.errors.RequireViolation;
 
 /**
  * Tests for {@link CredentialDeleteRequest}.
@@ -65,9 +63,9 @@ public class CredentialDeleteRequestTest {
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void build_nullCredential_throwsException() {
-        new CredentialDeleteRequest.Builder((Credential) null).build();
+    @Test(expected = IllegalArgumentException.class)
+    public void build_nullCredential_throwsIllegalArgumentException() {
+        new CredentialDeleteRequest.Builder(null).build();
     }
 
     @Test

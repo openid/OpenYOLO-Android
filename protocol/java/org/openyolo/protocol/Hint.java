@@ -20,7 +20,7 @@ import static org.openyolo.protocol.internal.CustomMatchers.isWebUri;
 import static org.openyolo.protocol.internal.CustomMatchers.notNullOrEmptyString;
 import static org.openyolo.protocol.internal.CustomMatchers.nullOr;
 import static org.openyolo.protocol.internal.StringUtil.nullifyEmptyString;
-import static org.valid4j.Assertive.require;
+import static org.valid4j.Validation.validate;
 
 import android.net.Uri;
 import android.os.Parcel;
@@ -55,17 +55,23 @@ public final class Hint implements Parcelable {
 
     /**
      * Creates a hint from its protocol buffer equivalent.
+     * @throws MalformedDataException if the given protocol buffer is not valid.
      */
-    public static Hint fromProtobuf(Protobufs.Hint proto) {
+    public static Hint fromProtobuf(Protobufs.Hint proto) throws MalformedDataException {
         return new Hint.Builder(proto).build();
     }
 
     /**
      * Creates a hint from its protocol buffer equivalent, in byte array form.
-     * @throws IOException if the protocol buffer cannot be parsed from the byte array.
+     * @throws MalformedDataException if the protocol buffer cannot be parsed from the byte array.
      */
-    public static Hint fromProtobufBytes(byte[] protoBytes) throws IOException {
-        return fromProtobuf(Protobufs.Hint.parseFrom(protoBytes));
+    public static Hint fromProtobufBytes(byte[] protoBytes) throws MalformedDataException {
+        validate(protoBytes, notNullValue(), MalformedDataException.class);
+        try {
+            return fromProtobuf(Protobufs.Hint.parseFrom(protoBytes));
+        } catch (IOException ex) {
+            throw new MalformedDataException(ex);
+        }
     }
 
     @NonNull
@@ -252,23 +258,27 @@ public final class Hint implements Parcelable {
          * protocol buffer representation of the credential. The protocol buffer must contain
          * valid data for a hint.
          */
-        public Builder(
-                @NonNull Protobufs.Hint proto) {
-            require(proto, notNullValue());
-            setIdentifier(proto.getId());
-            setAuthMethod(proto.getAuthMethod().getUri());
-            setDisplayName(proto.getDisplayName());
-            setDisplayPictureUri(proto.getDisplayPictureUri());
-            setGeneratedPassword(proto.getGeneratedPassword());
-            setIdToken(proto.getIdToken());
-            setAdditionalPropertiesFromProto(proto.getAdditionalPropsMap());
+        private Builder(@NonNull Protobufs.Hint proto) throws MalformedDataException {
+            validate(proto, notNullValue(), MalformedDataException.class);
+
+            try {
+                setIdentifier(proto.getId());
+                setAuthMethod(proto.getAuthMethod().getUri());
+                setDisplayName(proto.getDisplayName());
+                setDisplayPictureUri(proto.getDisplayPictureUri());
+                setGeneratedPassword(proto.getGeneratedPassword());
+                setIdToken(proto.getIdToken());
+                setAdditionalPropertiesFromProto(proto.getAdditionalPropsMap());
+            } catch (IllegalArgumentException ex) {
+                throw new MalformedDataException(ex);
+            }
         }
 
         /**
          * Specifies the identifier for the hint. Must not be null or empty.
          */
         public Builder setIdentifier(@NonNull String id) {
-            require(id, notNullOrEmptyString());
+            validate(id, notNullOrEmptyString(), IllegalArgumentException.class);
             mId = id;
             return this;
         }
@@ -280,7 +290,7 @@ public final class Hint implements Parcelable {
          * @see AuthenticationMethod
          */
         public Builder setAuthMethod(@NonNull String authMethod) {
-            require(authMethod, isValidAuthenticationMethod());
+            validate(authMethod, isValidAuthenticationMethod(), IllegalArgumentException.class);
             mAuthMethod = new AuthenticationMethod(authMethod);
             return this;
         }
@@ -289,7 +299,7 @@ public final class Hint implements Parcelable {
          * Specifies the authentication method for the hint. Must not be null.
          */
         public Builder setAuthMethod(@NonNull AuthenticationMethod authMethod) {
-            require(authMethod, notNullValue());
+            validate(authMethod, notNullValue(), IllegalArgumentException.class);
             mAuthMethod = authMethod;
             return this;
         }
@@ -318,7 +328,7 @@ public final class Hint implements Parcelable {
          * must be valid http(s) URIs.
          */
         public Builder setDisplayPictureUri(@Nullable Uri displayPictureUri) {
-            require(displayPictureUri, nullOr(isWebUri()));
+            validate(displayPictureUri, nullOr(isWebUri()), IllegalArgumentException.class);
             mDisplayPictureUri = displayPictureUri;
             return this;
         }
@@ -372,8 +382,8 @@ public final class Hint implements Parcelable {
             source.readByteArray(hintBytes);
             try {
                 return Hint.fromProtobufBytes(hintBytes);
-            } catch (IOException e) {
-                throw new IllegalArgumentException("Unable to parse hint from parcel");
+            } catch (MalformedDataException ex) {
+                throw new IllegalArgumentException("Unable to parse hint from parcel", ex);
             }
         }
 

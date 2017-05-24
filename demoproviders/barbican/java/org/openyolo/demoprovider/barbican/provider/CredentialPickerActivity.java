@@ -36,9 +36,8 @@ import org.openyolo.demoprovider.barbican.R;
 import org.openyolo.demoprovider.barbican.provider.AccountViewHolder.ClickHandler;
 import org.openyolo.protocol.Credential;
 import org.openyolo.protocol.CredentialRetrieveResult;
+import org.openyolo.protocol.MalformedDataException;
 import org.openyolo.protocol.Protobufs;
-import org.openyolo.protocol.internal.CollectionConverter;
-import org.openyolo.protocol.internal.CredentialConverter;
 
 /**
  * Displays a dialog to pick a credential from a list.
@@ -60,9 +59,7 @@ public class CredentialPickerActivity extends AppCompatActivity {
             List<Credential> credentials) {
         Intent intent = new Intent(context, CredentialPickerActivity.class);
         ByteString data = ProtoListUtil.writeMessageList(
-                CollectionConverter.toList(
-                        credentials,
-                        CredentialConverter.CREDENTIAL_TO_PROTO));
+                CredentialTransformUtils.toProtoList(credentials));
 
         intent.putExtra(EXTRA_CREDENTIALS, data.toByteArray());
         return intent;
@@ -102,10 +99,10 @@ public class CredentialPickerActivity extends AppCompatActivity {
             List<Protobufs.Credential> credentialProtos = ProtoListUtil
                     .readMessageList(credentialBytes, Protobufs.Credential.parser());
 
-            return CollectionConverter.toList(
-                    credentialProtos,
-                    CredentialConverter.PROTO_TO_CREDENTIAL);
+            return CredentialTransformUtils.fromProtoList(credentialProtos);
         } catch (IOException ex) {
+            throw new IllegalStateException("Failed to decode credentials from intent", ex);
+        } catch (MalformedDataException ex) {
             throw new IllegalStateException("Failed to decode credentials from intent", ex);
         }
     }

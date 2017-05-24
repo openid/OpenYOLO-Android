@@ -15,10 +15,8 @@
 package org.openyolo.protocol;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.assertj.core.data.MapEntry.entry;
 
 import android.os.Parcel;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -27,7 +25,6 @@ import org.junit.runner.RunWith;
 import org.openyolo.protocol.internal.ClientVersionUtil;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.valid4j.errors.RequireViolation;
 
 /**
  * Tests for {@link HintRetrieveRequest}.
@@ -150,24 +147,24 @@ public class HintRetrieveRequestTest {
     /* **************************** constraint violation test cases *******************************/
 
     @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_constructor_nullRequestProto() {
-        new HintRetrieveRequest.Builder((Protobufs.HintRetrieveRequest) null).build();
+    @Test(expected = MalformedDataException.class)
+    public void fromProto_withNull_throwsMalformedDataException() throws Exception {
+        HintRetrieveRequest.fromProtobuf(null);
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuild_constructor_nullAuthenticationMethod() {
         new HintRetrieveRequest.Builder((AuthenticationMethod) null).build();
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuild_constructor_nullUriSet() {
         new HintRetrieveRequest.Builder((Set<AuthenticationMethod>) null).build();
     }
 
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuild_constructor_nullUriInVarargs() {
         new HintRetrieveRequest.Builder(
                 AuthenticationMethods.EMAIL,
@@ -175,7 +172,7 @@ public class HintRetrieveRequestTest {
                 AuthenticationMethods.GOOGLE).build();
     }
 
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuild_constructor_nullInVarargs() {
         new HintRetrieveRequest.Builder(
                 AuthenticationMethods.EMAIL,
@@ -184,12 +181,12 @@ public class HintRetrieveRequestTest {
                 .build();
     }
 
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuild_constructor_emptySet() {
         new HintRetrieveRequest.Builder(new HashSet<AuthenticationMethod>()).build();
     }
 
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuild_constructor_setContainingNull() {
         HashSet<AuthenticationMethod> authMethods = new HashSet<>();
         authMethods.add(null);
@@ -197,7 +194,7 @@ public class HintRetrieveRequestTest {
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuild_setAuthenticationMethods_nullUri() {
         new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
                 .setAuthenticationMethods((AuthenticationMethod) null)
@@ -205,7 +202,7 @@ public class HintRetrieveRequestTest {
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuild_setAuthenticationMethods_nullUriInVarargs() {
         new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
                 .setAuthenticationMethods(
@@ -216,7 +213,7 @@ public class HintRetrieveRequestTest {
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuild_setAuthenticationMethods_nullSet() {
         new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
                 .setAuthenticationMethods(null)
@@ -224,14 +221,14 @@ public class HintRetrieveRequestTest {
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuild_setAuthenticationMethods_emptySet() {
         new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
                 .setAuthenticationMethods(new HashSet<AuthenticationMethod>())
                 .build();
     }
 
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuild_setAuthenticationMethods_setContainingNull() {
         HashSet<AuthenticationMethod> authMethods = new HashSet<>();
         authMethods.add(null);
@@ -241,22 +238,14 @@ public class HintRetrieveRequestTest {
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuild_addAuthenticationMethod_nullUri() {
         new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
                 .addAuthenticationMethod(null)
                 .build();
     }
 
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_setAdditionalProperties_nullMap() {
-        new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
-                .setAdditionalProperties(null)
-                .build();
-    }
-
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuild_setAdditionalProperties_nullKey() {
         HashMap<String, byte[]> additionalProps = new HashMap<>();
         additionalProps.put(null, new byte[0]);
@@ -266,7 +255,7 @@ public class HintRetrieveRequestTest {
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuild_setAdditionalProperty_nullValue() {
         HashMap<String, byte[]> additionalProps = new HashMap<>();
         additionalProps.put("a", null);
@@ -276,39 +265,7 @@ public class HintRetrieveRequestTest {
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_addAdditionalProperty_nullKey() {
-        new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
-                .addAdditionalProperty(null, "value")
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_addAdditionalProperty_emptyKey() {
-        new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
-                .addAdditionalProperty("", "value")
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_addAdditionalProperty_nullByteArrayValue() {
-        new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
-                .addAdditionalProperty("key", (byte[]) null)
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
-    public void testBuild_addAdditionalProperty_nullStringValue() {
-        new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
-                .addAdditionalProperty("key", (String) null)
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = RequireViolation.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testBuild_setPasswordSpecification_null() {
         new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
                 .setPasswordSpecification(null)

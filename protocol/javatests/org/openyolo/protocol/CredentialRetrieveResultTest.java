@@ -20,7 +20,7 @@ import android.content.Intent;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.openyolo.protocol.TextFixtures.ValidProperties;
+import org.openyolo.protocol.TestFixtures.ValidProperties;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 

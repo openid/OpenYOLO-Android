@@ -23,10 +23,6 @@ import static org.openyolo.protocol.TestConstants.checkAdditionalPropsFromProto;
 
 import android.content.Intent;
 import com.google.protobuf.ByteString;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.openyolo.protocol.Protobufs.HintRetrieveResult.ResultCode;
@@ -93,7 +89,7 @@ public class HintRetrieveResultTest {
     }
 
     @Test
-    public void fromProtobuf() {
+    public void fromProtobuf() throws Exception {
         Protobufs.HintRetrieveResult proto = Protobufs.HintRetrieveResult.newBuilder()
                 .setResultCode(ResultCode.HINT_SELECTED)
                 .setHint(Protobufs.Hint.newBuilder()
@@ -109,7 +105,7 @@ public class HintRetrieveResultTest {
     }
 
     @Test
-    public void toResultIntentData() throws IOException {
+    public void toResultIntentData() throws Exception {
         HintRetrieveResult result = new HintRetrieveResult.Builder(
                 HintRetrieveResult.CODE_HINT_SELECTED)
                 .setHint(HINT)

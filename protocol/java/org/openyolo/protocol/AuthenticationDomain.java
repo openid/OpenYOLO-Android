@@ -15,7 +15,9 @@
 package org.openyolo.protocol;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.valid4j.Assertive.require;
+import static org.openyolo.protocol.internal.CustomMatchers.isValidAuthenticationDomain;
+import static org.openyolo.protocol.internal.CustomMatchers.notNullOrEmptyString;
+import static org.valid4j.Validation.validate;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -33,8 +35,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.openyolo.protocol.internal.CustomMatchers;
-import org.valid4j.Assertive;
 
 
 /**
@@ -72,7 +72,7 @@ public final class AuthenticationDomain implements Comparable<AuthenticationDoma
      */
     @NonNull
     public static AuthenticationDomain getSelfAuthDomain(@NonNull Context context) {
-        require(context, notNullValue());
+        validate(context, notNullValue(), IllegalArgumentException.class);
 
         PackageManager pm = context.getPackageManager();
         String packageName = context.getPackageName();
@@ -94,7 +94,7 @@ public final class AuthenticationDomain implements Comparable<AuthenticationDoma
     public static List<AuthenticationDomain> listForPackage(
             @NonNull Context context,
             @Nullable String packageName) {
-        require(context, notNullValue());
+        validate(context, notNullValue(), IllegalArgumentException.class);
 
         PackageManager pm = context.getPackageManager();
         PackageInfo packageInfo;
@@ -124,8 +124,8 @@ public final class AuthenticationDomain implements Comparable<AuthenticationDoma
     public static AuthenticationDomain createAndroidAuthDomain(
             @NonNull String packageName,
             @NonNull Signature signature) {
-        require(!TextUtils.isEmpty(packageName), "packageName must not be null or empty");
-        require(signature, notNullValue());
+        validate(packageName, notNullOrEmptyString(), IllegalArgumentException.class);
+        validate(signature, notNullValue(), IllegalArgumentException.class);
 
         return new AuthenticationDomain(
                 new Uri.Builder()
@@ -137,21 +137,34 @@ public final class AuthenticationDomain implements Comparable<AuthenticationDoma
 
     /**
      * Creates an authentication domain from its protocol buffer equivalent, in byte form.
-     * @throws IOException if the protocol buffer cannot be parsed.
+     * @throws MalformedDataException if the given protocol buffer is invalid.
      */
     @NonNull
     public static AuthenticationDomain fromProtobufBytes(@NonNull byte[] protobufBytes)
-            throws IOException {
-        return fromProtobuf(Protobufs.AuthenticationDomain.parseFrom(protobufBytes));
+            throws MalformedDataException {
+        validate(protobufBytes, notNullValue(), MalformedDataException.class);
+
+        try {
+            return fromProtobuf(Protobufs.AuthenticationDomain.parseFrom(protobufBytes));
+        } catch (IOException ex) {
+            throw new MalformedDataException("Unable to parse the given protocol buffer", ex);
+        }
     }
 
     /**
      * Creates an authentication domain from its protocol buffer equivalent.
+     * @throws MalformedDataException if the given protocol buffer is invalid.
      */
     @NonNull
     public static AuthenticationDomain fromProtobuf(
-            @NonNull Protobufs.AuthenticationDomain authDomain) {
-        return new AuthenticationDomain(authDomain.getUri());
+            @NonNull Protobufs.AuthenticationDomain authDomain) throws MalformedDataException {
+        validate(authDomain, notNullValue(), MalformedDataException.class);
+
+        try {
+            return new AuthenticationDomain(authDomain.getUri());
+        } catch (IllegalArgumentException ex) {
+            throw new MalformedDataException(ex);
+        }
     }
 
     @NonNull
@@ -172,9 +185,10 @@ public final class AuthenticationDomain implements Comparable<AuthenticationDoma
      * will be thrown.
      */
     public AuthenticationDomain(@NonNull String authDomainString) {
-        mUriStr = Assertive.require(
+        mUriStr = validate(
                 authDomainString,
-                CustomMatchers.isValidAuthenticationDomain());
+                isValidAuthenticationDomain(),
+                IllegalArgumentException.class);
     }
 
     /**

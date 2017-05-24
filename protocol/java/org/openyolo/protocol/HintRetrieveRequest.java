@@ -14,11 +14,14 @@
 
 package org.openyolo.protocol;
 
-import static org.hamcrest.CoreMatchers.everyItem;
+import static java.util.Collections.EMPTY_SET;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.openyolo.protocol.internal.CustomMatchers.isHttpsUriStr;
-import static org.openyolo.protocol.internal.CustomMatchers.notNullOrEmptyString;
-import static org.valid4j.Assertive.require;
+import static org.valid4j.Validation.validate;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -26,12 +29,12 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import com.google.protobuf.ByteString;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.openyolo.protocol.internal.AdditionalPropertiesUtil;
 import org.openyolo.protocol.internal.AuthenticationMethodConverters;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.ClientVersionUtil;
@@ -74,19 +77,34 @@ public class HintRetrieveRequest implements Parcelable {
 
     /**
      * Reads a hint request from its protocol buffer byte array form.
-     * @throws IOException if the hint request could not be decoded.
+     * @throws MalformedDataException if the given hint protocol buffer was not valid.
      *
      * @see #toProtocolBuffer().
      */
     @NonNull
     public static HintRetrieveRequest fromProtoBytes(byte[] hintRequestProtoBytes)
-            throws IOException {
-        if (hintRequestProtoBytes == null) {
-            throw new IOException("Unable to decode hint request from null array");
+            throws MalformedDataException {
+        validate(hintRequestProtoBytes, notNullValue(), MalformedDataException.class);
+
+        try {
+            return fromProtobuf(Protobufs.HintRetrieveRequest.parseFrom(hintRequestProtoBytes));
+        } catch (IOException ex) {
+            throw new MalformedDataException(ex);
         }
-        return new HintRetrieveRequest.Builder(
-                Protobufs.HintRetrieveRequest.parseFrom(hintRequestProtoBytes))
-                .build();
+    }
+
+    /**
+     * Reads a hint request from its protocol buffer form.
+     * @throws MalformedDataException if the given hint protocol buffer was not valid.
+     *
+     * @see #toProtocolBuffer().
+     */
+    @NonNull
+    public static HintRetrieveRequest fromProtobuf(Protobufs.HintRetrieveRequest protobuf)
+            throws MalformedDataException {
+        validate(protobuf, notNullValue(), MalformedDataException.class);
+
+        return new HintRetrieveRequest.Builder(protobuf).build();
     }
 
     private HintRetrieveRequest(@NonNull Builder builder) {
@@ -134,28 +152,6 @@ public class HintRetrieveRequest implements Parcelable {
                 ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY);
     }
 
-    /**
-     * Retrieves the value of the named additional parameter, where the value is a UTF-8
-     * encoded string.
-     */
-    @Nullable
-    public String getAdditionalPropertyAsString(@NonNull String key) {
-        require(key, notNullValue());
-        if (mAdditionalProperties.containsKey(key)) {
-            return mAdditionalProperties.get(key).toString(Charset.forName("UTF-8"));
-        }
-        return null;
-    }
-
-    /**
-     * Retrieves the raw, byte-array value of the named additional parameter.
-     */
-    @Nullable
-    public byte[] getAdditionalProperty(@NonNull String key) {
-        require(key, notNullValue());
-        return mAdditionalProperties.get(key).toByteArray();
-    }
-
     @Override
     public int describeContents() {
         return 0;
@@ -200,23 +196,30 @@ public class HintRetrieveRequest implements Parcelable {
 
         /**
          * Recreates a hint request from its protocol buffer form.
+         * @throws MalformedDataException if the given hint protocol buffer was not valid.
          *
          * @see HintRetrieveRequest#toProtocolBuffer()
          */
-        public Builder(@NonNull Protobufs.HintRetrieveRequest requestProto) {
-            require(requestProto, notNullValue());
-            setAuthenticationMethods(CollectionConverter.toSet(
-                    requestProto.getAuthMethodsList(),
-                    AuthenticationMethodConverters.PROTOBUF_TO_OBJECT));
-            setTokenProviders(CollectionConverter.convertMapValues(
-                    requestProto.getSupportedTokenProvidersMap(),
-                    TokenRequestInfoConverters.PROTOBUF_TO_OBJECT));
-            setPasswordSpecification(
-                    new PasswordSpecification.Builder(requestProto.getPasswordSpec()).build());
-            setAdditionalProperties(
-                    CollectionConverter.convertMapValues(
-                            requestProto.getAdditionalPropsMap(),
-                            ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY));
+        private Builder(@NonNull Protobufs.HintRetrieveRequest requestProto)
+                throws MalformedDataException {
+            validate(requestProto, notNullValue(), MalformedDataException.class);
+
+            try {
+                setAuthenticationMethods(CollectionConverter.toSet(
+                        requestProto.getAuthMethodsList(),
+                        AuthenticationMethodConverters.PROTOBUF_TO_OBJECT));
+                setTokenProviders(CollectionConverter.convertMapValues(
+                        requestProto.getSupportedTokenProvidersMap(),
+                        TokenRequestInfoConverters.PROTOBUF_TO_OBJECT));
+                setPasswordSpecification(
+                        PasswordSpecification.fromProtobuf(requestProto.getPasswordSpec()));
+                setAdditionalProperties(
+                        CollectionConverter.convertMapValues(
+                                requestProto.getAdditionalPropsMap(),
+                                ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY));
+            } catch (IllegalArgumentException ex) {
+                throw new MalformedDataException(ex);
+            }
         }
 
         /**
@@ -267,9 +270,9 @@ public class HintRetrieveRequest implements Parcelable {
          */
         @NonNull
         public Builder setAuthenticationMethods(@NonNull Set<AuthenticationMethod> authMethods) {
-            require(authMethods, notNullValue());
-            require(!authMethods.contains(null), "every authentication methods must be non-null");
-            require(!authMethods.isEmpty(), "At least one authentication method must be specified");
+            validate(authMethods, notNullValue(), IllegalArgumentException.class);
+            validate(authMethods, not(hasItem(nullValue())), IllegalArgumentException.class);
+            validate(authMethods, not(equalTo(EMPTY_SET)), IllegalArgumentException.class);
             mAuthMethods = authMethods;
             return this;
         }
@@ -281,7 +284,7 @@ public class HintRetrieveRequest implements Parcelable {
          */
         @NonNull
         public Builder addAuthenticationMethod(@NonNull AuthenticationMethod authenticationMethod) {
-            require(authenticationMethod, notNullValue());
+            validate(authenticationMethod, notNullValue(), IllegalArgumentException.class);
             mAuthMethods.add(authenticationMethod);
             return this;
         }
@@ -322,7 +325,7 @@ public class HintRetrieveRequest implements Parcelable {
         public Builder addTokenProvider(
                 @NonNull String tokenProviderUri,
                 @Nullable TokenRequestInfo info) {
-            require(tokenProviderUri, isHttpsUriStr());
+            validate(tokenProviderUri, isHttpsUriStr(), IllegalArgumentException.class);
             if (info == null) {
                 info = TokenRequestInfo.DEFAULT;
             }
@@ -336,37 +339,9 @@ public class HintRetrieveRequest implements Parcelable {
          * must be non-null, and contain only non-empty keys and non-null values.
          */
         @NonNull
-        public Builder setAdditionalProperties(@NonNull Map<String, byte[]> additionalParams) {
-            require(additionalParams, notNullValue());
-            require(additionalParams.keySet(), everyItem(notNullOrEmptyString()));
-            require(additionalParams.values(), everyItem(notNullValue()));
-            mAdditionalProps = CollectionConverter.convertMapValues(
-                    additionalParams,
-                    ByteStringConverters.BYTE_ARRAY_TO_BYTE_STRING);
-            return this;
-        }
-
-        /**
-         * Adds an additional, non-standard parameter to the hint request with a string value, that
-         * will be encoded as UTF-8. The parameter name and value must both be non-null, and the
-         * key must be non-empty.
-         */
-        @NonNull
-        public Builder addAdditionalProperty(@NonNull String name, @NonNull String value) {
-            require(value, notNullValue());
-            addAdditionalProperty(name, value.getBytes(Charset.forName("UTF-8")));
-            return this;
-        }
-
-        /**
-         * Adds an additional, non-standard parameter to the hint request, that will be encoded as
-         * UTF-8. The parameter name and value must both be non-null, and the key must be non-empty.
-         */
-        @NonNull
-        public Builder addAdditionalProperty(@NonNull String name, @NonNull byte[] value) {
-            require(name, notNullOrEmptyString());
-            require(value, notNullValue());
-            mAdditionalProps.put(name, ByteString.copyFrom(value));
+        public Builder setAdditionalProperties(@Nullable Map<String, byte[]> additionalParams) {
+            mAdditionalProps =
+                    AdditionalPropertiesUtil.validateAdditionalProperties(additionalParams);
             return this;
         }
 
@@ -377,7 +352,7 @@ public class HintRetrieveRequest implements Parcelable {
          */
         @NonNull
         public Builder setPasswordSpecification(@NonNull PasswordSpecification passwordSpec) {
-            require(passwordSpec, notNullValue());
+            validate(passwordSpec, notNullValue(), IllegalArgumentException.class);
             mPasswordSpec = passwordSpec;
             return this;
         }
@@ -400,10 +375,8 @@ public class HintRetrieveRequest implements Parcelable {
             in.readByteArray(protoBytes);
 
             try {
-                return new HintRetrieveRequest.Builder(
-                        Protobufs.HintRetrieveRequest.parseFrom(protoBytes))
-                        .build();
-            } catch (IOException ex) {
+                return HintRetrieveRequest.fromProtoBytes(protoBytes);
+            } catch (MalformedDataException ex) {
                 throw new IllegalStateException("Unable to read proto from parcel", ex);
             }
         }

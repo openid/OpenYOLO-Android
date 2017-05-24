@@ -59,7 +59,7 @@ public class CredentialQualityScore {
     public static int getScore(Protobufs.Credential credential) {
         return getQualityScore(
                 credential.getId(),
-                AuthenticationMethod.fromProtobuf(credential.getAuthMethod()),
+                new AuthenticationMethod(credential.getAuthMethod().getUri()),
                 credential.getDisplayName(),
                 credential.getDisplayPictureUri());
     }

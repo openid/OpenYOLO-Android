@@ -17,6 +17,7 @@ package org.openyolo.protocol;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.openyolo.protocol.internal.InternalConstants.HASH_PRIME;
 import static org.valid4j.Assertive.require;
+import static org.valid4j.Validation.validate;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -567,6 +568,18 @@ public final class PasswordSpecification implements Parcelable {
     }
 
     /**
+     * Creates a {@link PasswordSpecification} instance from the given protocol buffer
+     * representation.
+     * @throws MalformedDataException if the given protocol buffer is not valid.
+     */
+    public static PasswordSpecification fromProtobuf(
+            @NonNull Protobufs.PasswordSpecification protobuf) throws MalformedDataException {
+        validate(protobuf, notNullValue(), MalformedDataException.class);
+
+        return new Builder(protobuf).build();
+    }
+
+    /**
      * Produces {@link PasswordSpecification} instances. At least one call to
      * {@link #allow(String)} or {@link #require(String,int)} must be made to specify the set of
      * characters that the password can contain. The password size range will default to
@@ -583,11 +596,15 @@ public final class PasswordSpecification implements Parcelable {
         /**
          * Recreates a password specification from its protocol buffer form.
          */
-        public Builder(Protobufs.PasswordSpecification proto) {
-            this.ofLength(proto.getMinSize(), proto.getMaxSize());
-            this.allow(proto.getAllowed());
-            for (Protobufs.RequiredCharSet set : proto.getRequiredSetsList()) {
-                this.require(set.getChars(), set.getCount());
+        private Builder(Protobufs.PasswordSpecification proto) throws MalformedDataException {
+            try {
+                this.ofLength(proto.getMinSize(), proto.getMaxSize());
+                this.allow(proto.getAllowed());
+                for (Protobufs.RequiredCharSet set : proto.getRequiredSetsList()) {
+                    this.require(set.getChars(), set.getCount());
+                }
+            } catch (InvalidSpecificationError er) {
+                throw new MalformedDataException(er);
             }
         }
 
@@ -815,11 +832,11 @@ public final class PasswordSpecification implements Parcelable {
             Protobufs.PasswordSpecification proto;
             try {
                 proto = Protobufs.PasswordSpecification.parseFrom(encoded);
-            } catch (IOException ex) {
+                return PasswordSpecification.fromProtobuf(proto);
+            } catch (IOException | MalformedDataException ex) {
                 throw new IllegalStateException("Unable to read proto from parcel", ex);
             }
 
-            return new PasswordSpecification.Builder(proto).build();
         }
 
         @Override

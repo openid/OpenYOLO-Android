@@ -33,6 +33,7 @@ import org.openyolo.demoprovider.barbican.UnlockActivity;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
 import org.openyolo.protocol.Credential;
 import org.openyolo.protocol.CredentialSaveResult;
+import org.openyolo.protocol.MalformedDataException;
 
 /**
  * Confirms with the user whether they want to save a credential provided by the
@@ -75,7 +76,7 @@ public class SaveCredentialConfirmationActivity extends AppCompatActivity {
         try {
             mCredential = Credential.fromProtoBytes(
                     getIntent().getByteArrayExtra(EXTRA_CREDENTIAL));
-        } catch (IOException e) {
+        } catch (MalformedDataException e) {
             Log.e(LOG_TAG, "Unable to decode credential", e);
             finishWithResult(CredentialSaveResult.UNSPECIFIED);
         }
