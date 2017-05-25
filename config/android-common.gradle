@@ -36,3 +36,9 @@ android {
         exclude 'META-INF/NOTICE.txt'
     }
 }
+
+// produces a JAR containing sources
+task sourcesJar(type: Jar, dependsOn:'generateReleaseSources') {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}

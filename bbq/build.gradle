@@ -4,13 +4,17 @@ apply from:'../config/android-common.gradle'
 apply from:'../config/protobuf.gradle'
 apply from:'../config/third-party.gradle'
 
+project.ext {
+    moduleDesc = 'Background Broadcast Query (BBQ) Protocol'
+}
+
 android {
     defaultConfig {
         project.archivesBaseName = 'bbq'
 
-        buildConfigField('String', 'bbqVersionMajor', rootProject.ext.versionMajor)
-        buildConfigField('String', 'bbqVersionMinor', rootProject.ext.versionMinor)
-        buildConfigField('String', 'bbqVersionPatch', rootProject.ext.versionPatch)
+        buildConfigField('String', 'bbqVersionMajor', '' + rootProject.ext.versionMajor)
+        buildConfigField('String', 'bbqVersionMinor', '' + rootProject.ext.versionMinor)
+        buildConfigField('String', 'bbqVersionPatch', '' + rootProject.ext.versionPatch)
     }
 }
 
@@ -24,3 +28,4 @@ dependencies {
 apply from: '../config/style.gradle'
 apply from: '../config/coverage.gradle'
 apply from: '../config/javadoc.gradle'
+apply from: '../config/bintray.gradle'

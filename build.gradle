@@ -32,9 +32,9 @@ try {
         project.ext.versionPatch = emptyValue
     } else {
         def parts = project.ext.versionName.split("[\\.-]")
-        project.ext.versionMajor = (parts.length > 0) ? parts[0] : emptyValue;
-        project.ext.versionMinor = (parts.length > 1) ? parts[1] : emptyValue;
-        project.ext.versionPatch = (parts.length > 2) ? parts[2] : emptyValue;
+        project.ext.versionMajor = '\"' + ((parts.length > 0) ? parts[0] : emptyValue) + '\"';
+        project.ext.versionMinor = '\"' + ((parts.length > 1) ? parts[1] : emptyValue) + '\"';
+        project.ext.versionPatch = '\"' + ((parts.length > 2) ? parts[2] : emptyValue) + '\"';
     }
 } catch (Exception ex) {
     logger.lifecycle(
@@ -60,6 +60,7 @@ project.ext.supportLibVersion = '25.3.1'
 subprojects {
     repositories {
         jcenter()
+        mavenCentral()
 
         maven {
           url "${rootProject.androidSdkDir}/extras/android/m2repository"

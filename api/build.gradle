@@ -1,6 +1,10 @@
 apply plugin: 'com.android.library'
 apply from:'../config/android-common.gradle'
 
+project.ext {
+    moduleDesc = 'OpenYOLO for Android Client API'
+}
+
 android {
     defaultConfig {
         vectorDrawables.useSupportLibrary = true
@@ -27,3 +31,4 @@ dependencies {
 apply from: '../config/style.gradle'
 apply from: '../config/coverage.gradle'
 apply from: '../config/javadoc.gradle'
+apply from: '../config/bintray.gradle'

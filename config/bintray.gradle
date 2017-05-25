@@ -1,0 +1,64 @@
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.github.dcendents.android-maven'
+
+bintray {
+    user = System.getenv("BINTRAY_USER")
+    key = System.getenv("BINTRAY_KEY")
+    pkg {
+        repo = "net.openid"
+        name = project.archivesBaseName
+        desc = project.moduleDesc
+        userOrg = "openid"
+        licenses = ["Apache-2.0"]
+        websiteUrl = "https://openid.github.io/OpenYOLO-Android/"
+        issueTrackerUrl = "https://github.com/openid/OpenYOLO-Android/issues"
+        vcsUrl = "https://github.com/openid/OpenYOLO-Android.git"
+        githubRepo = 'openid/OpenYOLO-Android'
+
+        version {
+            name = rootProject.versionName
+            desc = "AppAuth for Android"
+            released = rootProject.versionDate
+            vcsTag = rootProject.versionName
+        }
+    }
+    configurations = ["archives"]
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+install {
+    repositories.mavenInstaller {
+        pom {
+            project {
+                packaging 'aar'
+                name project.ext.moduleDesc
+                url 'https://github.com/openid/OpenYOLO-Android'
+                licenses {
+                    license {
+                        name "The Apache Software License, Version 2.0"
+                        url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                        distribution "repo"
+                    }
+                }
+
+                developers {
+                    developer {
+                        id "iainmcgin"
+                        name "Iain McGinniss"
+                        email "iainmcgin@google.com"
+                    }
+                }
+
+                scm {
+                    connection "https://github.com/openid/OpenYOLO-Android.git"
+                    developerConnection "https://github.com/openid/OpenYOLO-Android.git"
+                    url 'https://github.com/openid/OpenYOLO-Android'
+                }
+            }
+        }
+    }
+}

@@ -3,9 +3,13 @@ apply plugin: 'com.android.library'
 apply from:'../config/android-common.gradle'
 apply from:'../config/protobuf.gradle'
 
+project.ext {
+    moduleDesc = 'OpenYOLO for Android Protocol'
+}
+
 android {
     defaultConfig {
-        project.archivesBaseName = 'protocol'
+        project.archivesBaseName = 'openyolo-protocol'
         consumerProguardFiles 'proguard-rules.txt'
 
         buildConfigField('String', 'clientVersionMajor', rootProject.ext.versionMajor)
@@ -24,3 +28,4 @@ dependencies {
 apply from: '../config/style.gradle'
 apply from: '../config/coverage.gradle'
 apply from: '../config/javadoc.gradle'
+apply from: '../config/bintray.gradle'
