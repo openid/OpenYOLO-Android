@@ -22,7 +22,7 @@ Configuration protoDepsConfig = project.configurations.create("protobufDeps") {
 Dependency protocDep = project.dependencies.add(protoDepsConfig.name, [
         group: "com.google.protobuf",
         name: "protoc",
-        version: "3.2.0",
+        version: "3.3.0",
         classifier: project.osdetector.classifier,
         ext: 'exe'
 ])
@@ -82,7 +82,7 @@ task compileProtos {
  * javalite compiled protos require this runtime dependency.
  */
 dependencies {
-    compile 'com.google.protobuf:protobuf-lite:3.0.1'
+    implementation 'com.google.protobuf:protobuf-lite:3.0.1'
 }
 
 /**

@@ -14,6 +14,7 @@
 
 package org.openyolo.demoprovider.barbican;
 
+import android.annotation.SuppressLint;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
@@ -171,13 +172,17 @@ public class CreateCredentialActivity
         return apps;
     }
 
+    @SuppressLint("StaticFieldLeak")
     private class StoreCredentialTask extends AsyncTask<Void, Void, Boolean> {
 
         final String mPackageName;
         final String mUsername;
         final String mPassword;
 
-        StoreCredentialTask(String packageName, String username, String password) {
+        StoreCredentialTask(
+                String packageName,
+                String username,
+                String password) {
             mPackageName = packageName;
             mUsername = username;
             mPassword = password;

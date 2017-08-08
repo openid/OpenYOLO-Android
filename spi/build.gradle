@@ -17,11 +17,13 @@ android {
 }
 
 dependencies {
-    compile project(':bbq')
-    compile project(':protocol')
+    api project(':bbq')
+    api project(':protocol')
 
-    compile "com.android.support:support-annotations:${rootProject.supportLibVersion}"
-    compile "com.android.support:appcompat-v7:${rootProject.supportLibVersion}"
+    implementation "org.hamcrest:hamcrest-core:${rootProject.ext.hamcrestVersion}"
+    implementation "org.valid4j:valid4j:${rootProject.ext.valid4jVersion}"
+    implementation "com.android.support:support-annotations:${rootProject.supportLibVersion}"
+    implementation "com.android.support:appcompat-v7:${rootProject.supportLibVersion}"
     apply from:'../config/testdeps.gradle', to:it
 }
 

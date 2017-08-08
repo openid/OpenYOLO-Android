@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 apply plugin: 'checkstyle'
-apply plugin: 'com.neenbedankt.android-apt'
 
 apply from:'../config/android-common.gradle'
 
@@ -33,16 +32,20 @@ android {
 }
 
 dependencies {
-    compile project(':api')
-    compile "com.android.support:appcompat-v7:${rootProject.supportLibVersion}"
-    compile "com.android.support:support-vector-drawable:${rootProject.supportLibVersion}"
-    compile "com.android.support:design:${rootProject.supportLibVersion}"
-    compile "com.android.support:support-vector-drawable:${rootProject.supportLibVersion}"
-    compile 'com.google.guava:guava:20.0'
+    implementation project(':api')
+    implementation project(':protocol')
+    implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
+    implementation "com.android.support:support-vector-drawable:${rootProject.ext.supportLibVersion}"
+    implementation "com.android.support:design:${rootProject.ext.supportLibVersion}"
+    implementation "com.android.support:support-vector-drawable:${rootProject.ext.supportLibVersion}"
+    implementation "com.github.bumptech.glide:glide:${rootProject.ext.glideVersion}"
+    implementation "com.google.guava:guava:${rootProject.ext.guavaVersion}"
+    implementation 'com.jakewharton:butterknife:8.5.1'
+    implementation "org.hamcrest:hamcrest-core:${rootProject.ext.hamcrestVersion}"
+    implementation "org.valid4j:valid4j:${rootProject.ext.valid4jVersion}"
 
-    compile 'com.jakewharton:butterknife:8.5.1'
-    compile 'com.github.bumptech.glide:glide:3.7.0'
-    apt 'com.jakewharton:butterknife-compiler:8.5.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'
+    annotationProcessor "com.github.bumptech.glide:compiler:${rootProject.glideVersion}"
 }
 
 apply from:'../config/style.gradle'

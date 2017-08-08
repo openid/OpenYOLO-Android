@@ -14,6 +14,7 @@
 
 package org.openyolo.demoprovider.barbican;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -126,6 +127,7 @@ public class CredentialListActivity
         startActivity(new Intent(this, CreateCredentialActivity.class));
     }
 
+    @SuppressLint("StaticFieldLeak")
     private class LoadCredentialsTask extends AsyncTask<Void, Void, List<Credential>> {
 
         @Override

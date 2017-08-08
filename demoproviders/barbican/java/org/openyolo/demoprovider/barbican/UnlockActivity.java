@@ -14,6 +14,7 @@
 
 package org.openyolo.demoprovider.barbican;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -118,6 +119,7 @@ public class UnlockActivity
         }
     }
 
+    @SuppressLint("StaticFieldLeak")
     private class UnlockTask extends AsyncTask<Void, Void, Boolean> {
 
         private final String mPassword;

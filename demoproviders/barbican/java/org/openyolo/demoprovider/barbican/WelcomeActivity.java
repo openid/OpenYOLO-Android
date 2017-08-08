@@ -14,6 +14,7 @@
 
 package org.openyolo.demoprovider.barbican;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -88,6 +89,7 @@ public class WelcomeActivity
         new InitializeStorageTask(mPasswordField.getText().toString()).execute();
     }
 
+    @SuppressLint("StaticFieldLeak")
     private class InitializeStorageTask extends AsyncTask<Void, Void, Boolean> {
 
         private String mPassword;

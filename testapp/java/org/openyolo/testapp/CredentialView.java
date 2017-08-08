@@ -29,7 +29,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnTextChanged;
-import com.bumptech.glide.Glide;
 import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.AuthenticationMethod;
 import org.openyolo.protocol.AuthenticationMethods;
@@ -183,7 +182,7 @@ public final class CredentialView extends LinearLayout {
 
     @OnTextChanged(R.id.profile_picture_field)
     void loadProfilePicture() {
-        Glide.with(getContext())
+        GlideApp.with(getContext())
                 .load(Uri.parse(mProfilePictureField.getText().toString()))
                 .fitCenter()
                 .into(mProfilePictureView);

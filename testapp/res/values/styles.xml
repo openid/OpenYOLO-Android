@@ -20,10 +20,6 @@
         <item name="colorAccent">@color/material_color_green_600</item>
     </style>
 
-    <style name="Headline" parent="TextAppearance.AppCompat.Headline">
-        <item name="android:layout_marginBottom">16dp</item>
-    </style>
-
     <style name="DemoContent">
         <item name="android:padding">16dp</item>
     </style>

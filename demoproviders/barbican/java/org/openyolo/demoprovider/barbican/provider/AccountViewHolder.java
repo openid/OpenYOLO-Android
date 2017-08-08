@@ -21,7 +21,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import com.bumptech.glide.Glide;
+import org.openyolo.demoprovider.barbican.GlideApp;
 import org.openyolo.demoprovider.barbican.R;
 import org.openyolo.protocol.AuthenticationMethod;
 import org.openyolo.protocol.AuthenticationMethods;
@@ -83,7 +83,7 @@ public final class AccountViewHolder extends RecyclerView.ViewHolder {
         }
 
         if (profilePictureUri != null) {
-            Glide.with(mProfileIcon.getContext())
+            GlideApp.with(mProfileIcon.getContext())
                     .load(profilePictureUri)
                     .fitCenter()
                     .fallback(iconId)
