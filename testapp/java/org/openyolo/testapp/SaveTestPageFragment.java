@@ -18,6 +18,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.StringRes;
 import android.support.design.widget.Snackbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +35,7 @@ import org.openyolo.protocol.CredentialSaveResult;
  */
 public final class SaveTestPageFragment extends TestPageFragment {
 
+    private static final String TAG = "SaveTestPageFragment";
     private static final int RC_SAVE = 0;
 
     @BindView(R.id.save_credential)
@@ -67,8 +69,16 @@ public final class SaveTestPageFragment extends TestPageFragment {
 
     @OnClick(R.id.save_button)
     void onSave() {
-        final Credential credential = mCredentialView.makeCredentialFromFields();
-        final CredentialSaveRequest request = CredentialSaveRequest.fromCredential(credential);
+        CredentialSaveRequest request;
+        try {
+            Credential credential = mCredentialView.makeCredentialFromFields();
+            request = CredentialSaveRequest.fromCredential(credential);
+        } catch (IllegalArgumentException ex) {
+            Log.e(TAG, "Invalid argument: " + ex);
+            showSnackbar(R.string.save_invalid_request);
+            return;
+        }
+
         final Intent saveIntent = mApi.getSaveIntent(request);
 
         if (saveIntent == null) {
@@ -112,7 +122,7 @@ public final class SaveTestPageFragment extends TestPageFragment {
                 resultMessageId = R.string.save_result_user_refused;
                 break;
             default:
-                resultMessageId = R.string.save_result_unkown;
+                resultMessageId = R.string.save_result_unknown;
         }
 
         showSnackbar(resultMessageId);
