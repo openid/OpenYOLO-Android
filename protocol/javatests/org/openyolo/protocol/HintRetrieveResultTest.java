@@ -64,6 +64,14 @@ public class HintRetrieveResultTest {
     }
 
     @Test
+    public void fromProtobuf_withDefaultInstanceOfHint_doesNotThrowException() throws Exception {
+        Protobufs.HintRetrieveResult hintRetrieveResult =
+                Protobufs.HintRetrieveResult.newBuilder().build();
+
+        HintRetrieveResult.fromProtobuf(hintRetrieveResult);
+    }
+
+    @Test
     public void buildSetAdditionalProperties() {
         HintRetrieveResult result = new HintRetrieveResult.Builder(
                 HintRetrieveResult.CODE_NO_HINTS_AVAILABLE)

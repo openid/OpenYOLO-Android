@@ -253,7 +253,7 @@ public final class HintRetrieveResult {
 
         private Builder setHintFromProto(@Nullable Protobufs.Hint hint)
                 throws MalformedDataException {
-            if (null == hint) {
+            if (null == hint || Protobufs.Hint.getDefaultInstance().equals(hint)) {
                 mHint = null;
             } else {
                 mHint = Hint.fromProtobuf(hint);

@@ -251,10 +251,11 @@ public final class CredentialRetrieveResult {
          */
         private Builder setCredentialFromProto(@Nullable Protobufs.Credential credential)
                 throws MalformedDataException {
-            if (!Protobufs.Credential.getDefaultInstance().equals(credential)) {
-                mCredential = Credential.fromProtobuf(credential);
-            } else {
+            if (null == credential
+                    || Protobufs.Credential.getDefaultInstance().equals(credential)) {
                 mCredential = null;
+            } else {
+                mCredential = Credential.fromProtobuf(credential);
             }
             return this;
         }
