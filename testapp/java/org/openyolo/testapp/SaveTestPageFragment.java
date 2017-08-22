@@ -49,7 +49,7 @@ public final class SaveTestPageFragment extends TestPageFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mApi = CredentialClient.getApplicationBoundInstance(getActivity());
+        mApi = CredentialClient.getInstance(getActivity());
     }
 
     @Override

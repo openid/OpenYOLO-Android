@@ -49,7 +49,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Dispatches broadcast queries to available data providers.
  */
-public final class BroadcastQueryClient {
+public class BroadcastQueryClient {
 
     /**
      * The default amount of time that this client will wait for responses from providers, before
@@ -82,7 +82,7 @@ public final class BroadcastQueryClient {
      * associated to the provided context.
      */
     @NonNull
-    public static BroadcastQueryClient getApplicationBoundInstance(Context context) {
+    public static BroadcastQueryClient getInstance(Context context) {
         Context applicationContext = context.getApplicationContext();
         BroadcastQueryClient client = new BroadcastQueryClient(applicationContext);
         if (!INSTANCE.compareAndSet(null, client)) {

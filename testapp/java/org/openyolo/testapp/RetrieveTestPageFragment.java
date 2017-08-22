@@ -22,6 +22,8 @@ import android.support.design.widget.Snackbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -51,6 +53,9 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
     @BindView(R.id.retrieve_credential)
     CredentialView mCredentialView;
 
+    @BindView(R.id.require_user_mediation_check_box)
+    CheckBox mRequireUserMediationCheckBox;
+
     @BindView(R.id.id_token_view)
     IdTokenView mIdTokenView;
 
@@ -64,7 +69,7 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mApi = CredentialClient.getApplicationBoundInstance(getContext());
+        mApi = CredentialClient.getInstance(getContext());
     }
 
     @Override
@@ -129,12 +134,15 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
             showSnackbar(R.string.authentication_field_required);
             return;
         }
-        CredentialRetrieveRequest request =
+        CredentialRetrieveRequest.Builder requestBuilder =
                 new CredentialRetrieveRequest.Builder(authenticationMethods)
-                        .setTokenProviders(mTokenProviderInputView.getTokenProviders())
-                        .build();
+                        .setTokenProviders(mTokenProviderInputView.getTokenProviders());
 
-        mApi.retrieve(request, new HandleRetrieveResult());
+        if (mRequireUserMediationCheckBox.isChecked()) {
+            requestBuilder.setRequireUserMediation(true);
+        }
+
+        mApi.retrieve(requestBuilder.build(), new HandleRetrieveResult());
     }
 
     private void showSnackbar(@StringRes int messageId) {

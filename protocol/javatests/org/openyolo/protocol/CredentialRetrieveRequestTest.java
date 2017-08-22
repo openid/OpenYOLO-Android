@@ -66,6 +66,7 @@ public class CredentialRetrieveRequestTest {
                 AuthenticationMethods.EMAIL)
                 .setTokenProviders(TestConstants.createTokenProviderMap())
                 .setAdditionalProperties(TestConstants.ADDITIONAL_PROPS)
+                .setRequireUserMediation(true)
                 .build();
 
         Parcel p = Parcel.obtain();
@@ -78,6 +79,7 @@ public class CredentialRetrieveRequestTest {
                     .isEqualTo(request.getAuthenticationMethods());
             TestConstants.checkTokenProviderMap(deserialized.getTokenProviders());
             TestConstants.checkAdditionalProps(deserialized.getAdditionalProperties());
+            assertThat(deserialized.getRequireUserMediation()).isTrue();
         } finally {
             p.recycle();
         }
@@ -106,8 +108,20 @@ public class CredentialRetrieveRequestTest {
             .containsOnly(AuthenticationMethods.GOOGLE, AuthenticationMethods.FACEBOOK);
     }
 
+
     @Test
-    public void testToProtocolBuffer_includesClientVersion() {
+    public void toProtocolBuffer_usingDefaultBuilder_returnsExpectedValues() {
+        CredentialRetrieveRequest request =
+                new CredentialRetrieveRequest.Builder(AuthenticationMethods.EMAIL).build();
+
+        Protobufs.CredentialRetrieveRequest protoRequest = request.toProtocolBuffer();
+
+        assertThat(protoRequest.getRequireUserMediation())
+                .isEqualTo(CredentialRetrieveRequest.DEFAULT_REQUIRE_USER_MEDIATION_VALUE);
+    }
+
+    @Test
+    public void toProtocolBuffer_includesClientVersion() {
         String vendor = "test";
         int major = 1;
         int minor = 2;

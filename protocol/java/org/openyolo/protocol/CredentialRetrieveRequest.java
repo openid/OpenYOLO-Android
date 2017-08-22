@@ -30,12 +30,15 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
 import org.openyolo.protocol.internal.AuthenticationMethodConverters;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.ClientVersionUtil;
@@ -47,6 +50,9 @@ import org.openyolo.protocol.internal.TokenRequestInfoConverters;
  * A request for credentials, to be sent to credential providers on the device.
  */
 public class CredentialRetrieveRequest implements Parcelable {
+
+    @VisibleForTesting
+    static final Boolean DEFAULT_REQUIRE_USER_MEDIATION_VALUE = false;
 
     /**
      * Parcelable reader for {@link CredentialRetrieveRequest} instances.
@@ -130,10 +136,14 @@ public class CredentialRetrieveRequest implements Parcelable {
     @NonNull
     private final Map<String, byte[]> mAdditionalProps;
 
+    @NonNull
+    private final boolean mRequireUserMediation;
+
     private CredentialRetrieveRequest(Builder builder) {
         mAuthMethods = Collections.unmodifiableSet(builder.mAuthMethods);
         mTokenProviders = Collections.unmodifiableMap(builder.mTokenProviders);
         mAdditionalProps = Collections.unmodifiableMap(builder.mAdditionalParams);
+        mRequireUserMediation = builder.mRequireUserMediation;
     }
 
     /**
@@ -156,7 +166,17 @@ public class CredentialRetrieveRequest implements Parcelable {
     }
 
     /**
-     * The map of additional, non-standard properties included with this request.
+     * Specifies if the provider MUST have the user interact before a successful response is
+     * returned.
+     */
+    @NonNull
+    public boolean getRequireUserMediation() {
+        return mRequireUserMediation;
+    }
+
+
+    /**
+     * Retrieves the raw, byte-array value of the named additional parameter.
      */
     @NonNull
     public Map<String, byte[]> getAdditionalProperties() {
@@ -193,6 +213,7 @@ public class CredentialRetrieveRequest implements Parcelable {
                         CollectionConverter.convertMapValues(
                                 mAdditionalProps,
                                 ByteStringConverters.BYTE_ARRAY_TO_BYTE_STRING))
+                .setRequireUserMediation(mRequireUserMediation)
                 .build();
     }
 
@@ -204,6 +225,18 @@ public class CredentialRetrieveRequest implements Parcelable {
         private Set<AuthenticationMethod> mAuthMethods = new HashSet<>();
         private Map<String, TokenRequestInfo> mTokenProviders = new HashMap<>();
         private Map<String, byte[]> mAdditionalParams = new HashMap<>();
+        private boolean mRequireUserMediation = DEFAULT_REQUIRE_USER_MEDIATION_VALUE;
+
+        /**
+         * Starts the process of creating a retrieve request using the data contained in the
+         * provided credential retrieve request.
+         */
+        public Builder(CredentialRetrieveRequest request) {
+            mAuthMethods = request.mAuthMethods;
+            mTokenProviders = request.mTokenProviders;
+            mAdditionalParams = request.mAdditionalProps;
+            mRequireUserMediation = request.mRequireUserMediation;
+        }
 
         /**
          * Starts the process of creating a retrieve request using the data contained in the
@@ -227,6 +260,8 @@ public class CredentialRetrieveRequest implements Parcelable {
                         CollectionConverter.convertMapValues(
                                 requestProto.getAdditionalPropsMap(),
                                 ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY));
+
+                setRequireUserMediation(requestProto.getRequireUserMediation());
             } catch (IllegalArgumentException ex) {
                 throw new MalformedDataException(ex);
             }
@@ -261,6 +296,15 @@ public class CredentialRetrieveRequest implements Parcelable {
             validate(authMethods, not(equalTo(EMPTY_SET)), IllegalArgumentException.class);
 
             mAuthMethods = authMethods;
+            return this;
+        }
+
+        /**
+         * Specifies if the provider MUST require user interaction before returning a successful
+         * response.
+         */
+        public Builder setRequireUserMediation(boolean value) {
+            mRequireUserMediation = value;
             return this;
         }
 

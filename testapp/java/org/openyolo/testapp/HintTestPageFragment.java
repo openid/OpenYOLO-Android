@@ -60,7 +60,7 @@ public final class HintTestPageFragment extends TestPageFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mApi = CredentialClient.getApplicationBoundInstance(getContext());
+        mApi = CredentialClient.getInstance(getContext());
     }
 
     @Override

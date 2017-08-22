@@ -163,7 +163,7 @@ public class ProviderPickerActivity extends AppCompatActivity {
             mProviderNames = new ArrayList<>(providerIntents.size());
             mProviderKnown = new ArrayList<>(providerIntents.size());
 
-            KnownProviders knownProviders = KnownProviders.getApplicationBoundInstance(
+            KnownProviders knownProviders = KnownProviders.getInstance(
                     ProviderPickerActivity.this.getApplicationContext());
             PackageManager pm = getPackageManager();
             for (Intent providerIntent : providerIntents) {

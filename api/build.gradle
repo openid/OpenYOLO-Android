@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 apply from:'../config/android-common.gradle'
+apply from:'../config/protobuf.gradle'
 
 project.ext {
     moduleDesc = 'OpenYOLO for Android Client API'

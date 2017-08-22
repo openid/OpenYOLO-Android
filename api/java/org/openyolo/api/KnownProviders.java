@@ -112,7 +112,7 @@ public class KnownProviders {
     /**
      * Retrieves the singleton instance of the known provider list.
      */
-    public static KnownProviders getApplicationBoundInstance(Context context) {
+    public static KnownProviders getInstance(Context context) {
         KnownProviders providers = new KnownProviders(context);
         if (!INSTANCE_REF.compareAndSet(null, providers)) {
             providers = INSTANCE_REF.get();

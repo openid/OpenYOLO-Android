@@ -69,7 +69,7 @@ public class KnownProvidersTest {
         when(signatures[0].toByteArray()).thenReturn(new byte[10]);
         mockPackageInfo.signatures = signatures;
         when(mockPackageManager.getPackageInfo(anyString(), anyInt())).thenReturn(mockPackageInfo);
-        underTest = KnownProviders.getApplicationBoundInstance(mockContext);
+        underTest = KnownProviders.getInstance(mockContext);
     }
 
     /**

@@ -27,6 +27,7 @@ import static org.openyolo.protocol.ProtocolConstants.HINT_CREDENTIAL_ACTION;
 import static org.openyolo.protocol.ProtocolConstants.OPENYOLO_CATEGORY;
 import static org.openyolo.protocol.ProtocolConstants.SAVE_CREDENTIAL_ACTION;
 import static org.valid4j.Assertive.require;
+import static org.valid4j.Validation.validate;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -34,6 +35,7 @@ import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 import com.google.bbq.BroadcastQueryClient;
 import com.google.bbq.QueryCallback;
@@ -44,7 +46,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
+
+import org.openyolo.api.persistence.DeviceState;
+import org.openyolo.api.persistence.internal.DeviceStateImpl;
 import org.openyolo.api.ui.ProviderPickerActivity;
 import org.openyolo.protocol.Credential;
 import org.openyolo.protocol.CredentialDeleteRequest;
@@ -68,29 +72,42 @@ public class CredentialClient {
 
     private static final String LOG_TAG = "CredentialClient";
 
-    private static final AtomicReference<CredentialClient> INSTANCE_REF
-            = new AtomicReference<>();
-
     private final Context mApplicationContext;
-
     private final BroadcastQueryClient mQueryClient;
+    private final DeviceState mDeviceState;
 
     /**
-     * Retrieves the singleton credential client instance associated with the application.
+     * Returns a new credential client instance configured with the default options.
      */
-    public static CredentialClient getApplicationBoundInstance(Context context) {
-        Context applicationContext = context.getApplicationContext();
-        CredentialClient client = new CredentialClient(applicationContext);
-        if (!INSTANCE_REF.compareAndSet(null, client)) {
-            client = INSTANCE_REF.get();
-        }
+    public static CredentialClient getInstance(@NonNull Context context) {
+        CredentialClientOptions options =
+                new CredentialClientOptions.Builder(DeviceStateImpl.getInstance(context)).build();
 
-        return client;
+        return getInstance(context, options);
     }
 
-    CredentialClient(Context applicationContext) {
-        mApplicationContext = applicationContext;
-        mQueryClient = BroadcastQueryClient.getApplicationBoundInstance(applicationContext);
+    /**
+     * Returns a new credential client instance configured with the given
+     * {@link CredentialClientOptions}.
+     */
+    public static CredentialClient getInstance(
+            @NonNull Context context,
+            @NonNull CredentialClientOptions options) {
+        return new CredentialClient(context, BroadcastQueryClient.getInstance(context), options);
+    }
+
+    @VisibleForTesting
+    CredentialClient(
+            @NonNull Context context,
+            @NonNull BroadcastQueryClient broadcastQueryClient,
+            @NonNull CredentialClientOptions options) {
+        validate(context, notNullValue(), NullPointerException.class);
+        validate(broadcastQueryClient, notNullValue(), NullPointerException.class);
+        validate(options, notNullValue(), NullPointerException.class);
+
+        mApplicationContext = context.getApplicationContext();
+        mQueryClient = broadcastQueryClient;
+        mDeviceState = options.getDeviceState();
     }
 
     /**
@@ -129,8 +146,15 @@ public class CredentialClient {
      * @param callback Handler for the result of the credential request.
      */
     public void retrieve(
-            final CredentialRetrieveRequest request,
+            CredentialRetrieveRequest request,
             final RetrieveCallback callback) {
+
+        if (mDeviceState.isAutoSignInDisabled()) {
+            request = new CredentialRetrieveRequest.Builder(request)
+                    .setRequireUserMediation(true)
+                    .build();
+        }
+
         mQueryClient.queryFor(
                 CREDENTIAL_DATA_TYPE,
                 request.toProtocolBuffer(),
@@ -272,7 +296,15 @@ public class CredentialClient {
         }
 
         try {
-            return CredentialRetrieveResult.fromProtobufBytes(resultBytes);
+            CredentialRetrieveResult result =
+                    CredentialRetrieveResult.fromProtobufBytes(resultBytes);
+
+            // Once a successfully retrieve result has been handled, re-enable auto sign-in.
+            if (CredentialRetrieveResult.CODE_CREDENTIAL_SELECTED == result.getResultCode()) {
+                mDeviceState.setIsAutoSignInDisabled(false);
+            }
+
+            return result;
         } catch (MalformedDataException ex) {
             Log.e(LOG_TAG, "validation of result proto failed, returning default response", ex);
             return createDefaultCredentialRetrieveResult();
@@ -330,6 +362,14 @@ public class CredentialClient {
             Log.e(LOG_TAG, "save result is malformed, returning default response", ex);
             return createDefaultCredentialSaveResult();
         }
+    }
+
+    /**
+     * Disables automatically signing a user until a successful response is given to
+     * {@link CredentialClient#getCredentialRetrieveResult(Intent)}.
+     */
+    public void disableAutoSignIn() {
+        mDeviceState.setIsAutoSignInDisabled(true);
     }
 
     @NonNull
@@ -421,7 +461,7 @@ public class CredentialClient {
 
     private List<ComponentName> filterToKnownProviders(List<ComponentName> providers) {
         KnownProviders knownProviders =
-                KnownProviders.getApplicationBoundInstance(mApplicationContext);
+                KnownProviders.getInstance(mApplicationContext);
 
         ArrayList<ComponentName> filteredProviders = new ArrayList<>();
         for (ComponentName provider : providers) {

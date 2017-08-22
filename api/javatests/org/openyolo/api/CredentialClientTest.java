@@ -19,8 +19,13 @@ package org.openyolo.api;
 
 import static junit.framework.TestCase.assertNotNull;
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.openyolo.protocol.AuthenticationMethods.EMAIL;
 
@@ -29,20 +34,29 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+
+import com.google.bbq.BroadcastQueryClient;
+import com.google.bbq.QueryCallback;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.openyolo.api.persistence.DeviceState;
 import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.AuthenticationMethods;
 import org.openyolo.protocol.Credential;
+import org.openyolo.protocol.CredentialRetrieveRequest;
 import org.openyolo.protocol.CredentialSaveRequest;
 import org.openyolo.protocol.CredentialSaveResult;
 import org.openyolo.protocol.HintRetrieveRequest;
 import org.openyolo.protocol.CredentialRetrieveResult;
+import org.openyolo.protocol.Protobufs;
 import org.openyolo.protocol.ProtocolConstants;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -80,7 +94,13 @@ public class CredentialClientTest {
     private PackageManager mockPackageManager;
 
     @Mock
+    private BroadcastQueryClient mockBroadcastQueryClient;
+
+    @Mock
     private KnownProviders mockKnownProviders;
+
+    @Mock
+    private DeviceState mockDeviceState;
 
     private CredentialClient credentialClient;
     private Credential testCredential;
@@ -107,7 +127,9 @@ public class CredentialClientTest {
 
         KnownProviders.setApplicationBoundInstance(mockKnownProviders);
 
-        credentialClient = new CredentialClient(mockContext);
+        CredentialClientOptions options =
+                new CredentialClientOptions.Builder(mockDeviceState).build();
+        credentialClient = new CredentialClient(mockContext, mockBroadcastQueryClient, options);
         testCredential = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN).build();
     }
 
@@ -117,8 +139,8 @@ public class CredentialClientTest {
     }
 
     @Test
-    public void testGetApplicationBoundInstance() throws Exception {
-        CredentialClient test = CredentialClient.getApplicationBoundInstance(mockContext);
+    public void getInstance_returnsNonNull() throws Exception {
+        CredentialClient test = CredentialClient.getInstance(mockContext);
         assertNotNull(test);
     }
 
@@ -349,7 +371,29 @@ public class CredentialClientTest {
     }
 
     @Test
-    public void testGetCredentialRetrieveResult() throws Exception {
+    public void getCredentialRetrieveResult_withErrorResult_returnsErrorResult() throws Exception {
+        Intent intent = new Intent();
+        intent.putExtra(ProtocolConstants.EXTRA_RETRIEVE_RESULT,
+                new CredentialRetrieveResult.Builder(
+                        CredentialRetrieveResult.CODE_NO_CREDENTIALS_AVAILABLE)
+                        .build()
+                        .toProtobuf()
+                        .toByteArray());
+
+        CredentialRetrieveResult result = credentialClient.getCredentialRetrieveResult(intent);
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.getResultCode()).isEqualTo(
+                CredentialRetrieveResult.CODE_NO_CREDENTIALS_AVAILABLE);
+        assertThat(result.getCredential()).isNull();
+        assertThat(result.getAdditionalProps()).isEmpty();
+
+        verifyNoMoreInteractions(mockDeviceState);
+    }
+
+    @Test
+    public void getCredentialRetrieveResult_withSuccessfulResult_returnsSuccessfulResult() throws Exception {
         Intent intent = new Intent();
         intent.putExtra(ProtocolConstants.EXTRA_RETRIEVE_RESULT,
                 new CredentialRetrieveResult.Builder(
@@ -360,6 +404,8 @@ public class CredentialClientTest {
                         .toByteArray());
 
         CredentialRetrieveResult result = credentialClient.getCredentialRetrieveResult(intent);
+
+        // Assert
         assertThat(result).isNotNull();
         assertThat(result.getResultCode()).isEqualTo(
                 CredentialRetrieveResult.CODE_CREDENTIAL_SELECTED);
@@ -367,8 +413,9 @@ public class CredentialClientTest {
         assertThat(result.getCredential()).isNotNull();
         assertThat(result.getCredential().getIdentifier())
                 .isEqualTo(testCredential.getIdentifier());
-
         assertThat(result.getAdditionalProps()).isEmpty();
+
+        verify(mockDeviceState).setIsAutoSignInDisabled(eq(false));
     }
 
     @Test
@@ -379,6 +426,44 @@ public class CredentialClientTest {
         assertThat(result.getResultCode()).isEqualTo(CredentialRetrieveResult.CODE_UNKNOWN);
         assertThat(result.getCredential()).isNull();
         assertThat(result.getAdditionalProps()).isEmpty();
+    }
+
+    @Test
+    public void retrieve_autoSignInDisabled_requestRequiresUserMediation() {
+        CredentialRetrieveRequest request =
+                CredentialRetrieveRequest.forAuthenticationMethods(AuthenticationMethods.EMAIL);
+
+        when(mockDeviceState.isAutoSignInDisabled()).thenReturn(true);
+
+        // Act
+        credentialClient.retrieve(request, null /* callBack */);
+
+        // Assert
+        ArgumentCaptor<Protobufs.CredentialRetrieveRequest> requestArgumentCaptor =
+                ArgumentCaptor.forClass(Protobufs.CredentialRetrieveRequest.class);
+        verify(mockBroadcastQueryClient)
+                .queryFor(anyString(), requestArgumentCaptor.capture(), any(QueryCallback.class));
+        assertThat(requestArgumentCaptor.getValue().getRequireUserMediation()).isTrue();
+    }
+
+    @Test
+    public void retrieve_autoSignInEnabled_requestDoesNotRequireUserMediation() {
+        CredentialRetrieveRequest request =
+                new CredentialRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
+                        .setRequireUserMediation(false)
+                        .build();
+
+        when(mockDeviceState.isAutoSignInDisabled()).thenReturn(false);
+
+        // Act
+        credentialClient.retrieve(request, null /* callBack */);
+
+        // Assert
+        ArgumentCaptor<Protobufs.CredentialRetrieveRequest> requestArgumentCaptor =
+                ArgumentCaptor.forClass(Protobufs.CredentialRetrieveRequest.class);
+        verify(mockBroadcastQueryClient)
+                .queryFor(anyString(), requestArgumentCaptor.capture(), any(QueryCallback.class));
+        assertThat(requestArgumentCaptor.getValue().getRequireUserMediation()).isFalse();
     }
 
     private void addKnownProviders(String... packageNames) {

@@ -21,6 +21,9 @@
     <string name="phone_authentication_method_checkbox_text">openyolo://phone</string>
     <string name="username_authentication_method_checkbox_text">openyolo://username</string>
 
+    <string name="require_user_mediation_checkbox_text">Require User Mediation</string>
+    <string name="retrieve_other_section_title">Other</string>
+
 
     <!-- Save Test -->
     <string name="save_button_label">Save Credential</string>
@@ -75,6 +78,11 @@
     <string name="google_provider_button_content_description">Set federation provider to Google</string>
     <string name="facebook_provider_button_content_description">Set federation provider to Facebook</string>
     <string name="open_yolo_email_button_content_description">Set authentication method to Email</string>
+
+
+    <!-- Other Test -->
+    <string name="disable_auto_sign_in_button_label">Disable Auto Sign In</string>
+    <string name="disable_auto_sign_in_button_content_description">Disable Auto Sign In</string>
 
     <!-- Misc -->
     <string name="authentication_field_required">Must select or enter valid authentication method</string>

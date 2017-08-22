@@ -116,7 +116,7 @@ public class RetrieveCredentialActivity
                 return;
             }
 
-            if (credentials.size() == 1) {
+            if (!mRequest.getRequireUserMediation() && credentials.size() == 1) {
                 Intent autoSignInIntent =
                         AutoSignInActivity.createIntent(this, credentials.get(0));
                 autoSignInIntent.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);

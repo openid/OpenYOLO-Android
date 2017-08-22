@@ -51,6 +51,11 @@ task compileProtos {
         makeExecutable(javaliteFile)
 
         def protoFiles = fileTree(dir: "${projectDir}/proto").matching { include "**/*.proto"}.sort()
+        if (protoFiles.isEmpty()) {
+            logger.lifecycle("No protobuf files found. Skipping compilation.")
+            return
+        }
+
         logger.lifecycle("proto files: " + protoFiles)
 
         def outDir = file("${projectDir}/java_gen")
