@@ -21,6 +21,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import org.openyolo.demoprovider.barbican.UnlockActivity;
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
@@ -99,11 +100,17 @@ public class RetrieveCredentialActivity
             // TODO: we actually need the full set of requested domains from the original request,
             // not just those based on the package name.
 
-            List<AuthenticationDomain> authDomains =
-                    AuthenticationDomain.listForPackage(this, getCallingPackage());
+            AuthenticationDomain authDomain =
+                    AuthenticationDomain.fromPackageName(this, getCallingPackage());
+            if (null == authDomain) {
+                Log.w(LOG_TAG, "Failed to get AuthenticationDomain for calling app.");
+                finish();
+                return;
+            }
 
             List<Credential> credentials;
             try {
+                List<AuthenticationDomain> authDomains = Arrays.asList(authDomain);
                 credentials =
                         CredentialTransformUtils.fromProtoList(client.listCredentials(authDomains));
             } catch (IOException ex) {

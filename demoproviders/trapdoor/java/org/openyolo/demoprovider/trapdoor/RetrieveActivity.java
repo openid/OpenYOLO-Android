@@ -22,7 +22,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import java.util.TreeSet;
 import me.philio.pinentry.PinEntryView;
 import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.AuthenticationMethods;
@@ -58,8 +57,14 @@ public class RetrieveActivity extends AppCompatActivity {
             return;
         }
 
-        mDomain = new TreeSet<>(
-                AuthenticationDomain.listForPackage(this, getCallingPackage())).first();
+        mDomain = AuthenticationDomain.fromPackageName(this, getCallingPackage());
+        if (null == mDomain) {
+            Log.w(LOG_TAG, "No AuthenticationDomain associated with the calling package.");
+            setResult(RESULT_CANCELED);
+            finish();
+            return;
+        }
+
         Log.i(LOG_TAG, "processing retrieve intent from " + mDomain);
 
         setContentView(R.layout.dialog_layout);

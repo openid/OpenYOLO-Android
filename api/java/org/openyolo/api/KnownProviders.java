@@ -19,7 +19,6 @@ import android.support.annotation.VisibleForTesting;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import org.openyolo.protocol.AuthenticationDomain;
@@ -160,16 +159,13 @@ public class KnownProviders {
      * on the known provider list.
      */
     public boolean isKnown(String packageName) {
-        List<AuthenticationDomain> packageAuthDomains =
-                AuthenticationDomain.listForPackage(mApplicationContext, packageName);
-
-        for (AuthenticationDomain packageAuthDomain : packageAuthDomains) {
-            if (mKnownProviders.contains(packageAuthDomain)) {
-                return true;
-            }
+        AuthenticationDomain authDomain =
+                AuthenticationDomain.fromPackageName(mApplicationContext, packageName);
+        if (null == authDomain) {
+            return false;
         }
 
-        return false;
+        return mKnownProviders.contains(authDomain);
     }
 
     /**

@@ -27,14 +27,11 @@ import android.content.pm.Signature;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 
 /**
@@ -53,6 +50,8 @@ import java.util.List;
  */
 @SuppressLint("PackageManagerGetSignatures")
 public final class AuthenticationDomain implements Comparable<AuthenticationDomain> {
+
+    private static final String TAG = "AuthenticationDomain";
 
     private static final String DIGEST_SHA_512 = "SHA-512";
     private static final String SCHEME_ANDROID = "android";
@@ -74,46 +73,43 @@ public final class AuthenticationDomain implements Comparable<AuthenticationDoma
     public static AuthenticationDomain getSelfAuthDomain(@NonNull Context context) {
         validate(context, notNullValue(), IllegalArgumentException.class);
 
-        PackageManager pm = context.getPackageManager();
         String packageName = context.getPackageName();
-        PackageInfo packageInfo;
-        try {
-            packageInfo = pm.getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
-        } catch (PackageManager.NameNotFoundException e) {
+        AuthenticationDomain authenticationDomain = fromPackageName(context, packageName);
+        if (null == authenticationDomain) {
             throw new IllegalStateException("Unable to find package info for " + packageName);
         }
 
-        return createAndroidAuthDomain(packageName, packageInfo.signatures[0]);
+        return authenticationDomain;
     }
 
     /**
-     * Creates the list of all authentication domains that represent the specified package.
-     * The list will contain a distinct entry for every signature related to the application.
+     * Returns the {@link AuthenticationDomain} for the application installed on the current device
+     * associated with the given package name otherwise {@code null}.
      */
-    @NonNull
-    public static List<AuthenticationDomain> listForPackage(
+    @Nullable
+    public static AuthenticationDomain fromPackageName(
             @NonNull Context context,
-            @Nullable String packageName) {
+            @NonNull String packageName) {
         validate(context, notNullValue(), IllegalArgumentException.class);
+        validate(packageName, notNullOrEmptyString(), IllegalArgumentException.class);
 
         PackageManager pm = context.getPackageManager();
         PackageInfo packageInfo;
-        if (TextUtils.isEmpty(packageName)) {
-            return Collections.emptyList();
-        }
         try {
             packageInfo = pm.getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
-        } catch (PackageManager.NameNotFoundException e) {
-            return Collections.emptyList();
+        } catch (PackageManager.NameNotFoundException ex) {
+            return null;
         }
 
-        ArrayList<AuthenticationDomain> authDomains =
-                new ArrayList<>(packageInfo.signatures.length);
-        for (Signature signature : packageInfo.signatures) {
-            authDomains.add(createAndroidAuthDomain(packageName, signature));
+        if (1 != packageInfo.signatures.length) {
+            Log.w(TAG,
+                    String.format(
+                            "application (%s) did not have exactly one signature",
+                            packageName));
+            return null;
         }
 
-        return authDomains;
+        return createAndroidAuthDomain(packageName, packageInfo.signatures[0]);
     }
 
     /**
@@ -121,7 +117,7 @@ public final class AuthenticationDomain implements Comparable<AuthenticationDoma
      * given the provided package name and signature.
      */
     @NonNull
-    public static AuthenticationDomain createAndroidAuthDomain(
+    static AuthenticationDomain createAndroidAuthDomain(
             @NonNull String packageName,
             @NonNull Signature signature) {
         validate(packageName, notNullOrEmptyString(), IllegalArgumentException.class);

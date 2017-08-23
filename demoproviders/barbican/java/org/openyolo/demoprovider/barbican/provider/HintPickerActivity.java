@@ -167,14 +167,14 @@ public class HintPickerActivity
         }
 
         String callingPackage = callingActivity.getPackageName();
-        List<AuthenticationDomain> authDomains =
-                AuthenticationDomain.listForPackage(this, callingPackage);
+        AuthenticationDomain authDomain =
+                AuthenticationDomain.fromPackageName(this, callingPackage);
 
-        if (authDomains.isEmpty()) {
+        if (null == authDomain) {
             return false;
         }
 
-        mCallerAuthDomain = authDomains.get(0);
+        mCallerAuthDomain = authDomain;
         return true;
     }
 

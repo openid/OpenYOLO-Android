@@ -22,7 +22,8 @@ import android.support.annotation.UiThread;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import java.io.IOException;
-import java.util.List;
+import java.util.Arrays;
+
 import org.openyolo.demoprovider.barbican.storage.CredentialStorageClient;
 import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.CredentialSaveRequest;
@@ -40,7 +41,7 @@ public class SaveCredentialActivity extends AppCompatActivity {
 
     private CredentialSaveRequest mRequest;
     private String mCallingPackage;
-    private List<AuthenticationDomain> mAuthDomainsForApp;
+    private AuthenticationDomain mAuthDomainForApp;
     private CredentialStorageClient mStorageClient;
 
 
@@ -108,10 +109,10 @@ public class SaveCredentialActivity extends AppCompatActivity {
         // affiliated apps and sites, though it is generally unusual for an app to save a
         // credential for any authentication domain other than those it can directly identify as.
         mCallingPackage = callingActivity.getPackageName();
-        mAuthDomainsForApp = AuthenticationDomain.listForPackage(this, mCallingPackage);
+        mAuthDomainForApp = AuthenticationDomain.fromPackageName(this, mCallingPackage);
 
         final AuthenticationDomain authDomain = mRequest.getCredential().getAuthenticationDomain();
-        if (!mAuthDomainsForApp.contains(authDomain)) {
+        if (!authDomain.equals(mAuthDomainForApp)) {
             Log.w(LOG_TAG, "App " + mCallingPackage
                     + " is not provably associated to authentication domain "
                     + authDomain
@@ -127,7 +128,7 @@ public class SaveCredentialActivity extends AppCompatActivity {
         public void run() {
             try {
                 // Ensure authentication domain is not on never save list
-                if (mStorageClient.isOnNeverSaveList(mAuthDomainsForApp)) {
+                if (mStorageClient.isOnNeverSaveList(Arrays.asList(mAuthDomainForApp))) {
                     finishWithResult(CredentialSaveResult.PROVIDER_REFUSED);
                     return;
                 }

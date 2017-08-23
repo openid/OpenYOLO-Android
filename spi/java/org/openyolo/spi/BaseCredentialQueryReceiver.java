@@ -54,20 +54,19 @@ public abstract class BaseCredentialQueryReceiver extends BaseBroadcastQueryRece
             return;
         }
 
-        // TODO: validate claimed authentication domains
-        Set<AuthenticationDomain> requestorDomains =
-                new HashSet<>(AuthenticationDomain.listForPackage(
-                    context,
-                    query.getRequestingApp()));
+        AuthenticationDomain requestorAuthDomain =
+                AuthenticationDomain.fromPackageName(context, query.getRequestingApp());
 
         // Ensure the authentication domain of the requesting app can be determined
-        if (requestorDomains.isEmpty()) {
+        if (null == requestorAuthDomain) {
             Log.w(mLogTag, "Unable to determine the authentication domain of the requesting app");
             new QueryResponseSender(context).sendResponse(query, null);
             return;
         }
 
-        processCredentialRequest(context, query, request, requestorDomains);
+        HashSet<AuthenticationDomain> authenticationDomains = new HashSet<>();
+        authenticationDomains.add(requestorAuthDomain);
+        processCredentialRequest(context, query, request, authenticationDomains);
     }
 
     protected abstract void processCredentialRequest(

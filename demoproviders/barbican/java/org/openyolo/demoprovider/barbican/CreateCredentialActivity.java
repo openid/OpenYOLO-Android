@@ -190,10 +190,13 @@ public class CreateCredentialActivity
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            AuthenticationDomain domain = AuthenticationDomain.listForPackage(
+            AuthenticationDomain domain = AuthenticationDomain.fromPackageName(
                     CreateCredentialActivity.this,
-                    mPackageName)
-                    .get(0);
+                    mPackageName);
+            if (null == domain) {
+                Log.e(LOG_TAG, "Failed to find auth-domain associated with package name.");
+                return null;
+            }
 
             Credential credential = new Credential.Builder(
                     mUsername,

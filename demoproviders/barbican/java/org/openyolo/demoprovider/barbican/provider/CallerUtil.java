@@ -19,6 +19,8 @@ import android.content.ComponentName;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
+
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -40,7 +42,13 @@ public final class CallerUtil {
         }
 
         String callingPackage = callingActivity.getPackageName();
-        return new HashSet<>(AuthenticationDomain.listForPackage(activity, callingPackage));
+        AuthenticationDomain authenticationDomain =
+                AuthenticationDomain.fromPackageName(activity, callingPackage);
+        if (null == authenticationDomain) {
+            return Collections.EMPTY_SET;
+        }
+
+        return new HashSet<>(Arrays.asList(authenticationDomain));
     }
 
     /**

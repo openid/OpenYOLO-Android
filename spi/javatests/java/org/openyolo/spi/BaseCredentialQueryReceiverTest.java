@@ -20,7 +20,6 @@ package org.openyolo.spi;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -30,10 +29,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import com.google.bbq.Protobufs.BroadcastQuery;
 import com.google.protobuf.ByteString;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,6 +40,7 @@ import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.AuthenticationMethod;
 import org.openyolo.protocol.CredentialRetrieveRequest;
 import org.openyolo.protocol.Protobufs;
+import org.openyolo.spi.Constants.ValidApplication;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -62,8 +60,6 @@ public class BaseCredentialQueryReceiverTest {
     @Mock
     Context mockContext;
 
-    private static final String CALLING_PACKAGE_NAME = "org.openyolo.supercoolapp";
-
     private static final BroadcastQuery QUERY_WITH_NULL_MESSAGE =
             makeQueryFromRequest(null /* request */);
 
@@ -73,14 +69,10 @@ public class BaseCredentialQueryReceiverTest {
     private static final BroadcastQuery QUERY_WITH_VALID_REQUEST =
             makeQueryFromRequest(makeValidCredentialRetrieveRequest());
 
-    private static final List<AuthenticationDomain> VALID_AUTHENTICATION_DOMAINS =
-            makeValidAuthenticationDomains();
-
-
     private static BroadcastQuery makeQueryFromRequest(
             @Nullable Protobufs.CredentialRetrieveRequest request) {
         BroadcastQuery.Builder builder = BroadcastQuery.newBuilder()
-                .setRequestingApp(CALLING_PACKAGE_NAME)
+                .setRequestingApp(ValidApplication.PACKAGE_NAME)
                 .setDataType("blah")
                 .setRequestId(101L)
                 .setResponseId(102L);
@@ -90,13 +82,6 @@ public class BaseCredentialQueryReceiverTest {
         }
 
         return builder.build();
-    }
-
-    private static List<AuthenticationDomain> makeValidAuthenticationDomains() {
-        List<AuthenticationDomain> authenticationDomains = new ArrayList<>();
-        authenticationDomains.add(mock(AuthenticationDomain.class));
-
-        return authenticationDomains;
     }
 
     private static Protobufs.CredentialRetrieveRequest makeInvalidCredentialRetrieveRequest() {
@@ -128,7 +113,8 @@ public class BaseCredentialQueryReceiverTest {
                     }
                 });
 
-        ShadowAuthenticationDomain.setListForPackageResponse(VALID_AUTHENTICATION_DOMAINS);
+        // ShadowAuthenticationDomain.(VALID_AUTHENTICATION_DOMAINS);
+        ShadowAuthenticationDomain.reset();
     }
 
     @Test
@@ -149,6 +135,10 @@ public class BaseCredentialQueryReceiverTest {
 
     @Test
     public void processQuery_withValidRequest_processesRequest() throws Exception {
+        ShadowAuthenticationDomain.setAuthDomainForPackage(
+                ValidApplication.PACKAGE_NAME,
+                ValidApplication.AUTHENTICATION_DOMAIN);
+
         credentialQueryReceiver.processQuery(mockContext, QUERY_WITH_VALID_REQUEST);
 
         verifyProcessCredentialRequestWasCalled();
@@ -158,8 +148,6 @@ public class BaseCredentialQueryReceiverTest {
     @Test
     public void processQuery_withValidRequestAndUnableToDetermineAuthenticationDomain_sendsNullResponse()
             throws Exception {
-        ShadowAuthenticationDomain.setListForPackageResponse(
-                Collections.<AuthenticationDomain>emptyList());
         credentialQueryReceiver.processQuery(mockContext, QUERY_WITH_VALID_REQUEST);
 
         verifyProcessCredentialRequestWasNotCalled();

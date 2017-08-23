@@ -2,30 +2,34 @@ package org.openyolo.spi;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.openyolo.protocol.AuthenticationDomain;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 
 /**
- * Shadow for {@link AuthenticationDomain}
+ * Shadow for {@link AuthenticationDomain}.
  */
 @Implements(AuthenticationDomain.class)
 public class ShadowAuthenticationDomain {
 
-    private static List<AuthenticationDomain> authenticationDomains = Collections.EMPTY_LIST;
+    private static Map<String, AuthenticationDomain> sAuthDomainLookup = new HashMap<>();
 
-    public static void setListForPackageResponse(
-            List<AuthenticationDomain> authenticationDomainsResponse) {
-        authenticationDomains = authenticationDomainsResponse;
+    public static void reset() {
+        sAuthDomainLookup.clear();
+    }
+
+    public static void setAuthDomainForPackage(String packageName, AuthenticationDomain authDomain) {
+        sAuthDomainLookup.put(packageName, authDomain);
     }
 
     @Implementation
-    public static List<AuthenticationDomain> listForPackage(
+    public static AuthenticationDomain fromPackageName(
             @NonNull Context context,
-            @Nullable String packageName) {
-        return authenticationDomains;
+            @NonNull String packageName) {
+        return sAuthDomainLookup.get(packageName);
     }
 }

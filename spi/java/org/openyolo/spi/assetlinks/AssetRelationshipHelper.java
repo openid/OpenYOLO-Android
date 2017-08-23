@@ -22,6 +22,7 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.openyolo.protocol.AuthenticationDomain;
@@ -110,8 +111,8 @@ public class AssetRelationshipHelper {
      * <p>
      * Load the asset statements for the client app.  Load the asset statements for each Android
      * 'target' in the client app's asset statements.  Return the of
-     * {@link org.openyolo.api.AuthenticationDomain}s that have bidirectional relationships with
-     * the client app.
+     * {@link org.openyolo.protocol.AuthenticationDomain}s that have bidirectional relationships
+     * with the client app.
      * </p>
      * <p>
      * Note, this currently only supports Android 'target' asset statements.
@@ -197,6 +198,12 @@ public class AssetRelationshipHelper {
 
     private List<AuthenticationDomain> createAuthDomains(
                 final String packageName) {
-        return AuthenticationDomain.listForPackage(mContext, packageName);
+        AuthenticationDomain authenticationDomain =
+                AuthenticationDomain.fromPackageName(mContext, packageName);
+        if (null == authenticationDomain) {
+            return Collections.EMPTY_LIST;
+        }
+
+        return Arrays.asList(authenticationDomain);
     }
 }

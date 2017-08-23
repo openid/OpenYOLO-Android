@@ -62,9 +62,8 @@ public class AuthenticationDomainTest {
 
     private static PackageInfo makeValidPackageInfo() {
         PackageInfo packageInfo = new PackageInfo();
-        packageInfo.signatures = new Signature[2];
+        packageInfo.signatures = new Signature[1];
         packageInfo.signatures[0] = new Signature(VALID_SIGNATURE_BYTES);
-        packageInfo.signatures[1] = new Signature(new byte[16]);
 
         return packageInfo;
     }
@@ -143,27 +142,28 @@ public class AuthenticationDomainTest {
     }
 
     @Test
-    public void listForPackage_forValidPackage_containsValidAuthenticationDomain() {
-        assertThat(AuthenticationDomain.listForPackage(mockContext, VALID_PACKAGE_NAME))
-                .contains(new AuthenticationDomain(VALID_AUTHENTICATION_DOMAIN_STRING));
+    public void fromPackageName_forValidPackage_containsValidAuthenticationDomain() {
+        assertThat(AuthenticationDomain.fromPackageName(mockContext, VALID_PACKAGE_NAME))
+                .isEqualTo(new AuthenticationDomain(VALID_AUTHENTICATION_DOMAIN_STRING));
     }
 
     @Test
-    public void listForPackage_forNullPackageName_returnsEmpty() throws Exception {
-        assertThat(AuthenticationDomain.listForPackage(mockContext, null /* package */)).isEmpty();
-    }
-
-    @Test
-    public void listForPackage_packageDoesNotExist_returnsEmpty() throws Exception {
+    public void fromPackageName_packageDoesNotExist_returnsNull() throws Exception {
         when(mockPackageManager.getPackageInfo(VALID_PACKAGE_NAME, PackageManager.GET_SIGNATURES))
-                .thenAnswer(new Answer<PackageInfo>() {
-                    @Override
-                    public PackageInfo answer(InvocationOnMock invocation) throws Throwable {
-                        throw new NameNotFoundException();
-                    }
-                });
+                .thenThrow(NameNotFoundException.class);
 
-        assertThat(AuthenticationDomain.listForPackage(mockContext, VALID_PACKAGE_NAME)).isEmpty();
+        assertThat(AuthenticationDomain.fromPackageName(mockContext, VALID_PACKAGE_NAME)).isNull();
+    }
+
+    @Test
+    public void fromPackageName_hasMultipleSignatures_returnsNull() throws Exception {
+        PackageInfo packageInfo = new PackageInfo();
+        packageInfo.signatures = new Signature[2];
+
+        when(mockPackageManager.getPackageInfo(VALID_PACKAGE_NAME, PackageManager.GET_SIGNATURES))
+                .thenReturn(packageInfo);
+
+        assertThat(AuthenticationDomain.fromPackageName(mockContext, VALID_PACKAGE_NAME)).isNull();
     }
 
     @Test(expected = IllegalArgumentException.class)
