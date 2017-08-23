@@ -35,8 +35,6 @@
             android:id="@+id/unsafe_provider_warning"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:drawableLeft="@drawable/warning_icon_compat_wrapper"
-            android:drawableStart="@drawable/warning_icon_compat_wrapper"
             android:drawablePadding="4dp"
             android:text="@string/possibly_unsafe"
             android:textAppearance="@style/TextAppearance.AppCompat.Caption"

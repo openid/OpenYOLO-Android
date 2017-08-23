@@ -30,6 +30,7 @@ import android.support.annotation.ColorRes;
 import android.support.annotation.DimenRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
+import android.support.graphics.drawable.VectorDrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -43,6 +44,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import org.openyolo.api.CredentialClient;
 import org.openyolo.api.KnownProviders;
 import org.openyolo.api.R;
@@ -191,6 +193,20 @@ public class ProviderPickerActivity extends AppCompatActivity {
             TextView providerNameView = (TextView) itemView.findViewById(R.id.provider_name);
             TextView providerUnsafe =
                     (TextView) itemView.findViewById(R.id.unsafe_provider_warning);
+
+            // To support vector drawables on Pre-L devices we choose to set the drawable
+            // programmatically. See https://github.com/openid/OpenYOLO-Android/issues/63 for more
+            // details.
+            VectorDrawableCompat vectorDrawableCompat =
+                    VectorDrawableCompat.create(
+                            getResources(),
+                            R.drawable.warning_icon,
+                            getTheme());
+            providerUnsafe.setCompoundDrawablesWithIntrinsicBounds(
+                    vectorDrawableCompat,
+                    null,
+                    null,
+                    null);
 
             providerIconView.setImageDrawable(mProviderIcons.get(position));
             providerNameView.setText(mProviderNames.get(position));
