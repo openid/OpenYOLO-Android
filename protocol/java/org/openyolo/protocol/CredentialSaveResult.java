@@ -101,6 +101,15 @@ public final class CredentialSaveResult {
             new CredentialSaveResult.Builder(CODE_BAD_REQUEST).build();
 
     /**
+     * Indicates that the user dismissed the request to save the credential, by either pressing the
+     * back button, clicking outside the area of a modal dialog, or some other "soft" cancellation
+     * that is not an explicit refusal to save the credential. The client MAY request to save this
+     * credential again at a later time.
+     */
+    public static final CredentialSaveResult USER_CANCELED =
+            new CredentialSaveResult.Builder(CODE_USER_CANCELED).build();
+
+    /**
      * Pre-built save result that indicates the request was refused by the user. Carries no
      * additional properties.
      */

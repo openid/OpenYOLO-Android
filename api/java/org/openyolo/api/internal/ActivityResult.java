@@ -1,0 +1,82 @@
+/*
+ * Copyright 2017 The OpenYOLO Authors. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.openyolo.api.internal;
+
+import android.content.Intent;
+import android.os.Parcel;
+import android.os.Parcelable;
+
+/**
+ * Parcelable representation of an activity result.
+ */
+public final class ActivityResult implements Parcelable {
+
+    /**
+     * Parcelable creator for {@link ActivityResult}.
+     */
+    public static final Parcelable.Creator<ActivityResult> CREATOR = new Creator();
+
+    private final int mResultCode;
+    private final Intent mData;
+
+    /**
+     * Returns a new instance of an {@link ActivityResult} from the given result code and intent
+     * data.
+     */
+    public static ActivityResult of(int resultCode, Intent data) {
+        return new ActivityResult(resultCode, data);
+    }
+
+    private ActivityResult(int resultCode, Intent data) {
+        mResultCode = resultCode;
+        mData = data;
+    }
+
+    private ActivityResult(Parcel in) {
+        mResultCode = in.readInt();
+        mData = in.readParcelable(Intent.class.getClassLoader());
+    }
+
+    public int getResultCode() {
+        return mResultCode;
+    }
+
+    public Intent getData() {
+        return mData;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel out, int flags) {
+        out.writeInt(mResultCode);
+        out.writeParcelable(mData, flags);
+    }
+
+    private static final class Creator implements Parcelable.Creator<ActivityResult> {
+        @Override
+        public ActivityResult createFromParcel(Parcel parcel) {
+            return new ActivityResult(parcel);
+        }
+
+        @Override
+        public ActivityResult[] newArray(int size) {
+            return new ActivityResult[0];
+        }
+    }
+}

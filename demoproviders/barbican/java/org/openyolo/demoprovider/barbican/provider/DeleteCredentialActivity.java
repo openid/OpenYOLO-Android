@@ -164,7 +164,7 @@ public class DeleteCredentialActivity extends AppCompatActivity implements Conne
 
     @UiThread
     private void setResultAndFinish(CredentialDeleteResult result) {
-        setResult(result.getResultCode(), result.toResultIntentData());
+        setResult(result.getResultCode(), result.toResultDataIntent());
         finish();
     }
 }

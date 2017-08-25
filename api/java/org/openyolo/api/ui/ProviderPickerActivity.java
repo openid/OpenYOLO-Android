@@ -29,6 +29,7 @@ import android.os.Bundle;
 import android.support.annotation.ColorRes;
 import android.support.annotation.DimenRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.graphics.drawable.VectorDrawableCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -45,9 +46,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.openyolo.api.CredentialClient;
 import org.openyolo.api.KnownProviders;
 import org.openyolo.api.R;
+import org.openyolo.api.internal.ActivityResult;
+import org.openyolo.protocol.CredentialDeleteResult;
+import org.openyolo.protocol.CredentialRetrieveResult;
+import org.openyolo.protocol.CredentialSaveResult;
+import org.openyolo.protocol.HintRetrieveResult;
 
 /**
  * Activity which presents the list of providers that claim to have a credential available.
@@ -58,9 +63,28 @@ public class ProviderPickerActivity extends AppCompatActivity {
 
     private static final String EXTRA_PROVIDER_INTENTS = "providerIntents";
     private static final String EXTRA_TITLE_RES = "titleRes";
+    private static final String EXTRA_USER_CANCELED_RESULT = "userCanceledResult";
     private static final String LOG_TAG = "ProviderPicker";
 
-    private CredentialClient mClient;
+    private static final ActivityResult RETRIEVE_USER_CANCELED_RESULT =
+            ActivityResult.of(
+                    CredentialRetrieveResult.CODE_USER_CANCELED,
+                    CredentialRetrieveResult.USER_CANCELED.toResultDataIntent());
+
+    private static final ActivityResult SAVE_USER_CANCELED_RESULT =
+            ActivityResult.of(
+                    CredentialSaveResult.CODE_USER_CANCELED,
+                    CredentialSaveResult.USER_CANCELED.toResultDataIntent());
+
+    private static final ActivityResult HINT_USER_CANCELED_RESULT =
+            ActivityResult.of(
+                    HintRetrieveResult.CODE_USER_CANCELED,
+                    HintRetrieveResult.USER_CANCELED.toResultDataIntent());
+
+    private static final ActivityResult DELETE_USER_CANCELED_RESULT =
+            ActivityResult.of(
+                    CredentialDeleteResult.CODE_USER_CANCELED,
+                    CredentialDeleteResult.USER_CANCELED.toResultDataIntent());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +122,21 @@ public class ProviderPickerActivity extends AppCompatActivity {
         providerView.setAdapter(new ProviderAdapter(retrieveIntents));
     }
 
+    @Override
+    public void onBackPressed() {
+        finishWithUserCanceled();
+    }
+
+    private void finishWithUserCanceled() {
+        ActivityResult activityResult = getIntent().getParcelableExtra(EXTRA_USER_CANCELED_RESULT);
+
+        if (null != activityResult) {
+            setResult(activityResult.getResultCode(), activityResult.getData());
+        }
+
+        finish();
+    }
+
     /**
      * Creates an intent for the picker activity, showing the user the list of credential providers
      * that can be used for the operation identified by the specified title text.
@@ -105,11 +144,13 @@ public class ProviderPickerActivity extends AppCompatActivity {
     private static Intent createIntent(
             @NonNull Context context,
             @NonNull ArrayList<Intent> providerIntents,
-            @StringRes int titleRes) {
+            @StringRes int titleRes,
+            @Nullable ActivityResult userCanceledResult) {
         require(context, notNullValue());
         Intent intent = new Intent(context, ProviderPickerActivity.class);
         intent.putParcelableArrayListExtra(EXTRA_PROVIDER_INTENTS, providerIntents);
         intent.putExtra(EXTRA_TITLE_RES, titleRes);
+        intent.putExtra(EXTRA_USER_CANCELED_RESULT, userCanceledResult);
         return intent;
     }
 
@@ -120,7 +161,12 @@ public class ProviderPickerActivity extends AppCompatActivity {
     public static Intent createRetrieveIntent(
             @NonNull Context context,
             @NonNull ArrayList<Intent> retrieveIntents) {
-        return createIntent(context, retrieveIntents, R.string.retrieve_picker_prompt);
+
+        return createIntent(
+                context,
+                retrieveIntents,
+                R.string.retrieve_picker_prompt,
+                RETRIEVE_USER_CANCELED_RESULT);
     }
 
     /**
@@ -130,7 +176,12 @@ public class ProviderPickerActivity extends AppCompatActivity {
     public static Intent createSaveIntent(
             @NonNull Context context,
             @NonNull ArrayList<Intent> retrieveIntents) {
-        return createIntent(context, retrieveIntents, R.string.save_picker_prompt);
+
+        return createIntent(
+                context,
+                retrieveIntents,
+                R.string.save_picker_prompt,
+                SAVE_USER_CANCELED_RESULT);
     }
 
     /**
@@ -140,7 +191,12 @@ public class ProviderPickerActivity extends AppCompatActivity {
     public static Intent createHintIntent(
             @NonNull Context context,
             @NonNull ArrayList<Intent> hintIntents) {
-        return createIntent(context, hintIntents, R.string.hint_picker_prompt);
+
+        return createIntent(
+                context,
+                hintIntents,
+                R.string.hint_picker_prompt,
+                HINT_USER_CANCELED_RESULT);
     }
 
     /**
@@ -150,7 +206,12 @@ public class ProviderPickerActivity extends AppCompatActivity {
     public static Intent createDeleteIntent(
             @NonNull Context context,
             @NonNull ArrayList<Intent> deleteIntents) {
-        return createIntent(context, deleteIntents, R.string.delete_picker_prompt);
+
+        return createIntent(
+                context,
+                deleteIntents,
+                R.string.delete_picker_prompt,
+                DELETE_USER_CANCELED_RESULT);
     }
 
     private final class ProviderAdapter extends ArrayAdapter<Intent> {

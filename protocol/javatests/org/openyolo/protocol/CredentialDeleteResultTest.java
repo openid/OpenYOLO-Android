@@ -24,7 +24,7 @@ import static org.openyolo.protocol.TestConstants.checkAdditionalPropsFromProto;
 import android.content.Intent;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import java.io.IOException;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.openyolo.protocol.Protobufs.CredentialDeleteResult.ResultCode;
@@ -77,7 +77,7 @@ public class CredentialDeleteResultTest {
                 CredentialDeleteResult.CODE_DELETED)
                 .setAdditionalProperties(ADDITIONAL_PROPS)
                 .build()
-                .toResultIntentData();
+                .toResultDataIntent();
 
         assertThat(resultData.hasExtra(ProtocolConstants.EXTRA_DELETE_RESULT)).isTrue();
 

@@ -214,7 +214,7 @@ public final class CredentialDeleteResult {
     /**
      * Extracts a deletion result from the intent returned to the requester by the provider.
      */
-    public Intent toResultIntentData() {
+    public Intent toResultDataIntent() {
         Intent resultData = new Intent();
         resultData.putExtra(
                 ProtocolConstants.EXTRA_DELETE_RESULT,
