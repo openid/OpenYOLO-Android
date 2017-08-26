@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="org.openyolo.demoapp.passwordlogin">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name_short"
+        android:supportsRtl="false"
+        android:theme="@style/AppTheme"
+        android:name="org.openyolo.demoapp.passwordlogin.OpenYoloDemoApplication">
+
+        <activity
+            android:name="org.openyolo.demoapp.passwordlogin.MainActivity"
+            android:theme="@style/AppTheme"
+            android:label="@string/app_name_short"
+            android:windowSoftInputMode="stateHidden"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="barbican.openyolo.org"
+                    android:scheme="https" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="org.openyolo.demoapp.passwordlogin.LoginActivity"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustResize|stateVisible"
+            android:exported="false" />
+    </application>
+</manifest>

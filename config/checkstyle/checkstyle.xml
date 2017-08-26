@@ -343,9 +343,6 @@ Description: https://source.android.com/source/code-style.html
       <property name="scope" value="public"/>
     </module>
 
-    <!-- Javadoc must be well-formed -->
-    <module name="JavadocStyle"/>
-
     <!--
     Require descriptions for all included @param / @return / @throws /
     @deprecated tags in Javadoc comments.
@@ -364,9 +361,6 @@ Description: https://source.android.com/source/code-style.html
     <module name="SummaryJavadocCheck">
       <property name="forbiddenSummaryFragments" value="^@return the *|^This method returns |^A [{]@code [a-zA-Z0-9]+[}]( is a )"/>
     </module>
-
-    <!-- Require correct use of whitespace and <p> tags for Javadoc comments -->
-    <module name="JavadocParagraph"/>
 
     <!-- Require correct order of Javadoc comment tags -->
     <module name="AtclauseOrder">

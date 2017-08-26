@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name_short">OpenYOLO</string>
+  <string name="email_field_hint">Email</string>
+  <string name="password_field_hint">Password</string>
+  <string name="login_header">OpenYOLO Demo - Password Login</string>
+  <string name="sign_out_label">Sign out</string>
+  <string name="openyolo_logo_contentDescription">OpenYOLO logo</string>
+  <string name="enter_email_prompt">Enter your email address:</string>
+  <string name="incorrect_stored_password">Incorrect stored password in credential provider. Please re-enter your password:</string>
+  <string name="existing_account_enter_password">Welcome back! Please enter your password:</string>
+  <string name="new_account_enter_password">Hey, you\'re new! Please choose a password for your account</string>
+  <string name="error_prompt">Oops, that didn\'t work. Maybe try again?</string>
+  <string name="signed_in_prompt">You are signed in as:</string>
+  <string name="error_invalid_email">Invalid email address</string>
+  <string name="error_password_too_short">Password is too short</string>
+  <string name="error_incorrect_password">Wrong password, please try again</string>
+  <string name="user_profile_picture">User profile picture</string>
+</resources>

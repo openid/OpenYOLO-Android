@@ -1,0 +1,49 @@
+apply plugin: 'com.android.application'
+apply plugin: 'checkstyle'
+
+apply from: "${rootDir}/config/android-common.gradle"
+
+android {
+    defaultConfig {
+        applicationId 'org.openyolo.demoapp.passwordonly'
+        project.archivesBaseName = 'openyolo-demoapp-passwordonly'
+        vectorDrawables.useSupportLibrary = true
+    }
+
+    dataBinding {
+        enabled = true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
+}
+
+dependencies {
+    implementation project(':api')
+    implementation "android.arch.lifecycle:runtime:${rootProject.archVersion}"
+    implementation "android.arch.lifecycle:extensions:${rootProject.archVersion}"
+    implementation "android.arch.persistence.room:runtime:${rootProject.archVersion}"
+    implementation "com.android.support:support-annotations:${rootProject.supportLibVersion}"
+    implementation "com.android.support:support-vector-drawable:${rootProject.supportLibVersion}"
+    implementation "com.android.support:appcompat-v7:${rootProject.supportLibVersion}"
+    implementation "com.android.support:design:${rootProject.supportLibVersion}"
+
+    implementation "com.github.bumptech.glide:glide:${rootProject.glideVersion}"
+
+    annotationProcessor "android.arch.lifecycle:compiler:${rootProject.archVersion}"
+    annotationProcessor "android.arch.persistence.room:compiler:${rootProject.archVersion}"
+    annotationProcessor "com.github.bumptech.glide:compiler:${rootProject.glideVersion}"
+
+    apply from: "${rootDir}/config/testdeps.gradle", to:it
+    testImplementation "com.android.support:support-annotations:${rootProject.supportLibVersion}"
+}
+
+apply from: "${rootDir}/config/style.gradle"

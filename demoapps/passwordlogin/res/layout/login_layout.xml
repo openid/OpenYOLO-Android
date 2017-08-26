@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+
+  <data>
+
+    <import type="android.text.InputType" />
+    <import type="android.view.View" />
+
+    <variable
+        name="viewmodel"
+        type="org.openyolo.demoapp.passwordlogin.LoginViewModel" />
+  </data>
+
+  <android.support.design.widget.CoordinatorLayout
+      xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:tools="http://schemas.android.com/tools"
+      android:id="@+id/contentFrame"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      tools:context=".LoginActivity">
+
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+
+      <ImageView
+          android:layout_width="128dp"
+          android:layout_height="128dp"
+          android:layout_gravity="center"
+          app:srcCompat="@drawable/openyolo_logo"
+          android:contentDescription="@string/openyolo_logo_contentDescription" />
+
+      <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_gravity="center"
+          android:layout_marginTop="8dp"
+          android:layout_marginBottom="16dp"
+          android:textAppearance="@style/TextAppearance.AppCompat.Title"
+          android:text="@string/login_header"/>
+
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="vertical"
+          android:visibility="@{viewmodel.loading ? View.VISIBLE : View.GONE}"
+          android:gravity="center">
+
+        <ProgressBar
+            style="@style/Base.Widget.AppCompat.ProgressBar"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:indeterminate="true"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{viewmodel.loadingLabel}"
+            tools:text="Loading..."/>
+
+      </LinearLayout>
+
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:paddingBottom="16dp"
+          android:orientation="vertical"
+          android:visibility="@{viewmodel.loading ? View.GONE : View.VISIBLE}">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="@{viewmodel.authPrompt}"
+            android:layout_marginBottom="16dp"/>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:errorEnabled="true"
+            app:errorText="@{viewmodel.emailError}">
+
+          <android.support.design.widget.TextInputEditText
+              android:id="@+id/email"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:hint="@string/email_field_hint"
+              android:inputType="textEmailAddress"
+              android:text="@={viewmodel.email}"/>
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="@{viewmodel.showPasswordField ? View.VISIBLE : View.GONE}"
+            app:passwordToggleEnabled="true"
+            app:errorEnabled="true"
+            app:errorText="@{viewmodel.passwordError}">
+
+          <android.support.design.widget.TextInputEditText
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:text="@={viewmodel.password}"
+              android:inputType="textPassword"
+              android:hint="@string/password_field_hint" />
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.FloatingActionButton
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_gravity="center"
+            android:layout_margin="8dp"
+            android:onClick="@{viewmodel::signInButtonClicked}"
+            app:srcCompat="@drawable/ic_done" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/error_prompt"
+            android:textAlignment="center"
+            android:visibility="@{viewmodel.errorOccurred ? View.VISIBLE : View.GONE}"/>
+
+      </LinearLayout>
+    </LinearLayout>
+  </android.support.design.widget.CoordinatorLayout>
+
+</layout>
