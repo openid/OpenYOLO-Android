@@ -31,6 +31,8 @@ import org.openyolo.demoapp.passwordlogin.OpenYoloDemoApplication;
 @WorkerThread
 public class UserRepository implements UserDataSource {
 
+    private static final String USER_DB_NAME = "userdb";
+    private static final String AUTH_INFO_SHARED_PREFS = "authInfo";
     private static final String KEY_CURRENT_USER = "user";
 
     private final UserDatabase mUserDatabase;
@@ -40,9 +42,11 @@ public class UserRepository implements UserDataSource {
      * Creates the user repository, with the required application reference.
      */
     public UserRepository(@NonNull OpenYoloDemoApplication application) {
-        mUserDatabase = Room.databaseBuilder(application, UserDatabase.class, "userdb")
+        mUserDatabase = Room.databaseBuilder(application, UserDatabase.class, USER_DB_NAME)
                 .build();
-        mSharedPrefs = application.getSharedPreferences("authInfo", Context.MODE_PRIVATE);
+        mSharedPrefs = application.getSharedPreferences(
+                AUTH_INFO_SHARED_PREFS,
+                Context.MODE_PRIVATE);
     }
 
     @Override
@@ -64,9 +68,9 @@ public class UserRepository implements UserDataSource {
     @Override
     public boolean createPasswordAccount(
             @NonNull String email,
-            String name,
-            String profilePictureUri,
-            String password) {
+            @Nullable String name,
+            @Nullable String profilePictureUri,
+            @NonNull String password) {
         if (isExistingAccount(email)) {
             return false;
         }
@@ -80,7 +84,7 @@ public class UserRepository implements UserDataSource {
     }
 
     @Override
-    public boolean authWithPassword(String email, String password) {
+    public boolean authWithPassword(@NonNull String email, @NonNull String password) {
         User user = mUserDatabase.userDao().getUserByEmail(email);
         if (user == null) {
             return false;
@@ -102,11 +106,12 @@ public class UserRepository implements UserDataSource {
         setCurrentUserEmail(null);
     }
 
+    @Nullable
     private String getCurrentUserEmail() {
         return mSharedPrefs.getString(KEY_CURRENT_USER, null);
     }
 
-    private void setCurrentUserEmail(String email) {
+    private void setCurrentUserEmail(@Nullable String email) {
         Editor editor = mSharedPrefs.edit();
         if (email == null) {
             editor.remove(KEY_CURRENT_USER);

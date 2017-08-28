@@ -30,6 +30,7 @@ import android.support.annotation.WorkerThread;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
+import java.lang.ref.WeakReference;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.openyolo.api.CredentialClient;
@@ -63,7 +64,7 @@ public final class LoginViewModel extends ObservableViewModel {
      * Indicates whether a progress bar should be displayed to the user, while an asynchronous
      * request is made.
      */
-    public final ObservableBoolean loading = new ObservableBoolean(true);
+    public final ObservableBoolean showLoading = new ObservableBoolean(true);
 
     /**
      * Describes the asynchronous request that is occurring to the user.
@@ -107,14 +108,14 @@ public final class LoginViewModel extends ObservableViewModel {
      * Whether to show a generic error message to the user - this happens when requests fail
      * in a way that we cannot recover from, other than asking the user to potentially try again.
      */
-    public final ObservableBoolean errorOccurred = new ObservableBoolean(false);
+    public final ObservableBoolean showError = new ObservableBoolean(false);
 
     @SuppressLint("StaticFieldLeak")
     private final OpenYoloDemoApplication mApplication;
     private final CredentialClient mCredentialClient;
     private final UserDataSource mUserDataSource;
 
-    private LoginNavigator mNavigator;
+    private WeakReference<LoginNavigator> mNavigator;
     private AtomicBoolean mFirstLoad = new AtomicBoolean(true);
 
     /**
@@ -125,7 +126,7 @@ public final class LoginViewModel extends ObservableViewModel {
         super(application);
         mApplication = OpenYoloDemoApplication.getInstance(application);
         mUserDataSource = mApplication.getUserRepository();
-        mCredentialClient = CredentialClient.getApplicationBoundInstance(application);
+        mCredentialClient = CredentialClient.getInstance(mApplication);
     }
 
     /**
@@ -134,7 +135,7 @@ public final class LoginViewModel extends ObservableViewModel {
      */
     @MainThread
     void setNavigator(LoginNavigator navigator) {
-        mNavigator = navigator;
+        mNavigator = new WeakReference<LoginNavigator>(navigator);
     }
 
     /**
@@ -150,7 +151,7 @@ public final class LoginViewModel extends ObservableViewModel {
 
         if (mUserDataSource.getCurrentUser() != null) {
             // already signed in, go straight to the main activity
-            mNavigator.goToMain();
+            mNavigator.get().goToMain();
             return;
         }
 
@@ -162,7 +163,7 @@ public final class LoginViewModel extends ObservableViewModel {
      * {@link #handleRetrieveQueryResult(RetrieveBbqResponse, Throwable)} for processing.
      */
     private void tryRetrieveExistingCredential() {
-        setLoading("Looking for an existing account…");
+        setShowLoading(R.string.existing_account_search_prompt);
         mCredentialClient.retrieve(
                 CredentialRetrieveRequest.forAuthenticationMethods(AuthenticationMethods.EMAIL),
                 (queryResponse, queryError) ->
@@ -182,7 +183,7 @@ public final class LoginViewModel extends ObservableViewModel {
             Throwable queryError) {
         if (queryResponse != null && queryResponse.getRetrieveIntent() != null) {
             Log.i(TAG, "retrieving credential from provider");
-            mNavigator.startOpenYoloRetrieve(queryResponse.getRetrieveIntent());
+            mNavigator.get().startOpenYoloRetrieve(queryResponse.getRetrieveIntent());
             return;
         }
 
@@ -206,9 +207,10 @@ public final class LoginViewModel extends ObservableViewModel {
             case CredentialRetrieveResult.CODE_CREDENTIAL_SELECTED:
                 Log.i(TAG, "Credential was returned by OpenYOLO provider");
                 Credential credential = result.getCredential();
-                if (mUserDataSource.authWithPassword(
+                boolean authenticated = mUserDataSource.authWithPassword(
                         credential.getIdentifier(),
-                        credential.getPassword())) {
+                        credential.getPassword());
+                if (authenticated) {
                     // save the credential back to the provider, as a signal that it still works.
                     trySaveCredential(credential);
                 } else {
@@ -242,7 +244,7 @@ public final class LoginViewModel extends ObservableViewModel {
 
         doManualAuthentication(
                 R.string.enter_email_prompt,
-                null);
+                null); // userEmail
     }
 
     /**
@@ -255,15 +257,15 @@ public final class LoginViewModel extends ObservableViewModel {
                 HintRetrieveRequest.forEmailAndPasswordAccount());
 
         if (hintIntent != null) {
-            setLoading("Asking your credential manager for account details…");
-            mNavigator.startOpenYoloHint(hintIntent);
+            setShowLoading(R.string.requesting_hint_prompt);
+            mNavigator.get().startOpenYoloHint(hintIntent);
             return;
         }
 
         Log.i(TAG, "No OpenYOLO providers for hint");
         doManualAuthentication(
                 R.string.enter_email_prompt,
-                null);
+                null); // userEmail
     }
 
     /**
@@ -296,25 +298,35 @@ public final class LoginViewModel extends ObservableViewModel {
                         hint.getDisplayPictureUri());
                 String hintPassword = hint.getGeneratedPassword();
 
+
                 // attempt to create an account with the returned hint. If this fails, ask the
                 // user to manually authenticate.
-                if (hintPassword != null && mUserDataSource.createPasswordAccount(
-                        hintEmail, displayName, displayPicture, hintPassword)) {
-                    // account created, attempt to save it back to the OpenYOLO provider
-                    trySaveCredential(
-                            new Credential.Builder(
-                                    hintEmail,
-                                    AuthenticationMethods.EMAIL,
-                                    AuthenticationDomain.getSelfAuthDomain(mApplication))
-                                    .setDisplayName(displayName)
-                                    .setDisplayPicture(displayPicture)
-                                    .setPassword(hintPassword)
-                                    .build());
-                } else {
+                boolean authenticated = false;
+
+                if (hintPassword != null) {
+                    authenticated = mUserDataSource.createPasswordAccount(
+                            hintEmail, displayName, displayPicture, hintPassword);
+
+                    if (authenticated) {
+                        // account created, attempt to save it back to the OpenYOLO provider
+                        trySaveCredential(
+                                new Credential.Builder(
+                                        hintEmail,
+                                        AuthenticationMethods.EMAIL,
+                                        AuthenticationDomain.getSelfAuthDomain(mApplication))
+                                        .setDisplayName(displayName)
+                                        .setDisplayPicture(displayPicture)
+                                        .setPassword(hintPassword)
+                                        .build());
+                    }
+                }
+
+                if (!authenticated) {
                     doManualAuthentication(
                             R.string.new_account_enter_password,
                             hint.getIdentifier());
                 }
+
                 return;
 
             // you may wish to behave differently in your own application in response to each of
@@ -341,7 +353,7 @@ public final class LoginViewModel extends ObservableViewModel {
 
         doManualAuthentication(
                 R.string.enter_email_prompt,
-                null);
+                null); // userEmail
     }
 
     /**
@@ -407,8 +419,8 @@ public final class LoginViewModel extends ObservableViewModel {
                 showPasswordField.set(true);
             } else if (mUserDataSource.createPasswordAccount(
                     userEmail,
-                    null,
-                    null,
+                    null, // name
+                    null, // profilePictureUri
                     userPassword)) {
                 trySaveCredential(
                         new Credential.Builder(
@@ -418,7 +430,7 @@ public final class LoginViewModel extends ObservableViewModel {
                                 .setPassword(userPassword)
                                 .build());
             } else {
-                errorOccurred.set(true);
+                showError.set(true);
             }
         }
     }
@@ -429,12 +441,12 @@ public final class LoginViewModel extends ObservableViewModel {
 
         if (saveIntent != null) {
             Log.i(TAG, "Attempting to save credential to OpenYOLO provider");
-            mNavigator.startSave(saveIntent);
+            mNavigator.get().startSave(saveIntent);
             return;
         }
 
         Log.i(TAG, "No OpenYOLO providers to save credential");
-        mNavigator.goToMain();
+        mNavigator.get().goToMain();
     }
 
     /**
@@ -468,21 +480,21 @@ public final class LoginViewModel extends ObservableViewModel {
                 break;
         }
 
-        mNavigator.goToMain();
+        mNavigator.get().goToMain();
     }
 
-    private void setLoading(@StringRes int loadingLabelId) {
-        setLoading(getApplication().getResources().getString(loadingLabelId));
+    private void setShowLoading(@StringRes int loadingLabelId) {
+        setShowLoading(getApplication().getResources().getString(loadingLabelId));
     }
 
-    private void setLoading(String reason) {
+    private void setShowLoading(String reason) {
         this.loadingLabel.set(reason);
-        loading.set(true);
+        showLoading.set(true);
     }
 
     private void setLoaded() {
         loadingLabel.set("");
-        loading.set(false);
+        showLoading.set(false);
     }
 
     @AnyThread

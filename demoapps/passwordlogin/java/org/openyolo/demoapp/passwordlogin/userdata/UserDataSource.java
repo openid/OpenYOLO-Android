@@ -34,7 +34,8 @@ public interface UserDataSource {
     boolean isExistingAccount(@NonNull String email);
 
     /**
-     * Attempts to create and persist a new user account account with the specified properties.
+     * Attempts to create and persist a new user account account with the specified properties;
+     * returns true if a new account is created.
      */
     boolean createPasswordAccount(
             @NonNull String email,
@@ -43,7 +44,8 @@ public interface UserDataSource {
             @NonNull String password);
 
     /**
-     * Attempts to authenticate an existing user with the provided credentials.
+     * Attempts to authenticate an existing user with the provided credentials; returns true if
+     * authentication succeeds.
      */
     boolean authWithPassword(@NonNull String email, @NonNull String password);
 

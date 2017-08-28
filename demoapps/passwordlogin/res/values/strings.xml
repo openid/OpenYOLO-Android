@@ -16,4 +16,6 @@
   <string name="error_password_too_short">Password is too short</string>
   <string name="error_incorrect_password">Wrong password, please try again</string>
   <string name="user_profile_picture">User profile picture</string>
+  <string name="existing_account_search_prompt">Looking for an existing account…</string>
+  <string name="requesting_hint_prompt">Asking your credential manager for account details…</string>
 </resources>
