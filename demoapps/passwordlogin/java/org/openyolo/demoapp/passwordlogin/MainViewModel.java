@@ -21,6 +21,7 @@ import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.WorkerThread;
 import android.view.View;
+import java.lang.ref.WeakReference;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.openyolo.demoapp.passwordlogin.userdata.User;
@@ -50,7 +51,7 @@ public final class MainViewModel extends ObservableViewModel {
 
     private final AtomicBoolean mFirstLoad = new AtomicBoolean(true);
     private final UserDataSource mUserDataSource;
-    private MainNavigator mNavigator;
+    private WeakReference<MainNavigator> mNavigator;
 
     /**
      * Creates the view model, with the required application reference.
@@ -65,7 +66,7 @@ public final class MainViewModel extends ObservableViewModel {
      */
     @MainThread
     public void setNavigator(@NonNull MainNavigator navigator) {
-        mNavigator = navigator;
+        mNavigator = new WeakReference<>(navigator);
     }
 
     /**
@@ -82,7 +83,7 @@ public final class MainViewModel extends ObservableViewModel {
         User currentUser = mUserDataSource.getCurrentUser();
         if (currentUser == null) {
             // no user available, go to login screen
-            mNavigator.goToLogin();
+            mNavigator.get().goToLogin();
             return;
         }
 
@@ -99,7 +100,7 @@ public final class MainViewModel extends ObservableViewModel {
     public void onSignOutClicked(View view) {
         getExecutor().execute(() -> {
             mUserDataSource.signOut();
-            mNavigator.goToLogin();
+            mNavigator.get().goToLogin();
         });
     }
 
