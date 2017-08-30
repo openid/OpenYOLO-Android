@@ -24,7 +24,6 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:layout_marginLeft="16sp"
         android:layout_marginStart="16sp"
         android:orientation="vertical">
 
@@ -32,6 +31,7 @@
             android:id="@+id/provider_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textDirection="locale"
             android:textSize="16sp"
             android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
             tools:text="Provider Name"/>
@@ -40,6 +40,7 @@
             android:id="@+id/unsafe_provider_warning"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layoutDirection="locale"
             android:orientation="horizontal">
 
             <ImageView
@@ -57,6 +58,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/possibly_unsafe"
+                android:textDirection="locale"
                 android:textSize="12sp"
                 android:textAppearance="@style/TextAppearance.AppCompat.Caption"/>
         </LinearLayout>

@@ -1,0 +1,42 @@
+<LinearLayout
+    android:id="@+id/picker_container"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fitsSystemWindows="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_gravity="bottom">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:background="@drawable/bottom_sheet_edge"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="8sp"
+        android:orientation="vertical"
+        android:background="@color/grey_100_opaque">
+
+        <TextView
+            android:focusable="false"
+            android:id="@+id/picker_title"
+            android:layout_width="match_parent"
+            android:layout_height="56sp"
+            android:paddingLeft="16sp"
+            android:paddingRight="16sp"
+            android:gravity="center_vertical"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            android:textColor="@color/black_54pc" />
+
+        <ListView
+            android:id="@+id/provider_list"
+            android:layout_width="match_parent"
+            android:layout_height="0sp"
+            android:layout_gravity="bottom"
+            android:layout_weight="1"
+            android:divider="@null"
+            android:dividerHeight="0sp" />
+    </LinearLayout>
+</LinearLayout>

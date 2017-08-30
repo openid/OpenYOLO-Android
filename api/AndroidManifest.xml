@@ -3,7 +3,9 @@
     package="org.openyolo.api">
 
     <application>
-        <activity android:name=".ui.ProviderPickerActivity"
+        <activity
+            android:name=".ui.ProviderPickerActivity"
+            android:label="@string/provider_picker_activity_label"
             android:theme="@style/PickerTheme"
             android:exported="false" />
     </application>

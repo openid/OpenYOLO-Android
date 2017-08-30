@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="retrieve_picker_prompt">Use account from:</string>
-    <string name="provider_icon_contentDescription">Provider icon</string>
+    <string name="provider_picker_activity_label">Credential provider picker</string>
+
     <string name="possibly_unsafe">Possibly unsafe</string>
+
+    <string name="retrieve_picker_prompt">Use account from:</string>
     <string name="save_picker_prompt">Save your account with:</string>
     <string name="hint_picker_prompt">Use account details stored in:</string>
     <string name="delete_picker_prompt">Delete credential from:</string>

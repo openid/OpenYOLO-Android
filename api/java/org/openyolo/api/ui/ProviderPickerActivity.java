@@ -21,23 +21,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.ColorRes;
-import android.support.annotation.DimenRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
-import android.support.graphics.drawable.VectorDrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -45,7 +41,6 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.openyolo.api.KnownProviders;
 import org.openyolo.api.R;
 import org.openyolo.api.internal.ActivityResult;
@@ -59,10 +54,10 @@ import org.openyolo.protocol.HintRetrieveResult;
  * The user can select one of these options, which fires the associated intent for that provider,
  * or cancel the whole operation.
  */
-public class ProviderPickerActivity extends AppCompatActivity {
+public final class ProviderPickerActivity extends AppCompatActivity {
 
     private static final String EXTRA_PROVIDER_INTENTS = "providerIntents";
-    private static final String EXTRA_TITLE_RES = "titleRes";
+    private static final String EXTRA_TITLE_RES_ID = "titleRes";
     private static final String EXTRA_USER_CANCELED_RESULT = "userCanceledResult";
     private static final String LOG_TAG = "ProviderPicker";
 
@@ -86,40 +81,48 @@ public class ProviderPickerActivity extends AppCompatActivity {
                     CredentialDeleteResult.CODE_USER_CANCELED,
                     CredentialDeleteResult.USER_CANCELED.toResultDataIntent());
 
+    private View mPickerContainer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.picker_layout);
 
-        Rect rectangle = new Rect();
-        Window window = getWindow();
-        window.getDecorView().getWindowVisibleDisplayFrame(rectangle);
+        setContentView(R.layout.provider_picker_layout);
+        getWindow().setLayout(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
 
-        Resources res = getResources();
-        @DimenRes int resourceId = res.getIdentifier("status_bar_height", "dimen", "android");
-        int statusBarHeight = 0;
-        if (resourceId > 0) {
-            statusBarHeight = res.getDimensionPixelSize(resourceId);
-        }
+        mPickerContainer = findViewById(R.id.picker_container);
 
-        getWindow().setLayout(
-                rectangle.width(),
-                rectangle.height() - statusBarHeight);
+        // Setup title
+        TextView titleView = findViewById(R.id.picker_title);
+        @StringRes int titleResId = getIntent().getIntExtra(EXTRA_TITLE_RES_ID, 0);
+        String title = getResources().getString(titleResId);
+        titleView.setText(title);
 
-        TextView titleView = (TextView) findViewById(R.id.picker_title);
-        @StringRes int titleRes = getIntent().getIntExtra(EXTRA_TITLE_RES, 0);
-        if (titleRes != 0) {
-            //robotium has an issue recovering resources in the shadow classes.
-            titleView.setText(titleRes);
-        }
-
-        ListView providerView = (ListView) findViewById(R.id.provider_list);
+        // Setup provider list
+        ListView providerView = findViewById(R.id.provider_list);
         List<Intent> retrieveIntents =
                 getIntent().getParcelableArrayListExtra(EXTRA_PROVIDER_INTENTS);
         if (retrieveIntents == null) {
             retrieveIntents = Collections.emptyList();
         }
         providerView.setAdapter(new ProviderAdapter(retrieveIntents));
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+
+        // finishWithUserCanceled() if the user tapped outside the picker
+        if (MotionEvent.ACTION_DOWN == event.getAction()) {
+            Rect visibilityRect = new Rect();
+            mPickerContainer.getGlobalVisibleRect(visibilityRect);
+            boolean tappedOutsidePicker =
+                    !visibilityRect.contains((int) event.getRawX(), (int) event.getRawY());
+            if (tappedOutsidePicker) {
+                finishWithUserCanceled();
+            }
+        }
+
+        return super.dispatchTouchEvent(event);
     }
 
     @Override
@@ -149,7 +152,7 @@ public class ProviderPickerActivity extends AppCompatActivity {
         require(context, notNullValue());
         Intent intent = new Intent(context, ProviderPickerActivity.class);
         intent.putParcelableArrayListExtra(EXTRA_PROVIDER_INTENTS, providerIntents);
-        intent.putExtra(EXTRA_TITLE_RES, titleRes);
+        intent.putExtra(EXTRA_TITLE_RES_ID, titleRes);
         intent.putExtra(EXTRA_USER_CANCELED_RESULT, userCanceledResult);
         return intent;
     }
@@ -250,24 +253,9 @@ public class ProviderPickerActivity extends AppCompatActivity {
                         .inflate(R.layout.provider_item, parent, false);
             }
 
-            ImageView providerIconView = (ImageView) itemView.findViewById(R.id.provider_icon);
-            TextView providerNameView = (TextView) itemView.findViewById(R.id.provider_name);
-            TextView providerUnsafe =
-                    (TextView) itemView.findViewById(R.id.unsafe_provider_warning);
-
-            // To support vector drawables on Pre-L devices we choose to set the drawable
-            // programmatically. See https://github.com/openid/OpenYOLO-Android/issues/63 for more
-            // details.
-            VectorDrawableCompat vectorDrawableCompat =
-                    VectorDrawableCompat.create(
-                            getResources(),
-                            R.drawable.warning_icon,
-                            getTheme());
-            providerUnsafe.setCompoundDrawablesWithIntrinsicBounds(
-                    vectorDrawableCompat,
-                    null,
-                    null,
-                    null);
+            ImageView providerIconView = itemView.findViewById(R.id.provider_icon);
+            TextView providerNameView = itemView.findViewById(R.id.provider_name);
+            View providerUnsafe = itemView.findViewById(R.id.unsafe_provider_warning);
 
             providerIconView.setImageDrawable(mProviderIcons.get(position));
             providerNameView.setText(mProviderNames.get(position));
@@ -288,15 +276,6 @@ public class ProviderPickerActivity extends AppCompatActivity {
                 }
             });
             return itemView;
-        }
-
-        @SuppressWarnings("deprecation")
-        private int getColor(@ColorRes int colorRes) {
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
-                return getResources().getColor(colorRes, null);
-            } else {
-                return getResources().getColor(colorRes);
-            }
         }
     }
 }
