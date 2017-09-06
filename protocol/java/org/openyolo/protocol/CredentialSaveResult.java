@@ -185,9 +185,16 @@ public final class CredentialSaveResult {
     }
 
     /**
+     * Returns {@code true} if the request was successful.
+     */
+    public boolean isSuccessful() {
+        return CODE_SAVED == mResultCode;
+    }
+
+
+    /**
      * The result code for the credential save operation.
      */
-    @NonNull
     public int getResultCode() {
         return mResultCode;
     }

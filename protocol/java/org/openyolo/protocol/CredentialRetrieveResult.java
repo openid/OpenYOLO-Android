@@ -49,7 +49,8 @@ public final class CredentialRetrieveResult {
             Protobufs.CredentialRetrieveResult.ResultCode.BAD_REQUEST_VALUE;
 
     /**
-     * Indicates that the user selected a hint, that has been returned as part of this response.
+     * Indicates that a credential was successfully chosen and has been returned as part of this
+     * response.
      */
     public static final int CODE_CREDENTIAL_SELECTED =
             Protobufs.CredentialRetrieveResult.ResultCode.CREDENTIAL_SELECTED_VALUE;
@@ -139,6 +140,13 @@ public final class CredentialRetrieveResult {
         mResultCode = builder.mResultCode;
         mCredential = builder.mCredential;
         mAdditionalProps = Collections.unmodifiableMap(builder.mAdditionalProps);
+    }
+
+    /**
+     * Returns {@code true} if the request was successful.
+     */
+    public boolean isSuccessful() {
+        return CODE_CREDENTIAL_SELECTED == mResultCode;
     }
 
     /**

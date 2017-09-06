@@ -47,7 +47,7 @@ public final class HintRetrieveResult {
     public static final int CODE_BAD_REQUEST = ResultCode.BAD_REQUEST_VALUE;
 
     /**
-     * Indicates that the user selected a hint, that has been returned as part of this response.
+     * Indicates that a hint was successfully chosen and has been returned as part of this response.
      */
     public static final int CODE_HINT_SELECTED = ResultCode.HINT_SELECTED_VALUE;
 
@@ -170,6 +170,13 @@ public final class HintRetrieveResult {
                 ProtocolConstants.EXTRA_HINT_RESULT,
                 toProtobuf().toByteArray());
         return intent;
+    }
+
+    /**
+     * Returns {@code true} if the request was successful.
+     */
+    public boolean isSuccessful() {
+        return CODE_HINT_SELECTED == mResultCode;
     }
 
     /**

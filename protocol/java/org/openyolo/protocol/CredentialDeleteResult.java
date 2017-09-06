@@ -185,6 +185,13 @@ public final class CredentialDeleteResult {
     }
 
     /**
+     * Returns {@code true} if the request was successful.
+     */
+    public boolean isSuccessful() {
+        return CODE_DELETED == mResultCode;
+    }
+
+    /**
      * The result code for the credential deletion operation.
      */
     public int getResultCode() {
