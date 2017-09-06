@@ -33,6 +33,9 @@ import org.openyolo.protocol.internal.CollectionConverter;
  * Result data which is sent in response to a credential retrieve request. Contains a result code,
  * indicating whether the request was successful or not, an optional returned credential, and
  * an optional set of additional, non-standard result properties.
+ *
+ * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#credential-retrieval">
+ *     OpenYOLO Specification: Credential Retrieval</a>
  */
 public final class CredentialRetrieveResult {
 

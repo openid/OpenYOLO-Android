@@ -46,6 +46,9 @@ import org.openyolo.protocol.internal.TokenRequestInfoConverters;
  * A request for a login hint, to be sent to credential providers on the device. Hints provide
  * the basic set of information that can help with account creation, or re-discovering an
  * existing account.
+ *
+ * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#hints">
+ *     OpenYOLO specification: Hint</a>
  */
 public class HintRetrieveRequest implements Parcelable {
 
@@ -68,11 +71,17 @@ public class HintRetrieveRequest implements Parcelable {
     private final Map<String, ByteString> mAdditionalProperties;
 
     /**
-     * Creates a hint request for email and password based accounts.
+     * Creates a hint request from the given set of authentication methods.
      */
-    public static HintRetrieveRequest forEmailAndPasswordAccount() {
-        return new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
-                .build();
+    public static HintRetrieveRequest of(AuthenticationMethod... authenticationMethods) {
+        return new HintRetrieveRequest.Builder(authenticationMethods).build();
+    }
+
+    /**
+     * Creates a hint request from the given set of authentication methods.
+     */
+    public static HintRetrieveRequest of(Set<AuthenticationMethod> authenticationMethods) {
+        return new HintRetrieveRequest.Builder(authenticationMethods).build();
     }
 
     /**
@@ -228,10 +237,8 @@ public class HintRetrieveRequest implements Parcelable {
          *
          * @see AuthenticationMethods
          */
-        public Builder(
-                @NonNull AuthenticationMethod authMethod,
-                @NonNull AuthenticationMethod... additionalAuthMethods) {
-            setAuthenticationMethods(authMethod, additionalAuthMethods);
+        public Builder(@NonNull AuthenticationMethod... additionalAuthMethods) {
+            setAuthenticationMethods(additionalAuthMethods);
         }
 
         /**
@@ -251,13 +258,10 @@ public class HintRetrieveRequest implements Parcelable {
          * @see AuthenticationMethods
          */
         @NonNull
-        public Builder setAuthenticationMethods(
-                @NonNull AuthenticationMethod authMethod,
-                AuthenticationMethod... additionalAuthMethods) {
+        public Builder setAuthenticationMethods(AuthenticationMethod... authenticationMethods) {
             setAuthenticationMethods(
                     CollectionConverter.toSet(
-                            authMethod,
-                            additionalAuthMethods,
+                            authenticationMethods,
                             NoopValueConverter.<AuthenticationMethod>getInstance()));
             return this;
         }

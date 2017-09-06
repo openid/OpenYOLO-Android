@@ -75,16 +75,6 @@ public class HintRetrieveRequestTest {
     }
 
     @Test
-    public void testForEmailAndPasswordAccount() {
-        HintRetrieveRequest request = HintRetrieveRequest.forEmailAndPasswordAccount();
-        assertThat(request.getAuthenticationMethods())
-                .containsOnly(AuthenticationMethods.EMAIL);
-        assertThat(request.getPasswordSpecification())
-                .isEqualTo(PasswordSpecification.DEFAULT);
-        assertThat(request.getAdditionalProperties()).isEmpty();
-    }
-
-    @Test
     public void testToProtocolBuffer_includesClientVersion() {
         String vendor = "test";
         int major = 1;
@@ -99,7 +89,7 @@ public class HintRetrieveRequestTest {
                         .build());
 
         try {
-            HintRetrieveRequest request = HintRetrieveRequest.forEmailAndPasswordAccount();
+            HintRetrieveRequest request = HintRetrieveRequest.of(AuthenticationMethods.EMAIL);
             Protobufs.HintRetrieveRequest proto = request.toProtocolBuffer();
             assertThat(proto.hasClientVersion());
             assertThat(proto.getClientVersion().getVendor()).isEqualTo(vendor);
@@ -216,7 +206,7 @@ public class HintRetrieveRequestTest {
     @Test(expected = IllegalArgumentException.class)
     public void testBuild_setAuthenticationMethods_nullSet() {
         new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
-                .setAuthenticationMethods(null)
+                .setAuthenticationMethods((Set<AuthenticationMethod>) null)
                 .build();
     }
 

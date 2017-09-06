@@ -79,6 +79,9 @@ import java.util.TreeSet;
  *     </li>
  * </ul>
  * </p>
+ *
+ * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#password-specifications">
+ *     OpenYOLO specification: Password Specifications</a>
  */
 public final class PasswordSpecification implements Parcelable {
 

@@ -34,7 +34,7 @@ import org.openyolo.protocol.internal.CollectionConverter;
  * non-standard result properties.
  *
  * @see <a href="https://spec.openyolo.org/openyolo-android-spec.html#saving-credentials">
- *     OpenYOLO specification: Saving Credentials</a>
+ *     OpenYOLO specification: Saving Credential</a>
  */
 public final class CredentialSaveResult {
 

@@ -33,6 +33,9 @@ import org.openyolo.protocol.internal.CollectionConverter;
 /**
  * A response to a {@link HintRetrieveRequest hint request}. The status code indicates the outcome
  * of the request, and the response may contain a hint.
+ *
+ * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#hints">
+ *     OpenYOLO specification: Hint</a>
  */
 public final class HintRetrieveResult {
 

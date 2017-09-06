@@ -43,6 +43,9 @@ import org.openyolo.protocol.internal.CollectionConverter;
  * <p>Credentials must have an {@link #getIdentifier() identifier},
  * an {@link #getAuthenticationMethod() authentication method} and an
  * {@link #getAuthenticationDomain() authentication domain}, but all other properties are optional.
+ *
+ * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#credentials">
+ *     OpenYOLO Specification: Credential</a>
  */
 public final class Credential implements Parcelable {
 

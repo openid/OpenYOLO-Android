@@ -25,6 +25,9 @@ import org.openyolo.protocol.internal.CustomMatchers;
 /**
  * A URI-based representation of an authentication method, which describes how a credential is
  * used to authenticate a user.
+ *
+ * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#authentication-methods">
+ *     OpenYOLO Specification: Authentication Method</a>
  */
 public final class AuthenticationMethod implements Comparable<AuthenticationMethod> {
 

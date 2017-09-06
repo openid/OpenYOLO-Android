@@ -44,6 +44,9 @@ import org.openyolo.protocol.internal.CollectionConverter;
  * <p>Hints must have an {@link #getIdentifier() identifier} and an
  * an {@link #getAuthenticationMethod() authentication method}, but all other properties are
  * optional.
+ *
+ * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#hints">
+ *     OpenYOLO specification: Hint</a>
  */
 public final class Hint implements Parcelable {
 

@@ -33,6 +33,9 @@ import org.openyolo.protocol.internal.IntentProtocolBufferExtractor;
 /**
  * A response to a {@link CredentialDeleteRequest credential deletion request}. The status code
  * indicates the outcome of the request.
+ *
+ * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#credential-deletion">
+ *     OpenYOLO Specification: Credential Deletion</a>
  */
 public final class CredentialDeleteResult {
 

@@ -47,6 +47,9 @@ import java.security.NoSuchAlgorithmException;
  * {@code http(s)://host@port}. Formally, authentication domains are absolute hierarchical URIs
  * with no path, query or fragment. They must therefore always be of form
  * {@code scheme://authority}.
+ *
+ * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#authentication-domains">
+ *     OpenYOLO Specification: Authentication Domain</a>
  */
 @SuppressLint("PackageManagerGetSignatures")
 public final class AuthenticationDomain implements Comparable<AuthenticationDomain> {

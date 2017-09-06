@@ -48,6 +48,9 @@ import org.openyolo.protocol.internal.TokenRequestInfoConverters;
 
 /**
  * A request for credentials, to be sent to credential providers on the device.
+ *
+ * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#credential-retrieval">
+ *     OpenYOLO Specification: Credential Retrieval</a>
  */
 public class CredentialRetrieveRequest implements Parcelable {
 

@@ -66,7 +66,34 @@ import org.openyolo.protocol.RetrieveBbqResponse;
 import org.openyolo.protocol.internal.IntentUtil;
 
 /**
- * Interact with credential providers on the device which support OpenYOLO.
+ * The primary way of interacting with OpenYOLO credential providers. The client is light weight
+ * allowing new instances to be created as needed.
+ *
+ * Requests are executed by starting an Activity based intent and its result returned via
+ * {@link android.app.Activity#onActivityResult(int, int, Intent)}. For each request/response pair
+ * there exist two client methods:
+ * 1) Takes a given request and returns the Activity Intent which sends the request.
+ * 2) Takes an Intent returned via {@link android.app.Activity#onActivityResult(int, int, Intent)}
+ *    and returns the associated result.
+ *
+ * For example using the hint flow:
+ * <pre>{@code
+ * CredentialClient client = CredentialClient.getInstance(this);
+ * HintRetrieveRequest request = HintRetrieveRequest.of(AuthenticationMethods.EMAIL);
+ *
+ * Intent retrieveHintIntent = client.getHintRetrieveIntent(request);
+ * startActivityForResult(retrieveHintIntent, RC_HINT);
+ * // ...
+ *
+ * @Override
+ * public void onActivityResult(int requestCode, int resultCode, Intent data) {
+ *     super.onActivityResult(requestCode, resultCode, data);
+ *
+ *     HintRetrieveResult result = client.getHintRetrieveResult(data);
+ * }}</pre>
+ *
+ * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#operations">
+ *     OpenYOLO Specification: Operations</a>
  */
 public class CredentialClient {
 
@@ -111,7 +138,7 @@ public class CredentialClient {
     }
 
     /**
-     * Provides an intent to request a login hint. This will target the user's prefered credential
+     * Provides an intent to request a login hint. This will target the user's preferred credential
      * provider, if this can be determined. If no providers are available, {@code null} is
      * returned.
      */

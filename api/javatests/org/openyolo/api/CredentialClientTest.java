@@ -49,6 +49,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.openyolo.api.persistence.DeviceState;
 import org.openyolo.protocol.AuthenticationDomain;
+import org.openyolo.protocol.AuthenticationMethod;
 import org.openyolo.protocol.AuthenticationMethods;
 import org.openyolo.protocol.Credential;
 import org.openyolo.protocol.CredentialRetrieveRequest;
@@ -86,6 +87,9 @@ public class CredentialClientTest {
     private static final String UNKNOWN_PROVIDER_2 = "com.example.locker";
 
     private static final byte[] INVALID_PROTO = new byte[] { 0, 1, 2, 3 };
+
+    private static final HintRetrieveRequest EMAIL_HINT_REQUEST =
+            HintRetrieveRequest.of(AuthenticationMethods.EMAIL);
 
     @Mock
     private Context mockContext;
@@ -149,8 +153,7 @@ public class CredentialClientTest {
     public void testGetHintIntent_noProviders() throws Exception {
         when(mockPackageManager.queryIntentActivities(any(Intent.class), anyInt()))
                 .thenReturn(Collections.<ResolveInfo>emptyList());
-        Intent hintIntent = credentialClient.getHintRetrieveIntent(
-                HintRetrieveRequest.forEmailAndPasswordAccount());
+        Intent hintIntent = credentialClient.getHintRetrieveIntent(EMAIL_HINT_REQUEST);
 
         assertThat(hintIntent).isNull();
     }
@@ -160,8 +163,7 @@ public class CredentialClientTest {
     public void testGetHintIntent_unknownProviderPresent() throws Exception {
         addKnownProviders(DASHLANE);
         addUnknownProviders(UNKNOWN_PROVIDER_1);
-        Intent hintIntent = credentialClient.getHintRetrieveIntent(
-                HintRetrieveRequest.forEmailAndPasswordAccount());
+        Intent hintIntent = credentialClient.getHintRetrieveIntent(EMAIL_HINT_REQUEST);
 
         // with an unknown provider, the heuristic determines is no preferred provider.
         // Therefore a provider picker should be displayed.
@@ -174,8 +176,7 @@ public class CredentialClientTest {
     @Test
     public void testGetHintIntent_singleKnownProvider() throws Exception {
         addKnownProviders(DASHLANE);
-        Intent hintIntent = credentialClient.getHintRetrieveIntent(
-                HintRetrieveRequest.forEmailAndPasswordAccount());
+        Intent hintIntent = credentialClient.getHintRetrieveIntent(EMAIL_HINT_REQUEST);
         assertThat(hintIntent).isNotNull();
         assertThat(hintIntent.getComponent().getPackageName()).isEqualTo(DASHLANE);
     }
@@ -184,8 +185,7 @@ public class CredentialClientTest {
     @Test
     public void testGetHintIntent_twoKnownProviders_googleAndDashlane() throws Exception {
         addKnownProviders(DASHLANE, GOOGLE);
-        Intent hintIntent = credentialClient.getHintRetrieveIntent(
-                HintRetrieveRequest.forEmailAndPasswordAccount());
+        Intent hintIntent = credentialClient.getHintRetrieveIntent(EMAIL_HINT_REQUEST);
 
         // due to the preferred provider selection heuristics, we expect that Dashlane will be
         // selected for direct invocation.
@@ -197,8 +197,7 @@ public class CredentialClientTest {
     @Test
     public void testGetHintIntent_twoKnownProviders_dashlaneAnd1Password() throws Exception {
         addKnownProviders(DASHLANE, ONEPASSWORD);
-        Intent hintIntent = credentialClient.getHintRetrieveIntent(
-                HintRetrieveRequest.forEmailAndPasswordAccount());
+        Intent hintIntent = credentialClient.getHintRetrieveIntent(EMAIL_HINT_REQUEST);
 
         // due to the preferred provider selection heuristics, we expect that Dashlane will be
         // selected for direct invocation.
@@ -211,8 +210,7 @@ public class CredentialClientTest {
     @Test
     public void testGetHintIntent_threeKnownProviders() throws Exception {
         addKnownProviders(DASHLANE, ONEPASSWORD, GOOGLE);
-        Intent hintIntent = credentialClient.getHintRetrieveIntent(
-                HintRetrieveRequest.forEmailAndPasswordAccount());
+        Intent hintIntent = credentialClient.getHintRetrieveIntent(EMAIL_HINT_REQUEST);
 
         // with three known providers, the preferred provider heuristic determines there is no
         // preferred provider. Therefore, a provider picker should be displayed.
@@ -225,8 +223,7 @@ public class CredentialClientTest {
     @Test
     public void testGetHintIntent_noKnownProviders() throws Exception {
         addUnknownProviders(UNKNOWN_PROVIDER_1, UNKNOWN_PROVIDER_2);
-        Intent hintIntent = credentialClient.getHintRetrieveIntent(
-                HintRetrieveRequest.forEmailAndPasswordAccount());
+        Intent hintIntent = credentialClient.getHintRetrieveIntent(EMAIL_HINT_REQUEST);
 
         // With no known providers, the preferred provider heuristic will determine there is no
         // preferred provider. therefore, a provider picker should be displayed.

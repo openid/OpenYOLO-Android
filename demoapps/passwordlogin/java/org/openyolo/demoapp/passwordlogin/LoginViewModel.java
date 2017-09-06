@@ -254,7 +254,7 @@ public final class LoginViewModel extends ObservableViewModel {
      */
     private void tryRetrieveHint() {
         Intent hintIntent = mCredentialClient.getHintRetrieveIntent(
-                HintRetrieveRequest.forEmailAndPasswordAccount());
+                HintRetrieveRequest.of(AuthenticationMethods.EMAIL));
 
         if (hintIntent != null) {
             setShowLoading(R.string.requesting_hint_prompt);

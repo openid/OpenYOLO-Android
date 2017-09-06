@@ -19,6 +19,9 @@ import org.openyolo.protocol.Credential.Builder;
 /**
  * A set of well-known authentication method URIs for use with
  * {@link Builder#setAuthenticationMethod(AuthenticationMethod)}.
+ *
+ * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#authentication-methods">
+ *     OpenYOLO Specification: Authentication Method</a>
  */
 public final class AuthenticationMethods {
 

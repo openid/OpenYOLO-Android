@@ -34,6 +34,9 @@ import org.openyolo.protocol.internal.IntentProtocolBufferExtractor;
 
 /**
  * A request to delete a credential, to be sent to a credential provider on the device.
+ *
+ * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#credential-deletion">
+ *     OpenYOLO Specification: Credential Deletion</a>
  */
 public final class CredentialDeleteRequest {
 
