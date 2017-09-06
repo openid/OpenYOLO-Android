@@ -18,9 +18,9 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.openyolo.protocol.TestConstants.ValidTokenRequestInfo;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.valid4j.errors.RequireViolation;
 
 /**
  * Tests for {@link TokenRequestInfo}.
@@ -31,9 +31,8 @@ public class TokenRequestInfoTest {
 
     @Test
     public void build_validInputs_shouldSucceed() {
-        TokenRequestInfo info = TestConstants.createTokenRequestInfo();
-        TestConstants.checkTokenRequestInfo(info);
-
+        TokenRequestInfo info = ValidTokenRequestInfo.make();
+        ValidTokenRequestInfo.assertEquals(info);
     }
 
     @Test
@@ -73,10 +72,11 @@ public class TokenRequestInfoTest {
     }
 
     @Test
-    public void fromProto_validInput_shouldSucceed() throws MalformedDataException {
-        Protobufs.TokenRequestInfo proto = TestConstants.createTokenRequestInfoProto();
+    public void toProto_fromProto_isEquivalent() throws MalformedDataException {
+        Protobufs.TokenRequestInfo proto = ValidTokenRequestInfo.make().toProtobuf();
         TokenRequestInfo info = TokenRequestInfo.fromProtobuf(proto);
-        TestConstants.checkTokenRequestInfo(info);
+
+        ValidTokenRequestInfo.assertEquals(info);
     }
 
     @Test
@@ -92,11 +92,5 @@ public class TokenRequestInfoTest {
     @Test(expected = MalformedDataException.class)
     public void fromProtoBytes_invalidData_shouldThrowException() throws Exception {
         TokenRequestInfo.fromProtobufBytes(TestConstants.INVALID_PROTO_BYTES);
-    }
-
-    @Test
-    public void toProto_validInput_shouldSucceed() {
-        TokenRequestInfo info = TestConstants.createTokenRequestInfo();
-        TestConstants.checkTokenRequestInfoProto(info.toProtobuf());
     }
 }

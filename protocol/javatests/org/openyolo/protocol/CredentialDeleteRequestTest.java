@@ -14,17 +14,14 @@
 
 package org.openyolo.protocol;
 
-import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.openyolo.protocol.TestConstants.ADDITIONAL_KEY;
-import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROPS;
-import static org.openyolo.protocol.TestConstants.ADDITIONAL_VALUE;
-import static org.openyolo.protocol.TestConstants.checkAdditionalProps;
-import static org.openyolo.protocol.TestConstants.checkAdditionalPropsFromProto;
+import static org.openyolo.protocol.TestConstants.INVALID_PROTO_BYTES;
 
 import android.content.Intent;
 import com.google.protobuf.ByteString;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.openyolo.protocol.TestConstants.ValidAdditionalProperties;
+import org.openyolo.protocol.TestConstants.ValidFacebookCredential;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -41,25 +38,24 @@ public class CredentialDeleteRequestTest {
                     .putAdditionalProps("", ByteString.copyFrom(new byte[0]))
                     .build();
 
-    private static final byte[] INVALID_PROTO_BYTES =
-            new byte[] { 1, 2, 3, 4, 5 };
+    private static final class ValidDeleteRequest {
+        public static final CredentialDeleteRequest make() {
+            return new CredentialDeleteRequest.Builder(ValidFacebookCredential.make())
+                            .setAdditionalProperties(ValidAdditionalProperties.make())
+                            .build();
+        }
 
-    private static final Credential CREDENTIAL =
-            new Credential.Builder(
-                    "alice@example.com",
-                    AuthenticationMethods.EMAIL,
-                    new AuthenticationDomain("https://example.com"))
-            .build();
+        public static void assertEquals(CredentialDeleteRequest request) {
+            ValidFacebookCredential.assertEqualTo(request.getCredential());
+            ValidAdditionalProperties.assertEquals(request.getAdditionalProps());
+        }
+    }
 
     @Test
     public void build() {
-        CredentialDeleteRequest request =
-                new CredentialDeleteRequest.Builder(CREDENTIAL)
-                        .setAdditionalProperties(ADDITIONAL_PROPS)
-                        .build();
+        CredentialDeleteRequest request = ValidDeleteRequest.make();
 
-        assertThat(request.getCredential()).isNotNull();
-        checkAdditionalProps(request.getAdditionalProps());
+        ValidDeleteRequest.assertEquals(request);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -70,14 +66,11 @@ public class CredentialDeleteRequestTest {
 
     @Test
     public void fromProtobuf() throws Exception {
-        Protobufs.CredentialDeleteRequest proto = Protobufs.CredentialDeleteRequest.newBuilder()
-                .setCredential(CREDENTIAL.toProtobuf())
-                .putAdditionalProps(ADDITIONAL_KEY, ByteString.copyFrom(ADDITIONAL_VALUE))
-                .build();
+        Protobufs.CredentialDeleteRequest proto = ValidDeleteRequest.make().toProtobuf();
 
         CredentialDeleteRequest request = CredentialDeleteRequest.fromProtobuf(proto);
-        assertThat(request.getCredential()).isNotNull();
-        checkAdditionalProps(request.getAdditionalProps());
+
+        ValidDeleteRequest.assertEquals(request);
     }
 
     @Test(expected = MalformedDataException.class)
@@ -92,15 +85,11 @@ public class CredentialDeleteRequestTest {
 
     @Test
     public void fromProtobufBytes() throws Exception {
-        Protobufs.CredentialDeleteRequest proto = Protobufs.CredentialDeleteRequest.newBuilder()
-                .setCredential(CREDENTIAL.toProtobuf())
-                .putAdditionalProps(ADDITIONAL_KEY, ByteString.copyFrom(ADDITIONAL_VALUE))
-                .build();
-
+        Protobufs.CredentialDeleteRequest proto = ValidDeleteRequest.make().toProtobuf();
         CredentialDeleteRequest request =
                 CredentialDeleteRequest.fromProtobufBytes(proto.toByteArray());
-        assertThat(request.getCredential()).isNotNull();
-        checkAdditionalProps(request.getAdditionalProps());
+
+        ValidDeleteRequest.assertEquals(request);
     }
 
     @Test(expected = MalformedDataException.class)
@@ -119,33 +108,14 @@ public class CredentialDeleteRequestTest {
     }
 
     @Test
-    public void toProtobuf() {
-        Protobufs.CredentialDeleteRequest proto =
-                new CredentialDeleteRequest.Builder(CREDENTIAL)
-                        .setAdditionalProperties(ADDITIONAL_PROPS)
-                        .build()
-                .toProtobuf();
-
-        assertThat(proto.hasCredential());
-        checkAdditionalPropsFromProto(proto.getAdditionalPropsMap());
-    }
-
-    @Test
     public void fromRequestIntent() throws Exception {
-        byte[] protoBytes =
-                new CredentialDeleteRequest.Builder(CREDENTIAL)
-                        .setAdditionalProperties(ADDITIONAL_PROPS)
-                        .build()
-                        .toProtobuf()
-                        .toByteArray();
-
+        byte[] protoBytes = ValidDeleteRequest.make().toProtobuf().toByteArray();
         Intent requestIntent = new Intent();
         requestIntent.putExtra(ProtocolConstants.EXTRA_DELETE_REQUEST, protoBytes);
 
         CredentialDeleteRequest request = CredentialDeleteRequest.fromRequestIntent(requestIntent);
 
-        assertThat(request.getCredential()).isNotNull();
-        checkAdditionalProps(request.getAdditionalProps());
+        ValidDeleteRequest.assertEquals(request);
     }
 
     @Test(expected = MalformedDataException.class)

@@ -15,10 +15,18 @@
 package org.openyolo.protocol;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.mockito.AdditionalMatchers.not;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.net.Uri;
-import android.util.Base64;
 import com.google.protobuf.ByteString;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,183 +38,288 @@ import org.openyolo.protocol.internal.CollectionConverter;
  */
 public final class TestConstants {
 
-    public static final String ALICE_EMAIL = "alice@example.com";
-    public static final String ALICE_NAME = "Alice McTesterson";
-    public static final String ALICE_DISPLAY_PICTURE_URI_STR = "https://robohash.org/alice";
-    public static final Uri ALICE_DISPLAY_PICTURE_URI =
-            Uri.parse(ALICE_DISPLAY_PICTURE_URI_STR);
-    public static final String ALICE_PASSWORD = "CorrectH0rseBatteryStapl3";
+    public static final byte[] INVALID_PROTO_BYTES =
+            new byte[] { 'i', 'n', 'v', 'a', 'l', 'i', 'd' };
 
-    public static final String ALICE_ID_TOKEN =
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NSIsImF1ZCI"
-                    + "6IlhZWi5jbGllbnQuaWQiLCJpc3MiOiJpZHAuZXhhbXBsZS5jb20iLCJlbWFpbCI"
-                    + "6ImFsaWNlQGV4YW1wbGUuY29tIiwibmFtZSI6IkFsaWNlIE1jVGVzdGVyc29uIiw"
-                    + "icGljdHVyZSI6Imh0dHBzOi8vcm9ib2hhc2gub3JnL2FsaWNlIn0.2-D7AZ1C7mv"
-                    + "dLRf6Q7aqH8Ah4rlK1uuHPSU2HPImtyk";
+    public static final class ValidAdditionalProperties {
+        private static final String ADDITIONAL_KEY = "extra";
+        private static final byte[] ADDITIONAL_VALUE = "value".getBytes();
 
-    public static final String CLIENT_ID = "XYZ.client.id";
-    public static final String NONCE = "asdf";
+        public static Map<String, byte[]> make() {
+            Map<String, byte[]> additionalProps = new HashMap<>();
+            additionalProps.put(ADDITIONAL_KEY, ADDITIONAL_VALUE);
+            return additionalProps;
+        }
 
-    public static final String EXAMPLE_APP_PACKAGE_NAME = "com.example.app";
+        public static Map<String, ByteString> makeForProto() {
+            return CollectionConverter.convertMapValues(
+                    make(),
+                    ByteStringConverters.BYTE_ARRAY_TO_BYTE_STRING);
+        }
 
-    public static final byte[] EXAMPLE_APP_SIGNATURE_BYTES =
-            Base64.decode(
-                    "MIICwzCCAaugAwIBAgIEYUHE8DANBgkqhkiG9w0BAQsFADASMRAwDgYDVQQDEwd0"
-                    + "ZXN0aW5nMB4XDTE3MDUxMDIxMTY1M1oXDTQ0MDkyNTIxMTY1M1owEjEQMA4GA1UE"
-                    + "AxMHdGVzdGluZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJ2+5bxE"
-                    + "24gsczcfwoAgJrerBGgew5rHiUYekp6nlfOlqQqJbC5KNKOr8qK1IF92MSrcphIw"
-                    + "CWWkp67Bqqe49nK3ce9kVHqhXjaz9w4HVex3N3kWt1r7s08lNax/67vTrfQXlDnI"
-                    + "1VDijm82vklmLtcXXnww10FQRKVdtxSkCmtUjmuYpLqFZY5cDIG5fpoeFhzoDolj"
-                    + "pfmYkDsFGEUVOIilrM70rdwziEuvXPVGIzI8Lz88OkdamtQ2dtWSFP+4O8tv6qSW"
-                    + "Q00/YAIm/RV2Z3NFIPma1n7GmTqm+QBM4lq8Irc24yL/a78nVT+fibfBOr7Iu02Z"
-                    + "qy4Rpkosq4bfgt8CAwEAAaMhMB8wHQYDVR0OBBYEFJXEQr/2vuy2E2o2lz8LRbZW"
-                    + "b/QzMA0GCSqGSIb3DQEBCwUAA4IBAQB5N++YqygWTFDwfCGgBT3pytaKVGbSujvB"
-                    + "ChmBry2kfT5SpZcMerTboxq+0Jny50jS+2FAl0apKYC56R+FZC3Zg1qUBlqcCOrZ"
-                    + "j2r7INQHWfiZo76zBjsaf9iDJwwDHKox5Bu8TK0Iux4hPi3J0hWg+MXDq6GUHQPT"
-                    + "aFfxVAPNjnu+BnMrdw3YwEGxUBNTm0BeJruF2Hvzt9s/HOJ4y70dhlnz3McrxSQ2"
-                    + "Tmlo1G0YwaTDO3jYDtD7CJ2V9EdAr9HjUeIlOiHwSHxDZexRxsiJf9rADP3Mqh7r"
-                    + "I+gmzIbXs+UA7nsHXVgTyg5NviDbmYcu/hqKOLf1UeMwAEjQu0U9",
-                    Base64.NO_PADDING);
 
-    public static final Signature EXAMPLE_APP_SIGNATURE =
-            new Signature(EXAMPLE_APP_SIGNATURE_BYTES);
+        public static void assertEquals(Map<String, byte[]> additionalProps) {
+            assertThat(additionalProps).isNotNull();
+            assertThat(additionalProps).hasSize(1);
+            assertThat(additionalProps).containsKey(ADDITIONAL_KEY);
+            assertThat(additionalProps.get(ADDITIONAL_KEY)).isEqualTo(ADDITIONAL_VALUE);
+        }
 
-    public static final String EXAMPLE_APP_SHA256_FINGERPRINT =
-            "uHq8C9rrDcJ_MqkyeauSba4OYMSOJJqUDWEuMWiOdfo=";
-
-    public static final String EXAMPLE_APP_SHA512_FINGERPRINT =
-            "KSYmxK5qmKUKhNxHJYv__Tgg8nFXkm_w7mhJd_feckMW"
-                    + "NqBXGK7yhZugh4OVI5ffJn8_V4SEN-mqetuIqiqPVA==";
-
-    public static final AuthenticationDomain EXAMPLE_APP_AUTH_DOMAIN =
-            AuthenticationDomain.createAndroidAuthDomain(
-                    EXAMPLE_APP_PACKAGE_NAME,
-                    EXAMPLE_APP_SIGNATURE);
-
-    public static final String TOKEN_PROVIDER_1 = "https://idp1.example.com";
-    public static final String TOKEN_PROVIDER_2 = "https://idp2.example.com";
-
-    public static final String ADDITIONAL_KEY = "extra";
-    public static final byte[] ADDITIONAL_VALUE = "value".getBytes();
-    public static final Map<String, byte[]> ADDITIONAL_PROPS;
-    public static final Map<String, ByteString> ADDITIONAL_PROPS_FOR_PROTO;
-
-    public static final byte[] INVALID_PROTO_BYTES = new byte[] { 1, 2, 3 };
-
-    static {
-        Map<String, byte[]> additionalProps = new HashMap<>();
-        additionalProps.put(ADDITIONAL_KEY, ADDITIONAL_VALUE);
-        ADDITIONAL_PROPS = additionalProps;
-        ADDITIONAL_PROPS_FOR_PROTO = CollectionConverter.convertMapValues(
-                additionalProps,
-                ByteStringConverters.BYTE_ARRAY_TO_BYTE_STRING);
+        public static void assertEqualsForProto(Map<String, ByteString> additionalProps) {
+            assertEquals(CollectionConverter.convertMapValues(
+                    additionalProps,
+                    ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY));
+        }
     }
 
-    public static void checkAdditionalProps(Map<String, byte[]> additionalProps) {
-        assertThat(additionalProps).isNotNull();
-        assertThat(additionalProps).hasSize(1);
-        assertThat(additionalProps).containsKey(ADDITIONAL_KEY);
-        assertThat(additionalProps.get(ADDITIONAL_KEY)).isEqualTo(ADDITIONAL_VALUE);
+    public static final class ValidTokenRequestInfo {
+        private static final String CLIENT_ID = "XYZ.client.id";
+        private static final String NONCE = "asdf";
+
+        public static TokenRequestInfo make() {
+            return new TokenRequestInfo.Builder()
+                    .setClientId(CLIENT_ID)
+                    .setNonce(NONCE)
+                    .setAdditionalProperties(ValidAdditionalProperties.make())
+                    .build();
+        }
+
+        public static void assertEquals(TokenRequestInfo info) {
+            assertThat(info.getClientId()).isEqualTo(CLIENT_ID);
+            assertThat(info.getNonce()).isEqualTo(NONCE);
+            ValidAdditionalProperties.assertEquals(info.getAdditionalProperties());
+        }
+
+        public static void assertEquals(Protobufs.TokenRequestInfo info) {
+            assertThat(info.getClientId()).isEqualTo(CLIENT_ID);
+            assertThat(info.getNonce()).isEqualTo(NONCE);
+            ValidAdditionalProperties.assertEqualsForProto(info.getAdditionalPropsMap());
+        }
+
     }
 
-    public static void checkAdditionalPropsFromProto(Map<String, ByteString> additionalProps) {
-        checkAdditionalProps(CollectionConverter.convertMapValues(
-                additionalProps,
-                ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY));
+    public static final class ValidTokenProviderMap {
+        private static final String TOKEN_PROVIDER_1 = "https://idp1.example.com";
+        private static final String TOKEN_PROVIDER_2 = "https://idp2.example.com";
+
+
+        public static Map<String, TokenRequestInfo> make() {
+            HashMap<String, TokenRequestInfo> tokenProviders = new HashMap<>();
+            tokenProviders.put(TOKEN_PROVIDER_1, ValidTokenRequestInfo.make());
+            tokenProviders.put(TOKEN_PROVIDER_2, null);
+            return tokenProviders;
+        }
+
+        public static void assertEquals(Map<String, TokenRequestInfo> tokenProviders) {
+            assertThat(tokenProviders).hasSize(2);
+            assertThat(tokenProviders).containsKey(TOKEN_PROVIDER_1);
+            assertThat(tokenProviders).containsKey(TOKEN_PROVIDER_2);
+            ValidTokenRequestInfo.assertEquals(tokenProviders.get(TOKEN_PROVIDER_1));
+            assertThat(tokenProviders.get(TOKEN_PROVIDER_2).getClientId()).isNull();
+            assertThat(tokenProviders.get(TOKEN_PROVIDER_2).getNonce()).isNull();
+            assertThat(tokenProviders.get(TOKEN_PROVIDER_2).getAdditionalProperties()).isEmpty();
+        }
     }
 
-    public static TokenRequestInfo createTokenRequestInfo() {
-        return new TokenRequestInfo.Builder()
-                .setClientId(CLIENT_ID)
-                .setNonce(NONCE)
-                .setAdditionalProperties(ADDITIONAL_PROPS)
-                .build();
+    public static final class ValidProperties {
+        public static final String PROPERTY_A_NAME = "Property A";
+        public static final byte[] PROPERTY_A_VALUE = new byte [] { 0, 1 };
+
+        public static final String PROPERTY_B_NAME = "Property B";
+        public static final byte[] PROPERTY_B_VALUE = new byte [] { 2, 2 };
+
+        public static final Map<String, byte[]> MAP_INSTANCE;
+
+        static {
+            MAP_INSTANCE = new HashMap<>();
+            MAP_INSTANCE.put(PROPERTY_A_NAME, PROPERTY_A_VALUE);
+            MAP_INSTANCE.put(PROPERTY_B_NAME, PROPERTY_B_VALUE);
+        }
+
+        public static void assertEqualTo(Map<String, ByteString> map, boolean dummy) {
+            Map<String, byte[]> byteMap =
+                    CollectionConverter.convertMapValues(
+                            map,
+                            ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY);
+
+            assertEqualTo(byteMap);
+        }
+
+        public static void assertEqualTo(Map<String, byte[]> map) {
+            assertThat(map).hasSize(2);
+            assertThat(map.get(PROPERTY_A_NAME)).isEqualTo(PROPERTY_A_VALUE);
+            assertThat(map.get(PROPERTY_B_NAME)).isEqualTo(PROPERTY_B_VALUE);
+        }
     }
 
-    public static Protobufs.TokenRequestInfo createTokenRequestInfoProto() {
-        return Protobufs.TokenRequestInfo.newBuilder()
-                .setClientId(CLIENT_ID)
-                .setNonce(NONCE)
-                .putAllAdditionalProps(ADDITIONAL_PROPS_FOR_PROTO)
-                .build();
+    public static final class ValidFacebookCredential {
+        public final static String ID = "bob@facebook.com";
+        public final static String ID_TOKEN = "'His name is bob' - xoxo facebook";
+        public final static AuthenticationMethod AUTHENTICATION_METHOD =
+                AuthenticationMethods.FACEBOOK;
+        public final static String PASSWORD = "hunter2";
+        public final static String DISPLAY_NAME = "Bob";
+        public final static Uri DISPLAY_PICTURE_URL =
+                Uri.parse("https://pictures.facebook.com/bob_pics.jpeg");
+        public final static Map<String, byte[]> ADDITIONAL_PROPERTIES =
+                ValidProperties.MAP_INSTANCE;
+        public final static String AUTHENTICATION_DOMAIN_STRING = "https://accounts.google.com";
+        public final static AuthenticationDomain AUTHENTICATION_DOMAIN =
+                new AuthenticationDomain(AUTHENTICATION_DOMAIN_STRING);
+
+        public static Credential make() {
+            return new Credential.Builder(ID, AUTHENTICATION_METHOD, AUTHENTICATION_DOMAIN)
+                    .setDisplayName(DISPLAY_NAME)
+                    .setDisplayPicture(DISPLAY_PICTURE_URL)
+                    .setPassword(PASSWORD)
+                    .setIdToken(ID_TOKEN)
+                    .setAdditionalProperties(ADDITIONAL_PROPERTIES)
+                    .build();
+        }
+
+        public static void assertEqualTo(Credential credential) {
+            assertThat(credential.getIdentifier()).isEqualTo(ID);
+            assertThat(credential.getIdToken()).isEqualTo(ID_TOKEN);
+            assertThat(credential.getPassword()).isEqualTo(PASSWORD);
+            assertThat(credential.getDisplayName()).isEqualTo(DISPLAY_NAME);
+            assertThat(credential.getDisplayPicture()).isEqualTo(DISPLAY_PICTURE_URL);
+            ValidProperties.assertEqualTo(credential.getAdditionalProperties());
+            assertThat(credential.getAuthenticationMethod()).isEqualTo(AUTHENTICATION_METHOD);
+            assertThat(credential.getAuthenticationDomain()).isEqualTo(AUTHENTICATION_DOMAIN);
+        }
+
+        public static void assertEqualTo(Protobufs.Credential credential) throws Exception {
+            assertEqualTo(Credential.fromProtobuf(credential));
+        }
     }
 
-    public static void checkTokenRequestInfo(TokenRequestInfo info) {
-        assertThat(info.getClientId()).isEqualTo(CLIENT_ID);
-        assertThat(info.getNonce()).isEqualTo(NONCE);
-        TestConstants.checkAdditionalProps(info.getAdditionalProperties());
+    public static final class ValidEmailHint {
+        private static final String ALICE_ID = "alice@example.com";
+        private static final String ALICE_NAME = "Alice";
+        private static final String ALICE_DISPLAY_PICTURE_URI_STR = "https://avatars.example.com/alice";
+        private static final Uri ALICE_DISPLAY_PICTURE_URI = Uri.parse(ALICE_DISPLAY_PICTURE_URI_STR);
+        private static final String GENERATED_PASSWORD = "correctH0rseBatterySt4ple";
+        private static final String ID_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+                + "eyJzdWIiOiJ5b2xvIn0."
+                + "BI1g9ns0shv6PKfwlhfPKwh5XzxQyg_el_35_wZbtsI";
+
+        public static Hint make() {
+            return new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL)
+                    .setDisplayName(ALICE_NAME)
+                    .setDisplayPictureUri(ALICE_DISPLAY_PICTURE_URI)
+                    .setGeneratedPassword(GENERATED_PASSWORD)
+                    .setIdToken(ID_TOKEN)
+                    .build();
+        }
+
+        public static void assertEquals(Context context, Credential credential) {
+            assertThat(credential.getIdentifier()).isEqualTo(ALICE_ID);
+            assertThat(credential.getAuthenticationMethod()).isEqualTo(AuthenticationMethods.EMAIL);
+            assertThat(credential.getDisplayName()).isEqualTo(ALICE_NAME);
+            assertThat(credential.getDisplayPicture()).isEqualTo(ALICE_DISPLAY_PICTURE_URI);
+            assertThat(credential.getPassword()).isEqualTo(GENERATED_PASSWORD);
+            assertThat(credential.getIdToken()).isEqualTo(ID_TOKEN);
+            assertThat(credential.getAuthenticationDomain())
+                    .isEqualTo(AuthenticationDomain.getSelfAuthDomain(context));
+        }
+
+        public static void assertEquals(Hint hint) {
+            assertThat(hint.getIdentifier()).isEqualTo(ALICE_ID);
+            assertThat(hint.getAuthenticationMethod()).isEqualTo(AuthenticationMethods.EMAIL);
+            assertThat(hint.getDisplayName()).isEqualTo(ALICE_NAME);
+            assertThat(hint.getDisplayPictureUri()).isEqualTo(ALICE_DISPLAY_PICTURE_URI);
+            assertThat(hint.getGeneratedPassword()).isEqualTo(GENERATED_PASSWORD);
+            assertThat(hint.getIdToken()).isEqualTo(ID_TOKEN);
+        }
+
+        public static void assertEquals(Protobufs.Hint protoHint) {
+            assertThat(protoHint.getId()).isEqualTo(ALICE_ID);
+            assertThat(protoHint.getAuthMethod().getUri())
+                    .isEqualTo(AuthenticationMethods.EMAIL.toString());
+            assertThat(protoHint.getDisplayName()).isEqualTo(ALICE_NAME);
+            assertThat(protoHint.getDisplayPictureUri()).isEqualTo(ALICE_DISPLAY_PICTURE_URI_STR);
+            assertThat(protoHint.getGeneratedPassword()).isEqualTo(GENERATED_PASSWORD);
+            assertThat(protoHint.getIdToken()).isEqualTo(ID_TOKEN);
+        }
     }
 
-    public static void checkTokenRequestInfoProto(Protobufs.TokenRequestInfo info) {
-        assertThat(info.getClientId()).isEqualTo(CLIENT_ID);
-        assertThat(info.getNonce()).isEqualTo(NONCE);
-        TestConstants.checkAdditionalPropsFromProto(info.getAdditionalPropsMap());
+    public static final class ValidApplication {
+        public static final String PACKAGE_NAME = "com.example.app";
+        private static final String FINGERPRINT =
+                "2qKVvu1OLulMJAFbVq9ia08h759E8rPUD8QckJAKa_G0hnxDxXzaVNG2_Uhps_I8"
+                        + "7V4Lo8BdCxaA307H0HYkAw==";
+        private static byte[] SIGNATURE_BYTES = new byte[]
+                { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+
+
+        public static final class AuthDomain {
+            private static final String AUTHENTICATION_DOMAIN_STRING =
+                    "android://" + FINGERPRINT + "@" + PACKAGE_NAME;
+
+            public static AuthenticationDomain make() {
+                return new AuthenticationDomain(AUTHENTICATION_DOMAIN_STRING);
+            }
+
+            public static void assertEquals(AuthenticationDomain domain) {
+                assertThat(domain).isEqualTo(make());
+            }
+        }
+
+        public static Context install(Context context) throws Exception {
+            PackageManager packageManager = mock(PackageManager.class);
+
+            when(packageManager.getPackageInfo(eq(PACKAGE_NAME), eq(PackageManager.GET_SIGNATURES)))
+                    .thenReturn(makePackageInfo());
+            doThrow(PackageManager.NameNotFoundException.class)
+                    .when(packageManager).getPackageInfo(
+                            not(eq(PACKAGE_NAME)),
+                            eq(PackageManager.GET_SIGNATURES));
+
+            context = spy(context);
+            when(context.getPackageName()).thenReturn(PACKAGE_NAME);
+            when(context.getPackageManager()).thenReturn(packageManager);
+
+            return context;
+        }
+
+        private static PackageInfo makePackageInfo() {
+            PackageInfo packageInfo = new PackageInfo();
+            packageInfo.signatures = new Signature[1];
+            packageInfo.signatures[0] = new Signature(SIGNATURE_BYTES);
+
+            return packageInfo;
+        }
     }
 
-    public static Map<String, TokenRequestInfo> createTokenProviderMap() {
-        HashMap<String, TokenRequestInfo> tokenProviders = new HashMap<>();
-        tokenProviders.put(TOKEN_PROVIDER_1, createTokenRequestInfo());
-        tokenProviders.put(TOKEN_PROVIDER_2, null);
-        return tokenProviders;
-    }
+    public static final class ApplicationWithMultipleSignatures {
+        public static final String PACKAGE_NAME = "com.example.app.multiple_signatures";
+        private static byte[] SIGNATURE_BYTES = new byte[]
+                { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
-    public static void checkTokenProviderMap(Map<String, TokenRequestInfo> tokenProviders) {
-        assertThat(tokenProviders).hasSize(2);
-        assertThat(tokenProviders).containsKey(TOKEN_PROVIDER_1);
-        assertThat(tokenProviders).containsKey(TOKEN_PROVIDER_2);
-        checkTokenRequestInfo(tokenProviders.get(TOKEN_PROVIDER_1));
-        assertThat(tokenProviders.get(TOKEN_PROVIDER_2).getClientId()).isNull();
-        assertThat(tokenProviders.get(TOKEN_PROVIDER_2).getNonce()).isNull();
-        assertThat(tokenProviders.get(TOKEN_PROVIDER_2).getAdditionalProperties()).isEmpty();
-    }
+        public static Context install(Context context) throws Exception {
+            PackageManager packageManager = mock(PackageManager.class);
 
-    public static Credential createEmailCredential() {
-        return new Credential.Builder(
-                ALICE_EMAIL,
-                AuthenticationMethods.EMAIL,
-                EXAMPLE_APP_AUTH_DOMAIN)
-                .setDisplayName(ALICE_NAME)
-                .setDisplayPicture(ALICE_DISPLAY_PICTURE_URI)
-                .setPassword(ALICE_PASSWORD)
-                .setIdentifier(ALICE_ID_TOKEN)
-                .setIdToken(ALICE_ID_TOKEN)
-                .setAdditionalProperties(ADDITIONAL_PROPS)
-                .build();
-    }
+            when(packageManager.getPackageInfo(eq(PACKAGE_NAME), eq(PackageManager.GET_SIGNATURES)))
+                    .thenReturn(makePackageInfo());
+            doThrow(PackageManager.NameNotFoundException.class)
+                    .when(packageManager).getPackageInfo(
+                    not(eq(PACKAGE_NAME)),
+                    eq(PackageManager.GET_SIGNATURES));
 
-    public static Protobufs.Credential createEmailCredentialProto() {
-        return Protobufs.Credential.newBuilder()
-                .setId(ALICE_EMAIL)
-                .setAuthMethod(AuthenticationMethods.EMAIL.toProtobuf())
-                .setAuthDomain(EXAMPLE_APP_AUTH_DOMAIN.toProtobuf())
-                .setDisplayName(ALICE_NAME)
-                .setDisplayPictureUri(ALICE_DISPLAY_PICTURE_URI_STR)
-                .setPassword(ALICE_PASSWORD)
-                .setIdToken(ALICE_ID_TOKEN)
-                .putAllAdditionalProps(ADDITIONAL_PROPS_FOR_PROTO)
-                .build();
-    }
+            context = spy(context);
+            when(context.getPackageName()).thenReturn(PACKAGE_NAME);
+            when(context.getPackageManager()).thenReturn(packageManager);
 
-    public static void checkEmailCredential(Credential credential) {
-        assertThat(credential.getIdentifier()).isEqualTo(ALICE_EMAIL);
-        assertThat(credential.getAuthenticationMethod())
-                .isEqualTo(AuthenticationMethods.EMAIL);
-        assertThat(credential.getAuthenticationDomain()).isEqualTo(EXAMPLE_APP_AUTH_DOMAIN);
-        assertThat(credential.getDisplayName()).isEqualTo(ALICE_NAME);
-        assertThat(credential.getDisplayPicture()).isEqualTo(ALICE_DISPLAY_PICTURE_URI);
-        assertThat(credential.getPassword()).isEqualTo(ALICE_PASSWORD);
-        assertThat(credential.getIdToken()).isEqualTo(ALICE_ID_TOKEN);
-    }
+            return context;
+        }
 
-    public static void checkEmailCredentialProto(Protobufs.Credential proto) {
-        assertThat(proto.getId()).isEqualTo(ALICE_EMAIL);
-        assertThat(proto.getAuthMethod().getUri())
-                .isEqualTo(AuthenticationMethods.EMAIL.toString());
-        assertThat(proto.getAuthDomain().getUri())
-                .isEqualTo(EXAMPLE_APP_AUTH_DOMAIN.toString());
-        assertThat(proto.getDisplayName()).isEqualTo(ALICE_NAME);
-        assertThat(proto.getDisplayPictureUri()).isEqualTo(ALICE_DISPLAY_PICTURE_URI_STR);
-        assertThat(proto.getIdToken()).isEqualTo(ALICE_ID_TOKEN);
-        checkAdditionalPropsFromProto(proto.getAdditionalPropsMap());
+        private static PackageInfo makePackageInfo() {
+            PackageInfo packageInfo = new PackageInfo();
+            packageInfo.signatures = new Signature[2];
+            packageInfo.signatures[0] = new Signature(SIGNATURE_BYTES);
+            packageInfo.signatures[1] = new Signature(SIGNATURE_BYTES);
+
+            return packageInfo;
+        }
     }
 }

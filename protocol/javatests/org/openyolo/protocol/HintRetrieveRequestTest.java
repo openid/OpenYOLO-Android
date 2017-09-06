@@ -25,6 +25,8 @@ import org.junit.runner.RunWith;
 import org.openyolo.protocol.internal.ClientVersionUtil;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.openyolo.protocol.TestConstants.ValidTokenProviderMap;
+import org.openyolo.protocol.TestConstants.ValidAdditionalProperties;
 
 /**
  * Tests for {@link HintRetrieveRequest}.
@@ -45,9 +47,9 @@ public class HintRetrieveRequestTest {
                 AuthenticationMethods.EMAIL,
                 AuthenticationMethods.GOOGLE)
                 .addAuthenticationMethod(AuthenticationMethods.FACEBOOK)
-                .setTokenProviders(TestConstants.createTokenProviderMap())
+                .setTokenProviders(ValidTokenProviderMap.make())
                 .setPasswordSpecification(originalSpec)
-                .setAdditionalProperties(TestConstants.ADDITIONAL_PROPS)
+                .setAdditionalProperties(ValidAdditionalProperties.make())
                 .build();
 
         assertThat(request.getAuthenticationMethods())
@@ -56,8 +58,8 @@ public class HintRetrieveRequestTest {
                         AuthenticationMethods.GOOGLE,
                         AuthenticationMethods.FACEBOOK);
 
-        TestConstants.checkTokenProviderMap(request.getTokenProviders());
-        TestConstants.checkAdditionalProps(request.getAdditionalProperties());
+        ValidTokenProviderMap.assertEquals(request.getTokenProviders());
+        ValidAdditionalProperties.assertEquals(request.getAdditionalProperties());
 
         assertThat(originalSpec).isEqualTo(request.getPasswordSpecification());
     }
@@ -112,8 +114,8 @@ public class HintRetrieveRequestTest {
                                 .allow(PasswordSpecification.ALPHANUMERIC)
                                 .require(PasswordSpecification.NUMERALS, 1)
                                 .build())
-                .setTokenProviders(TestConstants.createTokenProviderMap())
-                .setAdditionalProperties(TestConstants.ADDITIONAL_PROPS)
+                .setTokenProviders(ValidTokenProviderMap.make())
+                .setAdditionalProperties(ValidAdditionalProperties.make())
                 .build();
 
         Parcel p = Parcel.obtain();
@@ -127,8 +129,8 @@ public class HintRetrieveRequestTest {
             assertThat(read.getPasswordSpecification())
                     .isEqualTo(request.getPasswordSpecification());
 
-            TestConstants.checkTokenProviderMap(read.getTokenProviders());
-            TestConstants.checkAdditionalProps(read.getAdditionalProperties());
+            ValidTokenProviderMap.assertEquals(read.getTokenProviders());
+            ValidAdditionalProperties.assertEquals(read.getAdditionalProperties());
         } finally {
             p.recycle();
         }

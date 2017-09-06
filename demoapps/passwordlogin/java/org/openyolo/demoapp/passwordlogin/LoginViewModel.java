@@ -309,15 +309,7 @@ public final class LoginViewModel extends ObservableViewModel {
 
                     if (authenticated) {
                         // account created, attempt to save it back to the OpenYOLO provider
-                        trySaveCredential(
-                                new Credential.Builder(
-                                        hintEmail,
-                                        AuthenticationMethods.EMAIL,
-                                        AuthenticationDomain.getSelfAuthDomain(mApplication))
-                                        .setDisplayName(displayName)
-                                        .setDisplayPicture(displayPicture)
-                                        .setPassword(hintPassword)
-                                        .build());
+                        trySaveCredential(hint.toCredentialBuilder(mApplication).build());
                     }
                 }
 

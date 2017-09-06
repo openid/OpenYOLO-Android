@@ -24,8 +24,8 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.openyolo.protocol.TestFixtures.ValidProperties;
-import org.openyolo.protocol.TestFixtures.ValidFacebookCredential;
+import org.openyolo.protocol.TestConstants.ValidProperties;
+import org.openyolo.protocol.TestConstants.ValidFacebookCredential;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.ClientVersionUtil;
 import org.openyolo.protocol.internal.CollectionConverter;
@@ -52,10 +52,10 @@ public final class CredentialSaveRequestTest {
     }
 
     private static final class ValidRequest {
-        public static final Credential CREDENTIAL = ValidFacebookCredential.INSTANCE;
-        public static final Map<String, byte[]> ADDITIONAL_PROPERTIES = ValidProperties.MAP_INSTANCE;
+        private static final Credential CREDENTIAL = ValidFacebookCredential.make();
+        private static final Map<String, byte[]> ADDITIONAL_PROPERTIES = ValidProperties.MAP_INSTANCE;
 
-        public static final CredentialSaveRequest INSTANCE =
+        private static final CredentialSaveRequest INSTANCE =
                 new CredentialSaveRequest.Builder(CREDENTIAL)
                         .setAdditionalProperties(ADDITIONAL_PROPERTIES)
                         .build();
@@ -113,9 +113,9 @@ public final class CredentialSaveRequestTest {
     @Test
     public void fromCredential_withValidCredential_returnsRequestForCredential() {
         final CredentialSaveRequest request =
-                CredentialSaveRequest.fromCredential(ValidFacebookCredential.INSTANCE);
+                CredentialSaveRequest.fromCredential(ValidFacebookCredential.make());
 
-        assertThat(request.getCredential()).isSameAs(ValidFacebookCredential.INSTANCE);
+        ValidFacebookCredential.assertEqualTo(request.getCredential());
         assertThat(request.getAdditionalProperties()).isEmpty();
     }
 

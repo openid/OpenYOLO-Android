@@ -22,6 +22,7 @@ import static org.openyolo.protocol.internal.CustomMatchers.nullOr;
 import static org.openyolo.protocol.internal.StringUtil.nullifyEmptyString;
 import static org.valid4j.Validation.validate;
 
+import android.content.Context;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -134,6 +135,19 @@ public final class Hint implements Parcelable {
         }
 
         return builder.build();
+    }
+
+    /**
+     * Returns a {@link Credential.Builder} representation of the hint.
+     */
+    public Credential.Builder toCredentialBuilder(Context context) {
+        AuthenticationDomain authDomain = AuthenticationDomain.getSelfAuthDomain(context);
+        return new Credential.Builder(mId, mAuthMethod, authDomain)
+                .setDisplayName(mDisplayName)
+                .setDisplayPicture(mDisplayPictureUri)
+                .setPassword(mGeneratedPassword)
+                .setIdToken(mIdToken)
+                .setAdditionalProperties(getAdditionalProperties());
     }
 
     /**
@@ -254,6 +268,19 @@ public final class Hint implements Parcelable {
                 @NonNull String id,
                 @NonNull String authMethod) {
             this(id, new AuthenticationMethod(authMethod));
+        }
+
+        /**
+         * Starts the process of creating a hint using an already built hint.
+         */
+        public Builder(Hint hint) {
+            setIdentifier(hint.mId);
+            setAuthMethod(hint.mAuthMethod);
+            setDisplayName(hint.mDisplayName);
+            setDisplayPictureUri(hint.mDisplayPictureUri);
+            setGeneratedPassword(hint.mGeneratedPassword);
+            setIdToken(hint.mIdToken);
+            setAdditionalPropertiesFromProto(hint.mAdditionalProps);
         }
 
         /**

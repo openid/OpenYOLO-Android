@@ -15,14 +15,9 @@
 package org.openyolo.protocol;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.openyolo.protocol.TestConstants.ADDITIONAL_KEY;
-import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROPS;
-import static org.openyolo.protocol.TestConstants.ADDITIONAL_VALUE;
-import static org.openyolo.protocol.TestConstants.checkAdditionalProps;
-import static org.openyolo.protocol.TestConstants.checkAdditionalPropsFromProto;
+import static org.openyolo.protocol.TestConstants.ValidAdditionalProperties;
 
 import android.content.Intent;
-import com.google.protobuf.ByteString;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.openyolo.protocol.Protobufs.HintRetrieveResult.ResultCode;
@@ -75,11 +70,11 @@ public class HintRetrieveResultTest {
     public void buildSetAdditionalProperties() {
         HintRetrieveResult result = new HintRetrieveResult.Builder(
                 HintRetrieveResult.CODE_NO_HINTS_AVAILABLE)
-                .setAdditionalProperties(ADDITIONAL_PROPS)
+                .setAdditionalProperties(ValidAdditionalProperties.make())
                 .build();
 
         assertThat(result.getAdditionalProperties()).hasSize(1);
-        checkAdditionalProps(result.getAdditionalProperties());
+        ValidAdditionalProperties.assertEquals(result.getAdditionalProperties());
     }
 
     @Test
@@ -87,13 +82,13 @@ public class HintRetrieveResultTest {
         HintRetrieveResult result = new HintRetrieveResult.Builder(
                 HintRetrieveResult.CODE_HINT_SELECTED)
                 .setHint(HINT)
-                .setAdditionalProperties(ADDITIONAL_PROPS)
+                .setAdditionalProperties(ValidAdditionalProperties.make())
                 .build();
 
         Protobufs.HintRetrieveResult proto = result.toProtobuf();
         assertThat(proto.getResultCodeValue()).isEqualTo(ResultCode.HINT_SELECTED_VALUE);
         assertThat(proto.hasHint());
-        checkAdditionalPropsFromProto(proto.getAdditionalPropsMap());
+        ValidAdditionalProperties.assertEqualsForProto(proto.getAdditionalPropsMap());
     }
 
     @Test
@@ -103,13 +98,13 @@ public class HintRetrieveResultTest {
                 .setHint(Protobufs.Hint.newBuilder()
                         .setId(ALICE_ID)
                         .setAuthMethod(AuthenticationMethods.EMAIL.toProtobuf()))
-                .putAdditionalProps(ADDITIONAL_KEY, ByteString.copyFrom(ADDITIONAL_VALUE))
+                .putAllAdditionalProps(ValidAdditionalProperties.makeForProto())
                 .build();
 
         HintRetrieveResult result = HintRetrieveResult.fromProtobuf(proto);
         assertThat(result.getResultCode()).isEqualTo(HintRetrieveResult.CODE_HINT_SELECTED);
         assertThat(result.getHint()).isNotNull();
-        checkAdditionalProps(result.getAdditionalProperties());
+        ValidAdditionalProperties.assertEquals(result.getAdditionalProperties());
     }
 
     @Test
@@ -117,7 +112,7 @@ public class HintRetrieveResultTest {
         HintRetrieveResult result = new HintRetrieveResult.Builder(
                 HintRetrieveResult.CODE_HINT_SELECTED)
                 .setHint(HINT)
-                .setAdditionalProperties(ADDITIONAL_PROPS)
+                .setAdditionalProperties(ValidAdditionalProperties.make())
                 .build();
 
         Intent intent = result.toResultDataIntent();
@@ -127,6 +122,6 @@ public class HintRetrieveResultTest {
         HintRetrieveResult readResult = HintRetrieveResult.fromProtobufBytes(data);
         assertThat(readResult.getResultCode()).isEqualTo(HintRetrieveResult.CODE_HINT_SELECTED);
         assertThat(readResult.getHint()).isNotNull();
-        checkAdditionalProps(readResult.getAdditionalProperties());
+        ValidAdditionalProperties.assertEquals(readResult.getAdditionalProperties());
     }
 }

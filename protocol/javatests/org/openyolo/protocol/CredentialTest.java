@@ -23,7 +23,7 @@ import android.net.Uri;
 import android.os.Parcel;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.openyolo.protocol.TestFixtures.ValidFacebookCredential;
+import org.openyolo.protocol.TestConstants.ValidFacebookCredential;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -34,15 +34,21 @@ import org.robolectric.annotation.Config;
 @Config(manifest = Config.NONE)
 public class CredentialTest {
 
-    public static final String EMAIL_ID = "alice@example.com";
-    public static final String AUTH_DOMAIN_STR = "https://www.example.com";
-    public static final AuthenticationDomain AUTH_DOMAIN =
+    private static final String EMAIL_ID = "alice@example.com";
+    private static final String AUTH_DOMAIN_STR = "https://www.example.com";
+    private static final AuthenticationDomain AUTH_DOMAIN =
             new AuthenticationDomain(AUTH_DOMAIN_STR);
+    private static final String ID_TOKEN =
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NSIsImF1ZCI"
+                    + "6IlhZWi5jbGllbnQuaWQiLCJpc3MiOiJpZHAuZXhhbXBsZS5jb20iLCJlbWFpbCI"
+                    + "6ImFsaWNlQGV4YW1wbGUuY29tIiwibmFtZSI6IkFsaWNlIE1jVGVzdGVyc29uIiw"
+                    + "icGljdHVyZSI6Imh0dHBzOi8vcm9ib2hhc2gub3JnL2FsaWNlIn0.2-D7AZ1C7mv"
+                    + "dLRf6Q7aqH8Ah4rlK1uuHPSU2HPImtyk";
 
     @Test
     public void fromProtobuf_withValidCredential_returnsEquivalentCredential() throws Exception {
         Credential credential =
-                Credential.fromProtobuf(ValidFacebookCredential.INSTANCE.toProtobuf());
+                Credential.fromProtobuf(ValidFacebookCredential.make().toProtobuf());
 
         ValidFacebookCredential.assertEqualTo(credential);
     }
@@ -171,10 +177,10 @@ public class CredentialTest {
     @Test
     public void builderSetIdToken_validInput_shouldSucceed() {
         Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
-                .setIdToken(TestConstants.ALICE_ID_TOKEN)
+                .setIdToken(ID_TOKEN)
                 .build();
 
-        assertThat(cr.getIdToken()).isEqualTo(TestConstants.ALICE_ID_TOKEN);
+        assertThat(cr.getIdToken()).isEqualTo(ID_TOKEN);
     }
 
     @Test

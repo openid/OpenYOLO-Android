@@ -15,19 +15,12 @@
 package org.openyolo.protocol;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.openyolo.protocol.TestConstants.ADDITIONAL_KEY;
-import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROPS;
-import static org.openyolo.protocol.TestConstants.ADDITIONAL_VALUE;
-import static org.openyolo.protocol.TestConstants.checkAdditionalProps;
-import static org.openyolo.protocol.TestConstants.checkAdditionalPropsFromProto;
+import static org.openyolo.protocol.TestConstants.INVALID_PROTO_BYTES;
 
 import android.content.Intent;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.InvalidProtocolBufferException;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.openyolo.protocol.Protobufs.CredentialDeleteResult.ResultCode;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -44,65 +37,41 @@ public class CredentialDeleteResultTest {
                     .putAdditionalProps("", ByteString.copyFrom(new byte[0]))
                     .build();
 
-    private static final byte[] INVALID_PROTO_BYTES =
-            new byte[] { 1, 2, 3, 4, 5 };
+    private static final class ValidDeleteResult {
+        public static CredentialDeleteResult make() {
+            return new CredentialDeleteResult.Builder(
+                    CredentialDeleteResult.CODE_DELETED)
+                    .setAdditionalProperties(TestConstants.ValidAdditionalProperties.make())
+                    .build();
+        }
+
+        public static void assertEquals(CredentialDeleteResult result) {
+            assertThat(result.getResultCode()).isEqualTo(CredentialDeleteResult.CODE_DELETED);
+            TestConstants.ValidAdditionalProperties.assertEquals(result.getAdditionalProperties());
+        }
+    }
 
     @Test
     public void build() {
-        CredentialDeleteResult result = new CredentialDeleteResult.Builder(
-                CredentialDeleteResult.CODE_DELETED)
-                .setAdditionalProperties(ADDITIONAL_PROPS)
-                .build();
+        CredentialDeleteResult result = ValidDeleteResult.make();
 
-        assertThat(result.getResultCode()).isEqualTo(CredentialDeleteResult.CODE_DELETED);
-        checkAdditionalProps(result.getAdditionalProperties());
+        ValidDeleteResult.assertEquals(result);
     }
 
     @Test
-    public void toProtobuf() {
-        Protobufs.CredentialDeleteResult result = new CredentialDeleteResult.Builder(
-                CredentialDeleteResult.CODE_DELETED)
-                .setAdditionalProperties(ADDITIONAL_PROPS)
-                .build()
-                .toProtobuf();
+    public void toProtobuf_fromProtobuf_isEquivalent() throws Exception {
+        Protobufs.CredentialDeleteResult protobuf = ValidDeleteResult.make().toProtobuf();
+        CredentialDeleteResult result = CredentialDeleteResult.fromProtobuf(protobuf);
 
-        assertThat(result.getResultCodeValue()).isEqualTo(
-                Protobufs.CredentialDeleteResult.ResultCode.DELETED_VALUE);
-        checkAdditionalPropsFromProto(result.getAdditionalPropsMap());
+        ValidDeleteResult.assertEquals(result);
     }
 
     @Test
-    public void toResultIntentData() throws InvalidProtocolBufferException {
-        Intent resultData = new CredentialDeleteResult.Builder(
-                CredentialDeleteResult.CODE_DELETED)
-                .setAdditionalProperties(ADDITIONAL_PROPS)
-                .build()
-                .toResultDataIntent();
-
-        assertThat(resultData.hasExtra(ProtocolConstants.EXTRA_DELETE_RESULT)).isTrue();
-
-        byte[] resultBytes = resultData.getByteArrayExtra(ProtocolConstants.EXTRA_DELETE_RESULT);
-        Protobufs.CredentialDeleteResult result =
-                Protobufs.CredentialDeleteResult.parseFrom(resultBytes);
-
-        assertThat(result.getResultCodeValue()).isEqualTo(ResultCode.DELETED_VALUE);
-        checkAdditionalPropsFromProto(result.getAdditionalPropsMap());
-    }
-
-    @Test
-    public void fromResultIntentData() throws Exception {
-        byte[] resultBytes = Protobufs.CredentialDeleteResult.newBuilder()
-                .setResultCode(ResultCode.USER_REFUSED)
-                .putAdditionalProps(ADDITIONAL_KEY, ByteString.copyFrom(ADDITIONAL_VALUE))
-                .build()
-                .toByteArray();
-
-        Intent resultData = new Intent();
-        resultData.putExtra(ProtocolConstants.EXTRA_DELETE_RESULT, resultBytes);
-
+    public void toResultIntentData_fromResultIntentData_isEquivalent() throws Exception {
+        Intent resultData = ValidDeleteResult.make().toResultDataIntent();
         CredentialDeleteResult result = CredentialDeleteResult.fromResultIntentData(resultData);
-        assertThat(result.getResultCode()).isEqualTo(CredentialDeleteResult.CODE_USER_REFUSED);
-        checkAdditionalProps(result.getAdditionalProperties());
+
+        ValidDeleteResult.assertEquals(result);
     }
 
     @Test(expected=MalformedDataException.class)
@@ -137,18 +106,6 @@ public class CredentialDeleteResultTest {
         CredentialDeleteResult.fromResultIntentData(intent);
     }
 
-    @Test
-    public void fromProtobuf() throws Exception {
-        Protobufs.CredentialDeleteResult proto = Protobufs.CredentialDeleteResult.newBuilder()
-                .setResultCode(ResultCode.BAD_REQUEST)
-                .putAdditionalProps(ADDITIONAL_KEY, ByteString.copyFrom(ADDITIONAL_VALUE))
-                .build();
-
-        CredentialDeleteResult result = CredentialDeleteResult.fromProtobuf(proto);
-        assertThat(result.getResultCode()).isEqualTo(CredentialDeleteResult.CODE_BAD_REQUEST);
-        checkAdditionalProps(result.getAdditionalProperties());
-    }
-
     @Test(expected=MalformedDataException.class)
     public void fromProtobuf_invalidProtoData_throwsException() throws Exception {
         CredentialDeleteResult.fromProtobuf(INVALID_PROTO);
@@ -156,15 +113,10 @@ public class CredentialDeleteResultTest {
 
     @Test
     public void fromProtobufBytes() throws Exception {
-        byte[] protoBytes = Protobufs.CredentialDeleteResult.newBuilder()
-                .setResultCode(ResultCode.BAD_REQUEST)
-                .putAdditionalProps(ADDITIONAL_KEY, ByteString.copyFrom(ADDITIONAL_VALUE))
-                .build()
-                .toByteArray();
+        byte[] protoBytes = ValidDeleteResult.make().toProtobuf().toByteArray();
 
         CredentialDeleteResult result = CredentialDeleteResult.fromProtobufBytes(protoBytes);
-        assertThat(result.getResultCode()).isEqualTo(CredentialDeleteResult.CODE_BAD_REQUEST);
-        checkAdditionalProps(result.getAdditionalProperties());
+        ValidDeleteResult.assertEquals(result);
     }
 
     @SuppressWarnings("ConstantConditions")

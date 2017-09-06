@@ -23,7 +23,7 @@ import android.content.Intent;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.openyolo.protocol.TestFixtures.ValidProperties;
+import org.openyolo.protocol.TestConstants.ValidProperties;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.CollectionConverter;
 import org.robolectric.RobolectricTestRunner;

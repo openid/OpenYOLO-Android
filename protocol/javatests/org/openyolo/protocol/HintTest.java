@@ -18,32 +18,37 @@ package org.openyolo.protocol;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
-import android.net.Uri;
+import android.content.Context;
 import android.os.Parcel;
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.openyolo.protocol.TestConstants.ValidEmailHint;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
+/** Unit tests for {@link Hint}*/
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
-public class HintTest {
+public final class HintTest {
 
-    private static final String ALICE_ID = "alice@example.com";
-    private static final String ALICE_NAME = "Alice";
-    private static final String ALICE_DISPLAY_PICTURE_URI_STR = "https://avatars.example.com/alice";
-    private static final Uri ALICE_DISPLAY_PICTURE_URI = Uri.parse(ALICE_DISPLAY_PICTURE_URI_STR);
-    private static final String PASSWORD = "correctH0rseBatterySt4ple";
-    private static final String ID_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
-            + "eyJzdWIiOiJ5b2xvIn0."
-            + "BI1g9ns0shv6PKfwlhfPKwh5XzxQyg_el_35_wZbtsI";
+    private static final String ID = "coold00d@aol.gov";
+
+    Context mContext;
+
+    @Before
+    public void initializeMocks() throws Exception {
+        mContext = TestConstants.ValidApplication.install(RuntimeEnvironment.application);
+    }
 
     @Test
-    public void build_minimalData() {
-        Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL).build();
-        assertThat(hint.getIdentifier()).isEqualTo(ALICE_ID);
+    public void build_withRequiredParamsOnly() {
+        Hint hint = new Hint.Builder(ID, AuthenticationMethods.EMAIL).build();
+
+        assertThat(hint.getIdentifier()).isEqualTo(ID);
         assertThat(hint.getAuthenticationMethod()).isEqualTo(AuthenticationMethods.EMAIL);
         assertThat(hint.getDisplayName()).isNull();
         assertThat(hint.getDisplayPictureUri()).isNull();
@@ -72,7 +77,7 @@ public class HintTest {
     @Test(expected = IllegalArgumentException.class)
     public void build_nullAuthMethod_shouldThrowException() {
         new Hint.Builder(
-                ALICE_ID,
+                ID,
                 (AuthenticationMethod) null)
                 .build();
     }
@@ -81,7 +86,7 @@ public class HintTest {
     @Test(expected = IllegalArgumentException.class)
     public void build_nullAuthMethodStr_shouldThrowException() {
         new Hint.Builder(
-                ALICE_ID,
+                ID,
                 (String) null)
                 .build();
     }
@@ -89,137 +94,9 @@ public class HintTest {
     @Test(expected = IllegalArgumentException.class)
     public void build_emptyAuthMethodStr_shouldThrowException() {
         new Hint.Builder(
-                ALICE_ID,
+                ID,
                 "")
                 .build();
-    }
-
-    @Test
-    public void builderSetDisplayName() {
-        Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL)
-                .setDisplayName(ALICE_NAME)
-                .build();
-        assertThat(hint.getDisplayName()).isEqualTo(ALICE_NAME);
-    }
-
-    @Test
-    public void builderSetDisplayName_nullValue() {
-        Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL)
-                .setDisplayName(null)
-                .build();
-
-        assertThat(hint.getDisplayName()).isNull();
-    }
-
-    @Test
-    public void builderSetDisplayName_emptyValue() {
-        Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL)
-                .setDisplayName("")
-                .build();
-
-        assertThat(hint.getDisplayName()).isNull();
-    }
-
-    @Test
-    public void builderSetDisplayPictureUri() {
-        Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL)
-                .setDisplayPictureUri(ALICE_DISPLAY_PICTURE_URI)
-                .build();
-        assertThat(hint.getDisplayPictureUri()).isEqualTo(ALICE_DISPLAY_PICTURE_URI);
-    }
-
-    @Test
-    public void builderSetDisplayPictureUri_nullValue() {
-        Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL)
-                .setDisplayPictureUri((Uri) null)
-                .build();
-        assertThat(hint.getDisplayPictureUri()).isNull();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void builderSetDisplayPictureUri_nonHttp_shouldThrowException() {
-        Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL)
-                .setDisplayPictureUri(Uri.parse("gopher://hello"))
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test
-    public void builderSetDisplayPictureUriStr() {
-        Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL)
-                .setDisplayPictureUri(ALICE_DISPLAY_PICTURE_URI_STR)
-                .build();
-        assertThat(hint.getDisplayPictureUri().toString()).isEqualTo(ALICE_DISPLAY_PICTURE_URI_STR);
-    }
-
-    @Test
-    public void builderSetDisplayPictureUriStr_nullValue() {
-        Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL)
-                .setDisplayPictureUri((String) null)
-                .build();
-        assertThat(hint.getDisplayPictureUri()).isNull();
-    }
-
-    @Test
-    public void builderSetDisplayPictureUriStr_emptyValue() {
-        Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL)
-                .setDisplayPictureUri("")
-                .build();
-        assertThat(hint.getDisplayPictureUri()).isNull();
-    }
-
-    @Test
-    public void builderSetGeneratedPassword() {
-        Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL)
-                .setGeneratedPassword(PASSWORD)
-                .build();
-
-        assertThat(hint.getGeneratedPassword()).isEqualTo(PASSWORD);
-    }
-
-    @Test
-    public void builderSetGeneratedPassword_nullValue() {
-        Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL)
-                .setGeneratedPassword(null)
-                .build();
-
-        assertThat(hint.getGeneratedPassword()).isNull();
-    }
-
-    @Test
-    public void builderSetGeneratedPassword_emptyValue() {
-        Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL)
-                .setGeneratedPassword("")
-                .build();
-
-        assertThat(hint.getGeneratedPassword()).isNull();
-    }
-
-    @Test
-    public void builderSetIdToken() {
-        Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL)
-                .setIdToken(ID_TOKEN)
-                .build();
-
-        assertThat(hint.getIdToken()).isEqualTo(ID_TOKEN);
-    }
-
-    @Test
-    public void builderSetIdToken_nullValue() {
-        Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL)
-                .setIdToken(null)
-                .build();
-
-        assertThat(hint.getIdToken()).isNull();
-    }
-
-    @Test
-    public void builderSetIdToken_emptyValue() {
-        Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL)
-                .setIdToken(null)
-                .build();
-
-        assertThat(hint.getIdToken()).isNull();
     }
 
     @Test
@@ -229,7 +106,7 @@ public class HintTest {
 
         Map<String, byte[]> additionalProps = new HashMap<>();
         additionalProps.put(additionalKey, additionalValue);
-        Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL)
+        Hint hint = new Hint.Builder(ValidEmailHint.make())
                 .setAdditionalProperties(additionalProps)
                 .build();
 
@@ -239,76 +116,38 @@ public class HintTest {
     }
 
     @Test
-    public void toProtobuf() {
-        Hint hint = new Hint.Builder(
-                ALICE_ID,
-                AuthenticationMethods.EMAIL)
-                .setDisplayName(ALICE_NAME)
-                .setDisplayPictureUri(ALICE_DISPLAY_PICTURE_URI)
-                .setGeneratedPassword(PASSWORD)
-                .setIdToken(ID_TOKEN)
-                .build();
+    public void builder_withHintContructor_isEquivalent() {
+        Hint hint = new Hint.Builder(ValidEmailHint.make()).build();
 
-        Protobufs.Hint proto = hint.toProtobuf();
-        assertThat(proto.getId()).isEqualTo(ALICE_ID);
-        assertThat(proto.getAuthMethod().getUri())
-                .isEqualTo(AuthenticationMethods.EMAIL.toString());
-        assertThat(proto.getDisplayName()).isEqualTo(ALICE_NAME);
-        assertThat(proto.getDisplayPictureUri()).isEqualTo(ALICE_DISPLAY_PICTURE_URI_STR);
-        assertThat(proto.getGeneratedPassword()).isEqualTo(PASSWORD);
-        assertThat(proto.getIdToken()).isEqualTo(ID_TOKEN);
+        ValidEmailHint.assertEquals(hint);
     }
 
     @Test
-    public void fromProtobuf() throws Exception {
-        Protobufs.Hint proto = Protobufs.Hint.newBuilder()
-                .setId(ALICE_ID)
-                .setAuthMethod(AuthenticationMethods.EMAIL.toProtobuf())
-                .setDisplayName(ALICE_NAME)
-                .setDisplayPictureUri(ALICE_DISPLAY_PICTURE_URI_STR)
-                .setGeneratedPassword(PASSWORD)
-                .setIdToken(ID_TOKEN)
-                .build();
+    public void toProtobuf_isEquivalent() {
+        Protobufs.Hint proto = ValidEmailHint.make().toProtobuf();
 
+        ValidEmailHint.assertEquals(proto);
+    }
+
+    @Test
+    public void fromProtobuf_isEquivalent() throws Exception {
+        Protobufs.Hint proto = ValidEmailHint.make().toProtobuf();
         Hint hint = Hint.fromProtobuf(proto);
-        assertThat(hint.getIdentifier()).isEqualTo(ALICE_ID);
-        assertThat(hint.getAuthenticationMethod()).isEqualTo(AuthenticationMethods.EMAIL);
-        assertThat(hint.getDisplayName()).isEqualTo(ALICE_NAME);
-        assertThat(hint.getDisplayPictureUri()).isEqualTo(ALICE_DISPLAY_PICTURE_URI);
-        assertThat(hint.getGeneratedPassword()).isEqualTo(PASSWORD);
-        assertThat(hint.getIdToken()).isEqualTo(ID_TOKEN);
+
+        ValidEmailHint.assertEquals(hint);
     }
 
     @Test
-    public void fromProtobufBytes() throws Exception {
-        Protobufs.Hint proto = Protobufs.Hint.newBuilder()
-                .setId(ALICE_ID)
-                .setAuthMethod(AuthenticationMethods.EMAIL.toProtobuf())
-                .setDisplayName(ALICE_NAME)
-                .setDisplayPictureUri(ALICE_DISPLAY_PICTURE_URI_STR)
-                .setGeneratedPassword(PASSWORD)
-                .setIdToken(ID_TOKEN)
-                .build();
-
+    public void fromProtobufBytes_isEquivalent() throws Exception {
+        Protobufs.Hint proto = ValidEmailHint.make().toProtobuf();
         Hint hint = Hint.fromProtobufBytes(proto.toByteArray());
-        assertThat(hint.getIdentifier()).isEqualTo(ALICE_ID);
-        assertThat(hint.getAuthenticationMethod()).isEqualTo(AuthenticationMethods.EMAIL);
-        assertThat(hint.getDisplayName()).isEqualTo(ALICE_NAME);
-        assertThat(hint.getDisplayPictureUri()).isEqualTo(ALICE_DISPLAY_PICTURE_URI);
-        assertThat(hint.getGeneratedPassword()).isEqualTo(PASSWORD);
-        assertThat(hint.getIdToken()).isEqualTo(ID_TOKEN);
+
+        ValidEmailHint.assertEquals(hint);
     }
 
     @Test
     public void writeToAndReadFromParcel() {
-        Hint hint = new Hint.Builder(
-                ALICE_ID,
-                AuthenticationMethods.EMAIL)
-                .setDisplayName(ALICE_NAME)
-                .setDisplayPictureUri(ALICE_DISPLAY_PICTURE_URI)
-                .setGeneratedPassword(PASSWORD)
-                .setIdToken(ID_TOKEN)
-                .build();
+        Hint hint = ValidEmailHint.make();
 
         Parcel p = Parcel.obtain();
         try {
@@ -316,20 +155,22 @@ public class HintTest {
             p.setDataPosition(0);
             Hint readHint = Hint.CREATOR.createFromParcel(p);
 
-            assertThat(hint.getIdentifier()).isEqualTo(ALICE_ID);
-            assertThat(hint.getAuthenticationMethod()).isEqualTo(AuthenticationMethods.EMAIL);
-            assertThat(hint.getDisplayName()).isEqualTo(ALICE_NAME);
-            assertThat(hint.getDisplayPictureUri()).isEqualTo(ALICE_DISPLAY_PICTURE_URI);
-            assertThat(hint.getGeneratedPassword()).isEqualTo(PASSWORD);
-            assertThat(hint.getIdToken()).isEqualTo(ID_TOKEN);
+            ValidEmailHint.assertEquals(readHint);
         } finally {
             p.recycle();
         }
     }
 
     @Test
+    public void toCredentialBuilder_isEquivalent() {
+        Credential credential = ValidEmailHint.make().toCredentialBuilder(mContext).build();
+
+        ValidEmailHint.assertEquals(mContext, credential);
+    }
+
+    @Test
     public void describeContents() {
-        Hint hint = new Hint.Builder(ALICE_ID, AuthenticationMethods.EMAIL).build();
+        Hint hint = ValidEmailHint.make();
         assertThat(hint.describeContents()).isEqualTo(0);
     }
 }

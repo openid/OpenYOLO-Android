@@ -19,6 +19,7 @@ package org.openyolo.protocol;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
+
 import android.os.Parcel;
 import java.util.Collections;
 import java.util.HashSet;
@@ -28,6 +29,8 @@ import org.junit.runner.RunWith;
 import org.openyolo.protocol.internal.ClientVersionUtil;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.openyolo.protocol.TestConstants.ValidTokenProviderMap;
+import org.openyolo.protocol.TestConstants.ValidAdditionalProperties;
 
 /**
  * Tests for {@link CredentialRetrieveRequest}.
@@ -40,14 +43,14 @@ public class CredentialRetrieveRequestTest {
     public void build_validInputs_shouldSucceed() {
         CredentialRetrieveRequest request = new CredentialRetrieveRequest.Builder(
                 AuthenticationMethods.EMAIL)
-                .setTokenProviders(TestConstants.createTokenProviderMap())
-                .setAdditionalProperties(TestConstants.ADDITIONAL_PROPS)
+                .setTokenProviders(ValidTokenProviderMap.make())
+                .setAdditionalProperties(ValidAdditionalProperties.make())
                 .build();
 
         assertThat(request.getAuthenticationMethods()).hasSize(1);
         assertThat(request.getAuthenticationMethods()).contains(AuthenticationMethods.EMAIL);
-        TestConstants.checkTokenProviderMap(request.getTokenProviders());
-        TestConstants.checkAdditionalProps(request.getAdditionalProperties());
+        ValidTokenProviderMap.assertEquals(request.getTokenProviders());
+        ValidAdditionalProperties.assertEquals(request.getAdditionalProperties());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -64,8 +67,8 @@ public class CredentialRetrieveRequestTest {
     public void testWriteAndRead() {
         CredentialRetrieveRequest request = new CredentialRetrieveRequest.Builder(
                 AuthenticationMethods.EMAIL)
-                .setTokenProviders(TestConstants.createTokenProviderMap())
-                .setAdditionalProperties(TestConstants.ADDITIONAL_PROPS)
+                .setTokenProviders(ValidTokenProviderMap.make())
+                .setAdditionalProperties(ValidAdditionalProperties.make())
                 .setRequireUserMediation(true)
                 .build();
 
@@ -77,8 +80,8 @@ public class CredentialRetrieveRequestTest {
             assertThat(deserialized).isNotNull();
             assertThat(deserialized.getAuthenticationMethods())
                     .isEqualTo(request.getAuthenticationMethods());
-            TestConstants.checkTokenProviderMap(deserialized.getTokenProviders());
-            TestConstants.checkAdditionalProps(deserialized.getAdditionalProperties());
+            ValidTokenProviderMap.assertEquals(deserialized.getTokenProviders());
+            ValidAdditionalProperties.assertEquals(deserialized.getAdditionalProperties());
             assertThat(deserialized.getRequireUserMediation()).isTrue();
         } finally {
             p.recycle();
