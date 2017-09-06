@@ -16,26 +16,26 @@ package org.openyolo.api.persistence.internal;
 
 import android.content.Context;
 
-import org.openyolo.api.persistence.DeviceState;
+import org.openyolo.api.persistence.AppSettings;
 
 /**
- * The default implementation of {@link DeviceState}.
+ * The default implementation of {@link AppSettings}.
  */
-public final class DeviceStateImpl implements DeviceState {
+public final class AppSettingsImpl implements AppSettings {
 
-    private static final String SETTING_NAME_SPACE = "DeviceState";
+    private static final String SETTING_NAME_SPACE = "AppSettings";
     private static final String KEY_IS_AUTO_SIGN_IN_DISABLED = "is_auto_sign_in_disabled";
 
     private final SettingsFactory.BooleanSetting mIsAutoSignInDisabled;
 
     /**
-     * Returns a new instance of {@link DeviceStateImpl}.
+     * Returns a new instance of {@link AppSettingsImpl}.
      */
-    public static DeviceState getInstance(Context context) {
-        return new DeviceStateImpl(SettingsFactoryImpl.getInstance(context, SETTING_NAME_SPACE));
+    public static AppSettings getInstance(Context context) {
+        return new AppSettingsImpl(SettingsFactoryImpl.getInstance(context, SETTING_NAME_SPACE));
     }
 
-    private DeviceStateImpl(SettingsFactory settingsFactory) {
+    private AppSettingsImpl(SettingsFactory settingsFactory) {
         mIsAutoSignInDisabled =
                 settingsFactory.makeBoolean(KEY_IS_AUTO_SIGN_IN_DISABLED, false /* defaultValue */);
     }

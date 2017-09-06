@@ -47,7 +47,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.openyolo.api.persistence.DeviceState;
+import org.openyolo.api.persistence.AppSettings;
 import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.AuthenticationMethod;
 import org.openyolo.protocol.AuthenticationMethods;
@@ -104,7 +104,7 @@ public class CredentialClientTest {
     private KnownProviders mockKnownProviders;
 
     @Mock
-    private DeviceState mockDeviceState;
+    private AppSettings mockDeviceState;
 
     private CredentialClient credentialClient;
     private Credential testCredential;

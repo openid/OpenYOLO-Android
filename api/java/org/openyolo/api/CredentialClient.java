@@ -47,8 +47,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.openyolo.api.persistence.DeviceState;
-import org.openyolo.api.persistence.internal.DeviceStateImpl;
+import org.openyolo.api.persistence.AppSettings;
+import org.openyolo.api.persistence.internal.AppSettingsImpl;
 import org.openyolo.api.ui.ProviderPickerActivity;
 import org.openyolo.protocol.Credential;
 import org.openyolo.protocol.CredentialDeleteRequest;
@@ -101,14 +101,14 @@ public class CredentialClient {
 
     private final Context mApplicationContext;
     private final BroadcastQueryClient mQueryClient;
-    private final DeviceState mDeviceState;
+    private final AppSettings mDeviceState;
 
     /**
      * Returns a new credential client instance configured with the default options.
      */
     public static CredentialClient getInstance(@NonNull Context context) {
         CredentialClientOptions options =
-                new CredentialClientOptions.Builder(DeviceStateImpl.getInstance(context)).build();
+                new CredentialClientOptions.Builder(AppSettingsImpl.getInstance(context)).build();
 
         return getInstance(context, options);
     }

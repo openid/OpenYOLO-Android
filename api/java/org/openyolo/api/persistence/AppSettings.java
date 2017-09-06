@@ -14,8 +14,10 @@
 
 package org.openyolo.api.persistence;
 
-/** Collection of per application per device settings that should be persisted. */
-public interface DeviceState {
+/**
+ * Interface for the collection persisted settings. Settings should beper application per device.
+ */
+public interface AppSettings {
 
     /**
      * Returns {@code true} if the current application has disabled automatically signing in.

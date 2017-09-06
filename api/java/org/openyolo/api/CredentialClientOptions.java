@@ -19,45 +19,45 @@ import static org.valid4j.Validation.validate;
 
 import android.support.annotation.NonNull;
 
-import org.openyolo.api.persistence.DeviceState;
+import org.openyolo.api.persistence.AppSettings;
 
 
 /**
  * Context object that may be used to configure a {@link CredentialClient} instance.
  */
 public class CredentialClientOptions {
-    private final DeviceState mDeviceState;
+    private final AppSettings mAppSettings;
 
     private CredentialClientOptions(Builder builder) {
-        mDeviceState = builder.mDeviceState;
+        mAppSettings = builder.mAppSettings;
     }
 
     @NonNull
-    DeviceState getDeviceState() {
-        return mDeviceState;
+    AppSettings getDeviceState() {
+        return mAppSettings;
     }
 
     /**
      * Builder for {@link CredentialClientOptions}.
      */
     public static final class Builder {
-        private DeviceState mDeviceState;
+        private AppSettings mAppSettings;
 
         /**
          * Default builder for {@link CredentialClientOptions}.
          */
-        public Builder(@NonNull DeviceState deviceState) {
+        public Builder(@NonNull AppSettings deviceState) {
             setDeviceState(deviceState);
         }
 
         /**
-         * Specifies the {@link DeviceState} implementation that will be used by the
+         * Specifies the {@link AppSettings} implementation that will be used by the
          * {@link CredentialClient}.
          */
-        public Builder setDeviceState(@NonNull DeviceState deviceState) {
-            validate(deviceState, notNullValue(), NullPointerException.class);
+        public Builder setDeviceState(@NonNull AppSettings appSettings) {
+            validate(appSettings, notNullValue(), NullPointerException.class);
 
-            this.mDeviceState = deviceState;
+            this.mAppSettings = appSettings;
             return this;
         }
 
