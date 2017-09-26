@@ -227,7 +227,7 @@ public final class TestConstants {
             assertThat(hint.getIdentifier()).isEqualTo(ALICE_ID);
             assertThat(hint.getAuthenticationMethod()).isEqualTo(AuthenticationMethods.EMAIL);
             assertThat(hint.getDisplayName()).isEqualTo(ALICE_NAME);
-            assertThat(hint.getDisplayPictureUri()).isEqualTo(ALICE_DISPLAY_PICTURE_URI);
+            assertThat(hint.getDisplayPicture()).isEqualTo(ALICE_DISPLAY_PICTURE_URI);
             assertThat(hint.getGeneratedPassword()).isEqualTo(GENERATED_PASSWORD);
             assertThat(hint.getIdToken()).isEqualTo(ID_TOKEN);
         }

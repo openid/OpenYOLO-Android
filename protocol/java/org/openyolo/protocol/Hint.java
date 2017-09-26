@@ -180,7 +180,7 @@ public final class Hint implements Parcelable {
      * A suggested profile picture for accounts created using this hint. if available.
      */
     @Nullable
-    public Uri getDisplayPictureUri() {
+    public Uri getDisplayPicture() {
         return mDisplayPictureUri;
     }
 

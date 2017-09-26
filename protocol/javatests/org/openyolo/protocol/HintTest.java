@@ -51,7 +51,7 @@ public final class HintTest {
         assertThat(hint.getIdentifier()).isEqualTo(ID);
         assertThat(hint.getAuthenticationMethod()).isEqualTo(AuthenticationMethods.EMAIL);
         assertThat(hint.getDisplayName()).isNull();
-        assertThat(hint.getDisplayPictureUri()).isNull();
+        assertThat(hint.getDisplayPicture()).isNull();
         assertThat(hint.getIdToken()).isNull();
         assertThat(hint.getAdditionalProperties()).isEmpty();
     }

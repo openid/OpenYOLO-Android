@@ -219,7 +219,7 @@ public final class CredentialView extends LinearLayout {
         copyIfNotNull(hint.getIdentifier(), mIdField);
         copyIfNotNull(hint.getGeneratedPassword(), mPasswordField);
         copyIfNotNull(hint.getDisplayName(), mDisplayNameField);
-        copyIfNotNull(hint.getDisplayPictureUri(), mProfilePictureField);
+        copyIfNotNull(hint.getDisplayPicture(), mProfilePictureField);
         copyIfNotNull(hint.getAuthenticationMethod(), mAuthenticationMethodField);
     }
 

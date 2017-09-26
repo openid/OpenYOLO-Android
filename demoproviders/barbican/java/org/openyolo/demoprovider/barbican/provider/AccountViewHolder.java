@@ -60,7 +60,7 @@ public final class AccountViewHolder extends RecyclerView.ViewHolder {
                 hint.getIdentifier(),
                 hint.getAuthenticationMethod(),
                 hint.getDisplayName(),
-                hint.getDisplayPictureUri(),
+                hint.getDisplayPicture(),
                 hint,
                 clickHandler);
     }

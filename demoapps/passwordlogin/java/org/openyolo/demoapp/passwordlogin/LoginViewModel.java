@@ -272,7 +272,7 @@ public final class LoginViewModel extends ObservableViewModel {
                 String displayName = normalizeDisplayName(hint.getDisplayName());
                 String displayPicture = normalizeDisplayPictureUri(
                         hint.getIdentifier(),
-                        hint.getDisplayPictureUri());
+                        hint.getDisplayPicture());
                 String hintPassword = hint.getGeneratedPassword();
 
 
