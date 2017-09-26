@@ -15,13 +15,13 @@
 package org.openyolo.protocol.internal;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.valid4j.Assertive.ensure;
 import static org.valid4j.Assertive.require;
+import static org.valid4j.Validation.validate;
 
 import android.content.Intent;
+import android.os.BadParcelableException;
 import android.os.Parcel;
 import android.support.annotation.NonNull;
-
 import com.google.protobuf.ByteString;
 
 /**
@@ -58,18 +58,26 @@ public final class IntentUtil {
 
     /**
      * Deserializes an intent from the provided bytes array.
+     * @throws BadParcelableException if the intent is null, not present, or malformed.
      */
     @NonNull
-    public static Intent fromBytes(@NonNull byte[] intentBytes) {
+    public static Intent fromBytes(@NonNull byte[] intentBytes) throws BadParcelableException {
         require(intentBytes, notNullValue());
 
-        Parcel parcel = Parcel.obtain();
-        parcel.unmarshall(intentBytes, 0, intentBytes.length);
-        parcel.setDataPosition(0);
-        Intent intent = parcel.readParcelable(IntentUtil.class.getClassLoader());
-        parcel.recycle();
+        Intent intent;
 
-        ensure(intent, notNullValue());
+        try {
+            Parcel parcel = Parcel.obtain();
+            parcel.unmarshall(intentBytes, 0, intentBytes.length);
+            parcel.setDataPosition(0);
+            intent = parcel.readParcelable(IntentUtil.class.getClassLoader());
+            parcel.recycle();
+        } catch (Exception ex) {
+            throw new BadParcelableException(ex);
+        }
+
+        validate(intent, notNullValue(), BadParcelableException.class);
+
         return intent;
     }
 }

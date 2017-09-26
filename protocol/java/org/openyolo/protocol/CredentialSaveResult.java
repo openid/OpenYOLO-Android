@@ -45,6 +45,12 @@ public final class CredentialSaveResult {
             Protobufs.CredentialSaveResult.ResultCode.UNSPECIFIED_VALUE;
 
     /**
+     * Indicates that no provider was available and able to handle the associated request.
+     */
+    public static final int CODE_NO_PROVIDER_AVAILABLE =
+            Protobufs.CredentialSaveResult.ResultCode.NO_PROVIDER_AVAILABLE_VALUE;
+
+    /**
      * Indicates that the credential request sent to the provider was malformed.
      */
     public static final int CODE_BAD_REQUEST =
@@ -83,8 +89,15 @@ public final class CredentialSaveResult {
     /**
      * Pre-built save result for an unspecified outcome. Carries no additional properties.
      */
-    public static final CredentialSaveResult UNSPECIFIED =
+    public static final CredentialSaveResult UNKNOWN =
             new CredentialSaveResult.Builder(CODE_UNKNOWN).build();
+
+    /**
+     * Pre-built save result that indicates that no provider was available and able to handle the
+     * associated request.
+     */
+    public static final CredentialSaveResult NO_PROVIDER_AVAILABLE =
+            new CredentialSaveResult.Builder(CODE_NO_PROVIDER_AVAILABLE).build();
 
     /**
      * Pre-built save result that indicates the credential was saved. Carries no additional

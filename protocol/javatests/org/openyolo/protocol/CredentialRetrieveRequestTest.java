@@ -91,7 +91,7 @@ public class CredentialRetrieveRequestTest {
     @Test
     public void forAuthenticationMethods_withValidAuthenticationMethodsUsingVarArgs_returnsValidRequest() {
         CredentialRetrieveRequest request = CredentialRetrieveRequest
-            .forAuthenticationMethods(AuthenticationMethods.GOOGLE, AuthenticationMethods.FACEBOOK);
+            .fromAuthMethods(AuthenticationMethods.GOOGLE, AuthenticationMethods.FACEBOOK);
 
         assertThat(request.getAuthenticationMethods())
             .containsOnly(AuthenticationMethods.GOOGLE, AuthenticationMethods.FACEBOOK);
@@ -105,7 +105,7 @@ public class CredentialRetrieveRequestTest {
             AuthenticationMethods.GOOGLE,
             AuthenticationMethods.FACEBOOK);
 
-        CredentialRetrieveRequest request = CredentialRetrieveRequest.forAuthenticationMethods(authenticationMethods);
+        CredentialRetrieveRequest request = CredentialRetrieveRequest.fromAuthMethods(authenticationMethods);
 
         assertThat(request.getAuthenticationMethods())
             .containsOnly(AuthenticationMethods.GOOGLE, AuthenticationMethods.FACEBOOK);
@@ -138,7 +138,7 @@ public class CredentialRetrieveRequestTest {
                         .build());
 
         try {
-            CredentialRetrieveRequest request = CredentialRetrieveRequest.forAuthenticationMethods(
+            CredentialRetrieveRequest request = CredentialRetrieveRequest.fromAuthMethods(
                     AuthenticationMethods.EMAIL);
             Protobufs.CredentialRetrieveRequest proto = request.toProtocolBuffer();
             assertThat(proto.hasClientVersion());

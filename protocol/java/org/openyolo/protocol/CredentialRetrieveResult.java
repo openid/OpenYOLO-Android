@@ -25,6 +25,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import org.openyolo.protocol.Protobufs.CredentialRetrieveResult.ResultCode;
 import org.openyolo.protocol.internal.AdditionalPropertiesUtil;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.CollectionConverter;
@@ -44,6 +45,11 @@ public final class CredentialRetrieveResult {
      */
     public static final int CODE_UNKNOWN =
             Protobufs.CredentialRetrieveResult.ResultCode.UNSPECIFIED_VALUE;
+
+    /**
+     * Indicates that no provider was available and able to handle the associated request.
+     */
+    public static final int CODE_NO_PROVIDER_AVAILABLE = ResultCode.NO_PROVIDER_AVAILABLE_VALUE;
 
     /**
      * Indicates that the credential request sent to the provider was malformed.
@@ -78,6 +84,20 @@ public final class CredentialRetrieveResult {
      */
     public static final int CODE_USER_CANCELED =
             Protobufs.CredentialRetrieveResult.ResultCode.USER_CANCELED_VALUE;
+
+    /**
+     * Pre-built result that indicates that the provider returned a response that could not be
+     * interpreted.
+     */
+    public static final CredentialRetrieveResult UNKNOWN =
+            new CredentialRetrieveResult.Builder(CODE_UNKNOWN).build();
+
+    /**
+     * Pre-built result that indicates that no provider was available and able to handle the
+     * associated request.
+     */
+    public static final CredentialRetrieveResult NO_PROVIDER_AVAILABLE =
+            new CredentialRetrieveResult.Builder(CODE_NO_PROVIDER_AVAILABLE).build();
 
     /**
      * Pre-built result that indicates the request was malformed. Carries no

@@ -64,7 +64,7 @@ public class SaveAfterUnlockActivity extends AppCompatActivity {
                     runOnUiThread(new SendResultRunnable(CredentialSaveResult.SAVED));
                 } catch (IOException e) {
                     Log.w(LOG_TAG, "Failed to store credential after save", e);
-                    runOnUiThread(new SendResultRunnable(CredentialSaveResult.UNSPECIFIED));
+                    runOnUiThread(new SendResultRunnable(CredentialSaveResult.UNKNOWN));
                 }
 
                 client.disconnect(SaveAfterUnlockActivity.this);

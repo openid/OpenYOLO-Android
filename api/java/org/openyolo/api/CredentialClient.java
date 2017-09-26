@@ -15,7 +15,6 @@
 package org.openyolo.api;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.openyolo.protocol.ProtocolConstants.CREDENTIAL_DATA_TYPE;
 import static org.openyolo.protocol.ProtocolConstants.DELETE_CREDENTIAL_ACTION;
 import static org.openyolo.protocol.ProtocolConstants.EXTRA_DELETE_REQUEST;
 import static org.openyolo.protocol.ProtocolConstants.EXTRA_HINT_REQUEST;
@@ -37,19 +36,15 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
-import com.google.bbq.BroadcastQueryClient;
-import com.google.bbq.QueryCallback;
-import com.google.bbq.QueryResponse;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-
+import org.openyolo.api.internal.ActivityResult;
+import org.openyolo.api.internal.CredentialRetrieveActivity;
+import org.openyolo.api.internal.FinishWithResultActivity;
+import org.openyolo.api.internal.ProviderPickerActivity;
 import org.openyolo.api.persistence.AppSettings;
 import org.openyolo.api.persistence.internal.AppSettingsImpl;
-import org.openyolo.api.ui.ProviderPickerActivity;
 import org.openyolo.protocol.Credential;
 import org.openyolo.protocol.CredentialDeleteRequest;
 import org.openyolo.protocol.CredentialDeleteResult;
@@ -60,10 +55,7 @@ import org.openyolo.protocol.CredentialSaveResult;
 import org.openyolo.protocol.HintRetrieveRequest;
 import org.openyolo.protocol.HintRetrieveResult;
 import org.openyolo.protocol.MalformedDataException;
-import org.openyolo.protocol.Protobufs;
-import org.openyolo.protocol.Protobufs.CredentialRetrieveBbqResponse;
-import org.openyolo.protocol.RetrieveBbqResponse;
-import org.openyolo.protocol.internal.IntentUtil;
+
 
 /**
  * The primary way of interacting with OpenYOLO credential providers. The client is light weight
@@ -100,7 +92,6 @@ public class CredentialClient {
     private static final String LOG_TAG = "CredentialClient";
 
     private final Context mApplicationContext;
-    private final BroadcastQueryClient mQueryClient;
     private final AppSettings mDeviceState;
 
     /**
@@ -120,34 +111,74 @@ public class CredentialClient {
     public static CredentialClient getInstance(
             @NonNull Context context,
             @NonNull CredentialClientOptions options) {
-        return new CredentialClient(context, BroadcastQueryClient.getInstance(context), options);
+        return new CredentialClient(context, options);
     }
 
     @VisibleForTesting
     CredentialClient(
             @NonNull Context context,
-            @NonNull BroadcastQueryClient broadcastQueryClient,
             @NonNull CredentialClientOptions options) {
         validate(context, notNullValue(), NullPointerException.class);
-        validate(broadcastQueryClient, notNullValue(), NullPointerException.class);
         validate(options, notNullValue(), NullPointerException.class);
 
         mApplicationContext = context.getApplicationContext();
-        mQueryClient = broadcastQueryClient;
         mDeviceState = options.getDeviceState();
     }
 
     /**
-     * Provides an intent to request a login hint. This will target the user's preferred credential
-     * provider, if this can be determined. If no providers are available, {@code null} is
-     * returned.
+     * Provides an Activity intent to request any available credentials from the credential
+     * providers on the device.
+     *
+     * Launch the returned intent via
+     * {@link android.app.Activity#startActivityForResult(Intent, int)} and extract the result via
+     * {@link #getCredentialRetrieveResult(Intent)} using the Intent data received in the associated
+     * {@link android.app.Activity#onActivityResult(int, int, Intent)} callback.
+     *
+     * <pre>{@code
+     * CredentialClient client = CredentialClient.getInstance(getContext());
+     * // ...
+     *
+     * CredentialRetrieveRequest request  =
+     *     CredentialRetrieveRequest.of(AuthenticationMethods.EMAIL, AuthenticationMethods.GOOGLE);
+     * Intent retrieveCredentialIntent = client.getCredentialRetrieveIntent(request);
+     * startActivityForResult(retrieveCredentialIntent, RC_RETRIEVE_CREDENTIAL);
+     *
+     * // ...
+     * @Override
+     * public void onActivityResult(int requestCode, int resultCode, Intent data) {
+     *     super.onActivityResult(requestCode, resultCode, data);
+     *     if (RC_RETRIEVE_CREDENTIAL == requestCode) {
+     *        CredentialRetrieveResult result = client.getCredentialRetrieveResult(data);
+     *        // handle result ...
+     *     }
+     * }
+     * }</pre>
+     *
+     * @see #getCredentialRetrieveResult(Intent)
      */
-    @Nullable
+    public Intent getCredentialRetrieveIntent(CredentialRetrieveRequest request) {
+        if (mDeviceState.isAutoSignInDisabled()) {
+            request = new CredentialRetrieveRequest.Builder(request)
+                    .setRequireUserMediation(true)
+                    .build();
+        }
+
+        return CredentialRetrieveActivity.createIntent(mApplicationContext, request);
+    }
+
+    /**
+     * Provides an intent to request a login hint. This will target the user's preferred credential
+     * provider, if this can be determined.
+     */
     public Intent getHintRetrieveIntent(final HintRetrieveRequest request) {
         List<ComponentName> hintProviders = findProviders(HINT_CREDENTIAL_ACTION);
 
         if (hintProviders.isEmpty()) {
-            return null;
+            ActivityResult result = ActivityResult.of(
+                    HintRetrieveResult.CODE_NO_PROVIDER_AVAILABLE,
+                    HintRetrieveResult.NO_PROVIDER_AVAILABLE.toResultDataIntent());
+
+            return FinishWithResultActivity.createIntent(mApplicationContext, result);
         }
 
         byte[] encodedRequest = request.toProtocolBuffer().toByteArray();
@@ -168,27 +199,6 @@ public class CredentialClient {
     }
 
     /**
-     * Requests and retrieves any available credentials from the credential providers on the device.
-     * @param request  Properties of the credential request
-     * @param callback Handler for the result of the credential request.
-     */
-    public void retrieve(
-            CredentialRetrieveRequest request,
-            final RetrieveCallback callback) {
-
-        if (mDeviceState.isAutoSignInDisabled()) {
-            request = new CredentialRetrieveRequest.Builder(request)
-                    .setRequireUserMediation(true)
-                    .build();
-        }
-
-        mQueryClient.queryFor(
-                CREDENTIAL_DATA_TYPE,
-                request.toProtocolBuffer(),
-                new CredentialRetrieveQueryCallback(callback));
-    }
-
-    /**
      * Provides an intent to save the provided credential. If no compatible credential providers
      * exist on the device, {@code null} will be returned. The intent should be started with a
      * call to
@@ -197,12 +207,15 @@ public class CredentialClient {
      * <p>If the credential is successfully saved, {@link android.app.Activity#RESULT_OK} will
      * be returned. Otherwise, {@link android.app.Activity#RESULT_CANCELED} will be returned.
      */
-    @Nullable
     public Intent getSaveIntent(final CredentialSaveRequest saveRequest) {
         List<ComponentName> saveProviders = findProviders(SAVE_CREDENTIAL_ACTION);
 
         if (saveProviders.isEmpty()) {
-            return null;
+            ActivityResult result = ActivityResult.of(
+                    CredentialSaveResult.CODE_NO_PROVIDER_AVAILABLE,
+                    CredentialSaveResult.NO_PROVIDER_AVAILABLE.toResultDataIntent());
+
+            return FinishWithResultActivity.createIntent(mApplicationContext, result);
         }
 
         byte[] encodedSaveRequest = saveRequest.toProtocolBuffer().toByteArray();
@@ -235,14 +248,17 @@ public class CredentialClient {
      * to {@link android.app.Activity#onActivityResult(int, int, android.content.Intent)}, and
      * can be extracted by calling {@link #getDeleteResult(Intent)}.
      */
-    @Nullable
     public Intent getDeleteIntent(@NonNull Credential credentialToDelete) {
         require(credentialToDelete, notNullValue());
         List<ComponentName> deleteProviders =
                 findProviders(DELETE_CREDENTIAL_ACTION);
 
         if (deleteProviders.isEmpty()) {
-            return null;
+            ActivityResult result = ActivityResult.of(
+                    CredentialDeleteResult.CODE_NO_PROVIDER_AVAILABLE,
+                    CredentialDeleteResult.NO_PROVIDER_AVAILABLE.toResultDataIntent());
+
+            return FinishWithResultActivity.createIntent(mApplicationContext, result);
         }
 
         CredentialDeleteRequest request =
@@ -511,63 +527,5 @@ public class CredentialClient {
         }
 
         return providers;
-    }
-
-    private class CredentialRetrieveQueryCallback implements QueryCallback {
-
-        private final RetrieveCallback mCallback;
-
-        CredentialRetrieveQueryCallback(RetrieveCallback callback) {
-            mCallback = callback;
-        }
-
-        @Override
-        public void onResponse(long queryId, List<QueryResponse> queryResponses) {
-            ArrayList<Intent> retrieveIntents = new ArrayList<>();
-            Map<String, CredentialRetrieveBbqResponse> protoResponses = new HashMap<>();
-            for (QueryResponse queryResponse : queryResponses) {
-                Protobufs.CredentialRetrieveBbqResponse response;
-                try {
-                    response = Protobufs.CredentialRetrieveBbqResponse.parseFrom(
-                            queryResponse.responseMessage);
-                } catch (IOException e) {
-                    Log.w(LOG_TAG, "Failed to decode credential retrieve response");
-                    continue;
-                }
-
-                protoResponses.put(queryResponse.responderPackage, response);
-
-                if (!response.getRetrieveIntent().isEmpty()) {
-                    // TODO: handle failure to decode retrieve intent gracefully
-                    // (i.e. ignore the response)
-                    Intent retrieveIntent =
-                            IntentUtil.fromBytes(response.getRetrieveIntent().toByteArray());
-
-                    if (!queryResponse.responderPackage.equals(
-                            retrieveIntent.getComponent().getPackageName())) {
-                        Log.w(LOG_TAG, "Package mismatch between provider and retrieve intent");
-                        continue;
-                    }
-
-                    retrieveIntents.add(retrieveIntent);
-                }
-            }
-
-            Intent retrieveIntent = null;
-            if (retrieveIntents.size() == 1) {
-                retrieveIntent = retrieveIntents.get(0);
-            } else if (retrieveIntents.size() > 1) {
-                retrieveIntent = ProviderPickerActivity.createRetrieveIntent(
-                        mApplicationContext,
-                        retrieveIntents);
-            }
-
-            mCallback.onComplete(
-                    new RetrieveBbqResponse.Builder()
-                            .setProtoResponses(protoResponses)
-                            .setRetrieveIntent(retrieveIntent)
-                            .build(),
-                    null);
-        }
     }
 }

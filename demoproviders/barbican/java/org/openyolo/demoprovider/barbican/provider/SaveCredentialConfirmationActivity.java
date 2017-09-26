@@ -78,7 +78,7 @@ public class SaveCredentialConfirmationActivity extends AppCompatActivity {
                     getIntent().getByteArrayExtra(EXTRA_CREDENTIAL));
         } catch (MalformedDataException e) {
             Log.e(LOG_TAG, "Unable to decode credential", e);
-            finishWithResult(CredentialSaveResult.UNSPECIFIED);
+            finishWithResult(CredentialSaveResult.UNKNOWN);
         }
 
         mCallingAppName = CallerUtil.getCallingAppName(this);
@@ -117,7 +117,7 @@ public class SaveCredentialConfirmationActivity extends AppCompatActivity {
         CredentialStorageClient client = getStorageClient();
         if (client == null) {
             Log.w(LOG_TAG, "Unable to establish storage connection in a timely manner");
-            finishWithResult(CredentialSaveResult.UNSPECIFIED);
+            finishWithResult(CredentialSaveResult.UNKNOWN);
             return;
         }
 
@@ -127,7 +127,7 @@ public class SaveCredentialConfirmationActivity extends AppCompatActivity {
                 finishWithResult(CredentialSaveResult.SAVED);
             } catch (IOException e) {
                 Log.w(LOG_TAG, "Failed to write credential to storage");
-                finishWithResult(CredentialSaveResult.UNSPECIFIED);
+                finishWithResult(CredentialSaveResult.UNKNOWN);
             }
         } else {
             Intent saveAfterUnlock = UnlockActivity.createIntent(

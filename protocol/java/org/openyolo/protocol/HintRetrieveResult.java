@@ -45,6 +45,11 @@ public final class HintRetrieveResult {
     public static final int CODE_UNKNOWN = ResultCode.UNSPECIFIED_VALUE;
 
     /**
+     * Indicates that no provider was available and able to handle the associated request.
+     */
+    public static final int CODE_NO_PROVIDER_AVAILABLE = ResultCode.NO_PROVIDER_AVAILABLE_VALUE;
+
+    /**
      * Indicates that the hint request sent to the provider was malformed.
      */
     public static final int CODE_BAD_REQUEST = ResultCode.BAD_REQUEST_VALUE;
@@ -77,6 +82,13 @@ public final class HintRetrieveResult {
      */
     public static final HintRetrieveResult UNKNOWN =
             new HintRetrieveResult.Builder(HintRetrieveResult.CODE_UNKNOWN).build();
+
+    /**
+     * Pre-build hint result that indicates that no provider was available and able to handle the
+     * associated request.
+     */
+    public static final HintRetrieveResult NO_PROVIDER_AVAILABLE =
+            new HintRetrieveResult.Builder(CODE_NO_PROVIDER_AVAILABLE).build();
 
     /**
      * Pre-built hint result for a bad request. Carries no hint or additional properties.

@@ -12,11 +12,12 @@
  * limitations under the License.
  */
 
-package org.openyolo.api.ui;
+package org.openyolo.api.internal;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.valid4j.Assertive.require;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -27,7 +28,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -43,18 +43,17 @@ import java.util.Collections;
 import java.util.List;
 import org.openyolo.api.KnownProviders;
 import org.openyolo.api.R;
-import org.openyolo.api.internal.ActivityResult;
 import org.openyolo.protocol.CredentialDeleteResult;
 import org.openyolo.protocol.CredentialRetrieveResult;
 import org.openyolo.protocol.CredentialSaveResult;
 import org.openyolo.protocol.HintRetrieveResult;
 
 /**
- * Activity which presents the list of providers that claim to have a credential available.
- * The user can select one of these options, which fires the associated intent for that provider,
- * or cancel the whole operation.
+ * Activity which presents the given list of providers and their associated intent operations.
+ * The user can select one of these providers, which fires the associated intent, or cancel the
+ * whole operation.
  */
-public final class ProviderPickerActivity extends AppCompatActivity {
+public final class ProviderPickerActivity extends Activity {
 
     private static final String EXTRA_PROVIDER_INTENTS = "providerIntents";
     private static final String EXTRA_TITLE_RES_ID = "titleRes";

@@ -19,11 +19,9 @@ package org.openyolo.api;
 
 import static junit.framework.TestCase.assertNotNull;
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -34,33 +32,29 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-
-import com.google.bbq.BroadcastQueryClient;
-import com.google.bbq.QueryCallback;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.openyolo.api.internal.FinishWithResultActivity;
 import org.openyolo.api.persistence.AppSettings;
 import org.openyolo.protocol.AuthenticationDomain;
-import org.openyolo.protocol.AuthenticationMethod;
 import org.openyolo.protocol.AuthenticationMethods;
 import org.openyolo.protocol.Credential;
-import org.openyolo.protocol.CredentialRetrieveRequest;
+import org.openyolo.protocol.CredentialRetrieveResult;
 import org.openyolo.protocol.CredentialSaveRequest;
 import org.openyolo.protocol.CredentialSaveResult;
 import org.openyolo.protocol.HintRetrieveRequest;
-import org.openyolo.protocol.CredentialRetrieveResult;
-import org.openyolo.protocol.Protobufs;
+import org.openyolo.protocol.HintRetrieveResult;
 import org.openyolo.protocol.ProtocolConstants;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowActivity;
 
 /**
  * Units tests for {@link CredentialClient}.
@@ -98,9 +92,6 @@ public class CredentialClientTest {
     private PackageManager mockPackageManager;
 
     @Mock
-    private BroadcastQueryClient mockBroadcastQueryClient;
-
-    @Mock
     private KnownProviders mockKnownProviders;
 
     @Mock
@@ -133,7 +124,7 @@ public class CredentialClientTest {
 
         CredentialClientOptions options =
                 new CredentialClientOptions.Builder(mockDeviceState).build();
-        credentialClient = new CredentialClient(mockContext, mockBroadcastQueryClient, options);
+        credentialClient = new CredentialClient(mockContext, options);
         testCredential = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN).build();
     }
 
@@ -150,16 +141,6 @@ public class CredentialClientTest {
 
     @SuppressWarnings("WrongConstant")
     @Test
-    public void testGetHintIntent_noProviders() throws Exception {
-        when(mockPackageManager.queryIntentActivities(any(Intent.class), anyInt()))
-                .thenReturn(Collections.<ResolveInfo>emptyList());
-        Intent hintIntent = credentialClient.getHintRetrieveIntent(EMAIL_HINT_REQUEST);
-
-        assertThat(hintIntent).isNull();
-    }
-
-    @SuppressWarnings("WrongConstant")
-    @Test
     public void testGetHintIntent_unknownProviderPresent() throws Exception {
         addKnownProviders(DASHLANE);
         addUnknownProviders(UNKNOWN_PROVIDER_1);
@@ -170,6 +151,21 @@ public class CredentialClientTest {
         assertThat(hintIntent).isNotNull();
         assertThat(hintIntent.getComponent().getClassName())
                 .endsWith("ProviderPickerActivity");
+    }
+
+    @Test
+    public void getHintRetrieveIntent_noAvailableProviders_finishesWithNoAvailableProviders() {
+        Intent intent = credentialClient.getHintRetrieveIntent(EMAIL_HINT_REQUEST);
+        ShadowActivity activity = startFinishWithResultActivity(intent);
+
+        assertThat(activity.isFinishing()).isTrue();
+        assertThat(activity.getResultCode())
+                .isEqualTo(HintRetrieveResult.CODE_NO_PROVIDER_AVAILABLE);
+
+        HintRetrieveResult result =
+                credentialClient.getHintRetrieveResult(activity.getResultIntent());
+        assertThat(result.getResultCode())
+                .isEqualTo(HintRetrieveResult.CODE_NO_PROVIDER_AVAILABLE);
     }
 
     @SuppressWarnings("WrongConstant")
@@ -230,15 +226,6 @@ public class CredentialClientTest {
         assertThat(hintIntent).isNotNull();
         assertThat(hintIntent.getComponent().getClassName())
                 .endsWith("ProviderPickerActivity");
-    }
-
-    @SuppressWarnings("WrongConstant")
-    @Test
-    public void testGetSaveIntent_noProviders() throws Exception {
-        final CredentialSaveRequest request = CredentialSaveRequest.fromCredential(testCredential);
-        final Intent saveIntent = credentialClient.getSaveIntent(request);
-
-        assertThat(saveIntent).isNull();
     }
 
     @SuppressWarnings("WrongConstant")
@@ -425,44 +412,6 @@ public class CredentialClientTest {
         assertThat(result.getAdditionalProps()).isEmpty();
     }
 
-    @Test
-    public void retrieve_autoSignInDisabled_requestRequiresUserMediation() {
-        CredentialRetrieveRequest request =
-                CredentialRetrieveRequest.forAuthenticationMethods(AuthenticationMethods.EMAIL);
-
-        when(mockDeviceState.isAutoSignInDisabled()).thenReturn(true);
-
-        // Act
-        credentialClient.retrieve(request, null /* callBack */);
-
-        // Assert
-        ArgumentCaptor<Protobufs.CredentialRetrieveRequest> requestArgumentCaptor =
-                ArgumentCaptor.forClass(Protobufs.CredentialRetrieveRequest.class);
-        verify(mockBroadcastQueryClient)
-                .queryFor(anyString(), requestArgumentCaptor.capture(), any(QueryCallback.class));
-        assertThat(requestArgumentCaptor.getValue().getRequireUserMediation()).isTrue();
-    }
-
-    @Test
-    public void retrieve_autoSignInEnabled_requestDoesNotRequireUserMediation() {
-        CredentialRetrieveRequest request =
-                new CredentialRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
-                        .setRequireUserMediation(false)
-                        .build();
-
-        when(mockDeviceState.isAutoSignInDisabled()).thenReturn(false);
-
-        // Act
-        credentialClient.retrieve(request, null /* callBack */);
-
-        // Assert
-        ArgumentCaptor<Protobufs.CredentialRetrieveRequest> requestArgumentCaptor =
-                ArgumentCaptor.forClass(Protobufs.CredentialRetrieveRequest.class);
-        verify(mockBroadcastQueryClient)
-                .queryFor(anyString(), requestArgumentCaptor.capture(), any(QueryCallback.class));
-        assertThat(requestArgumentCaptor.getValue().getRequireUserMediation()).isFalse();
-    }
-
     private void addKnownProviders(String... packageNames) {
         for (String packageName : packageNames) {
             installedProviders.add(createResolveInfo(packageName, packageName));
@@ -475,6 +424,11 @@ public class CredentialClientTest {
             installedProviders.add(createResolveInfo(packageName, packageName));
             when(mockKnownProviders.isKnown(packageName)).thenReturn(false);
         }
+    }
+
+    private ShadowActivity startFinishWithResultActivity(Intent intent) {
+        return Shadows.shadowOf(
+                Robolectric.buildActivity(FinishWithResultActivity.class, intent).create().get());
     }
 
     private ResolveInfo createResolveInfo(String packageName, String name) {

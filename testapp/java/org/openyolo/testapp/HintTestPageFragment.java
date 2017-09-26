@@ -98,6 +98,9 @@ public final class HintTestPageFragment extends TestPageFragment {
             case HintRetrieveResult.CODE_BAD_REQUEST:
                 errorStringResId = R.string.hint_bad_request;
                 break;
+            case HintRetrieveResult.CODE_NO_PROVIDER_AVAILABLE:
+                errorStringResId = R.string.hint_no_provider_available;
+                break;
             case HintRetrieveResult.CODE_NO_HINTS_AVAILABLE:
                 errorStringResId = R.string.hint_none_available;
                 break;
@@ -130,13 +133,7 @@ public final class HintTestPageFragment extends TestPageFragment {
                         .setTokenProviders(mTokenProviderInputView.getTokenProviders())
                         .build();
 
-        Intent hintIntent = mApi.getHintRetrieveIntent(request);
-        if (hintIntent == null) {
-            showSnackbar(R.string.no_available_hint_providers);
-            return;
-        }
-
-        startActivityForResult(hintIntent, RC_HINT);
+        startActivityForResult(mApi.getHintRetrieveIntent(request), RC_HINT);
     }
 
     private void showSnackbar(@StringRes int messageId) {

@@ -46,6 +46,12 @@ public final class CredentialDeleteResult {
             Protobufs.CredentialDeleteResult.ResultCode.UNSPECIFIED_VALUE;
 
     /**
+     * Indicates that no provider was available and able to handle the associated request.
+     */
+    public static final int CODE_NO_PROVIDER_AVAILABLE =
+            Protobufs.CredentialDeleteResult.ResultCode.NO_PROVIDER_AVAILABLE_VALUE;
+
+    /**
      * Indicates that the deletion request sent to the provider was malformed.
      */
     public static final int CODE_BAD_REQUEST =
@@ -91,6 +97,13 @@ public final class CredentialDeleteResult {
      */
     public static final CredentialDeleteResult UNKNOWN =
             new CredentialDeleteResult.Builder(CODE_UNKNOWN).build();
+
+    /**
+     * Pre-built deletion result that indicates that no provider was available and able to handle
+     * the associated request.
+     */
+    public static final CredentialDeleteResult NO_PROVIDER_AVAILABLE =
+            new CredentialDeleteResult.Builder(CODE_NO_PROVIDER_AVAILABLE).build();
 
     /**
      * Pre-built deletion result for a bad request. Carries no additional properties.

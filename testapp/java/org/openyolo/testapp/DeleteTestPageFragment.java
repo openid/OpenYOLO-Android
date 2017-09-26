@@ -68,13 +68,7 @@ public class DeleteTestPageFragment extends TestPageFragment  {
             return;
         }
 
-        Intent deleteIntent = mApi.getDeleteIntent(credential);
-        if (deleteIntent == null) {
-            showSnackbar(R.string.no_available_delete_providers);
-            return;
-        }
-
-        startActivityForResult(deleteIntent, RC_DELETE);
+        startActivityForResult(mApi.getDeleteIntent(credential), RC_DELETE);
     }
 
     @Override
@@ -93,6 +87,9 @@ public class DeleteTestPageFragment extends TestPageFragment  {
         switch (deleteResult.getResultCode()) {
             case CredentialDeleteResult.CODE_DELETED:
                 resultMessageId = R.string.delete_result_deleted;
+                break;
+            case CredentialDeleteResult.CODE_NO_PROVIDER_AVAILABLE:
+                resultMessageId = R.string.delete_no_provider_available;
                 break;
             case CredentialDeleteResult.CODE_NO_MATCHING_CREDENTIAL:
                 resultMessageId = R.string.delete_result_no_matching_credential;

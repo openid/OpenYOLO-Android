@@ -68,7 +68,7 @@ public class CredentialRetrieveRequest implements Parcelable {
      * Creates a {@link CredentialRetrieveRequest} from the given authentication methods.
      */
     @NonNull
-    public static CredentialRetrieveRequest forAuthenticationMethods(
+    public static CredentialRetrieveRequest fromAuthMethods(
             @NonNull Set<AuthenticationMethod> authenticationMethods) {
         return new CredentialRetrieveRequest.Builder(authenticationMethods).build();
     }
@@ -77,7 +77,7 @@ public class CredentialRetrieveRequest implements Parcelable {
      * Creates a {@link CredentialRetrieveRequest} from the given authentication methods.
      */
     @NonNull
-    public static CredentialRetrieveRequest forAuthenticationMethods(
+    public static CredentialRetrieveRequest fromAuthMethods(
             @NonNull AuthenticationMethod... authenticationMethods) {
         return new CredentialRetrieveRequest.Builder(authenticationMethods).build();
     }

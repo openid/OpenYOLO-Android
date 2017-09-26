@@ -79,14 +79,7 @@ public final class SaveTestPageFragment extends TestPageFragment {
             return;
         }
 
-        final Intent saveIntent = mApi.getSaveIntent(request);
-
-        if (saveIntent == null) {
-            showSnackbar(R.string.no_available_save_providers);
-            return;
-        }
-
-        startActivityForResult(saveIntent, RC_SAVE);
+        startActivityForResult(mApi.getSaveIntent(request), RC_SAVE);
     }
 
     private void showSnackbar(@StringRes int messageId) {
@@ -108,6 +101,9 @@ public final class SaveTestPageFragment extends TestPageFragment {
         switch (result.getResultCode()) {
             case CredentialSaveResult.CODE_SAVED:
                 resultMessageId = R.string.save_result_saved;
+                break;
+            case CredentialSaveResult.CODE_NO_PROVIDER_AVAILABLE:
+                resultMessageId = R.string.save_no_provider_available;
                 break;
             case CredentialSaveResult.CODE_BAD_REQUEST:
                 resultMessageId = R.string.save_result_bad_request;

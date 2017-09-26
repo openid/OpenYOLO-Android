@@ -46,7 +46,6 @@ import org.openyolo.protocol.CredentialSaveResult;
 import org.openyolo.protocol.Hint;
 import org.openyolo.protocol.HintRetrieveRequest;
 import org.openyolo.protocol.HintRetrieveResult;
-import org.openyolo.protocol.RetrieveBbqResponse;
 
 /**
  * The view model for {@link LoginActivity}. Defines all the logic for authenticating a user
@@ -159,36 +158,14 @@ public final class LoginViewModel extends ObservableViewModel {
     }
 
     /**
-     * Initiates an OpenYOLO credential retrieval request, and forwards the response to
-     * {@link #handleRetrieveQueryResult(RetrieveBbqResponse, Throwable)} for processing.
+     * Initiates an OpenYOLO credential retrieval request.
      */
     private void tryRetrieveExistingCredential() {
         setShowLoading(R.string.existing_account_search_prompt);
-        mCredentialClient.retrieve(
-                CredentialRetrieveRequest.forAuthenticationMethods(AuthenticationMethods.EMAIL),
-                (queryResponse, queryError) ->
-                    getExecutor().execute(
-                            () -> handleRetrieveQueryResult(queryResponse, queryError)));
-    }
-
-    /**
-     * Inspects the initial response from the OpenYOLO retrieve request. If a retrieve intent
-     * is available, this is used to attempt to source a credential from the provider. The result
-     * of this is indirectly routed to {@link #handleRetrieveResult(Intent)}.
-     *
-     * If no intent is returned, an attempt is made to source an account hint instead.
-     */
-    private void handleRetrieveQueryResult(
-            RetrieveBbqResponse queryResponse,
-            Throwable queryError) {
-        if (queryResponse != null && queryResponse.getRetrieveIntent() != null) {
-            Log.i(TAG, "retrieving credential from provider");
-            mNavigator.get().startOpenYoloRetrieve(queryResponse.getRetrieveIntent());
-            return;
-        }
-
-        Log.i(TAG, "no OpenYOLO providers for retrieve");
-        tryRetrieveHint();
+        Intent intent =
+                mCredentialClient.getCredentialRetrieveIntent(
+                        CredentialRetrieveRequest.fromAuthMethods(AuthenticationMethods.EMAIL));
+        mNavigator.get().startOpenYoloRetrieve(intent);
     }
 
     /**

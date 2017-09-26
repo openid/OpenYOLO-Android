@@ -14,7 +14,6 @@
 
 package org.openyolo.testapp;
 
-import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.StringRes;
@@ -23,19 +22,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 import org.openyolo.api.CredentialClient;
-import org.openyolo.api.RetrieveCallback;
 import org.openyolo.protocol.AuthenticationMethod;
 import org.openyolo.protocol.Credential;
 import org.openyolo.protocol.CredentialRetrieveRequest;
 import org.openyolo.protocol.CredentialRetrieveResult;
-import org.openyolo.protocol.RetrieveBbqResponse;
 
 /**
  * Fragment which contains a method of testing the OpenYolo credential retrieve flow.
@@ -107,6 +102,9 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
             case CredentialRetrieveResult.CODE_NO_CREDENTIALS_AVAILABLE:
                 resultMessageId = R.string.retrieve_no_credentials;
                 break;
+            case CredentialRetrieveResult.CODE_NO_PROVIDER_AVAILABLE:
+                resultMessageId = R.string.retrieve_no_provider_available;
+                break;
             case CredentialRetrieveResult.CODE_BAD_REQUEST:
                 resultMessageId = R.string.retrieve_bad_request;
                 break;
@@ -142,44 +140,13 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
             requestBuilder.setRequireUserMediation(true);
         }
 
-        mApi.retrieve(requestBuilder.build(), new HandleRetrieveResult());
+        startActivityForResult(
+                mApi.getCredentialRetrieveIntent(requestBuilder.build()),
+                RC_RETRIEVE);
     }
 
     private void showSnackbar(@StringRes int messageId) {
         Snackbar.make(getView(), messageId, Snackbar.LENGTH_SHORT).show();
-    }
-
-    private class HandleRetrieveResult implements RetrieveCallback, Runnable {
-
-        private final AtomicReference<RetrieveBbqResponse> mResult = new AtomicReference<>();
-        private final AtomicReference<Throwable> mError = new AtomicReference<>();
-
-        @Override
-        public void onComplete(RetrieveBbqResponse result, Throwable error) {
-            mResult.set(result);
-            mError.set(error);
-            getActivity().runOnUiThread(this);
-        }
-
-        @Override
-        public void run() {
-            if (mError.get() != null) {
-                showSnackbar(R.string.request_failed);
-                return;
-            }
-
-            RetrieveBbqResponse result = mResult.get();
-            if (result.getRetrieveIntent() == null) {
-                showSnackbar(R.string.retrieve_no_credentials);
-                return;
-            }
-
-            try {
-                startActivityForResult(result.getRetrieveIntent(), RC_RETRIEVE);
-            } catch (ActivityNotFoundException ex) {
-                showSnackbar(R.string.credential_retrieve_activity_does_not_exist);
-            }
-        }
     }
 }
 

@@ -17,10 +17,13 @@
 
 package org.openyolo.protocol.internal;
 
+import static junit.framework.Assert.fail;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 
 import android.content.Intent;
+import android.os.BadParcelableException;
+import android.os.Parcel;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -60,10 +63,68 @@ public class IntentUtilTest {
         fromIntent.setPackage("com.openyolo");
         byte[] fromBytes = IntentUtil.toBytes(fromIntent);
 
-        Intent toIntent= IntentUtil.fromBytes(fromBytes);
+        Intent toIntent = IntentUtil.fromBytes(fromBytes);
         assertTrue(toIntent.getAction().equals(fromIntent.getAction()));
         assertTrue(toIntent.getPackage().equals(fromIntent.getPackage()));
-
     }
 
+    @Test
+    public void fromBytes_withNullIntent_throwsBadParcelableException() {
+        byte[] intentBytes = toBytesUnchecked(null);
+
+
+        assertThrows(BadParcelableException.class, () -> {
+            IntentUtil.fromBytes(intentBytes);
+        });
+    }
+
+    @Test
+    public void fromBytes_withIntentNotPresent_throwsBadParcelableException() {
+        byte[] intentBytes = new byte[10];
+
+
+        assertThrows(BadParcelableException.class, () -> {
+            IntentUtil.fromBytes(intentBytes);
+        });
+    }
+
+    private static byte[] toBytesUnchecked(Intent intent) {
+        Parcel parcel = Parcel.obtain();
+        parcel.writeParcelable(intent,0);
+        byte[] intentBytes = parcel.marshall();
+        parcel.recycle();
+
+        return intentBytes;
+    }
+
+    private interface Operation {
+        void execute();
+    }
+
+    private static void assertThrows(Class expectedExceptionType, Operation operation) {
+        try {
+            operation.execute();
+
+            // No exception was thrown.
+            String failureMessage =
+                    String.format(
+                            "No exception was thrown, expected a %s exception",
+                            expectedExceptionType);
+
+            fail(failureMessage);
+        } catch (Exception ex) {
+            if (expectedExceptionType.isInstance(ex)) {
+                // Expected exception was thrown.
+                return;
+            }
+
+            // An unexpected exception was thrown.
+            String failureMessage =
+                    String.format(
+                            "Expected exception to be instance of %s, but was %s",
+                            expectedExceptionType,
+                            ex.getClass());
+            fail(failureMessage);
+        }
+    }
 }

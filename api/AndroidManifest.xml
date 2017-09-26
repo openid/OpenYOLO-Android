@@ -4,9 +4,17 @@
 
     <application>
         <activity
-            android:name=".ui.ProviderPickerActivity"
+            android:name=".internal.ProviderPickerActivity"
             android:label="@string/provider_picker_activity_label"
-            android:theme="@style/PickerTheme"
+            android:theme="@style/ProviderPicker"
+            android:exported="false" />
+        <activity
+            android:name=".internal.FinishWithResultActivity"
+            android:theme="@style/Invisible"
+            android:exported="false" />
+        <activity
+            android:name=".internal.CredentialRetrieveActivity"
+            android:theme="@style/Invisible"
             android:exported="false" />
     </application>
 </manifest>

@@ -42,6 +42,7 @@ message CredentialRetrieveBbqResponseList {
 }
 
 message CredentialRetrieveResult {
+
     enum ResultCode {
         UNSPECIFIED = 0;
         BAD_REQUEST = 1;
@@ -49,6 +50,7 @@ message CredentialRetrieveResult {
         NO_CREDENTIALS_AVAILABLE = 3;
         USER_REQUESTS_MANUAL_AUTH = 4;
         USER_CANCELED = 5;
+        NO_PROVIDER_AVAILABLE = 6;
     }
 
     // required
@@ -70,6 +72,7 @@ message HintRetrieveRequest {
 }
 
 message HintRetrieveResult {
+
     enum ResultCode {
         UNSPECIFIED = 0;
         BAD_REQUEST = 1;
@@ -77,6 +80,7 @@ message HintRetrieveResult {
         NO_HINTS_AVAILABLE = 3;
         USER_REQUESTS_MANUAL_AUTH = 4;
         USER_CANCELED = 5;
+        NO_PROVIDER_AVAILABLE = 6;
     }
 
     // required
@@ -104,6 +108,7 @@ message CredentialSaveResult {
         PROVIDER_REFUSED = 3;
         USER_CANCELED = 4;
         USER_REFUSED = 5;
+        NO_PROVIDER_AVAILABLE = 6;
     }
 
     // required
@@ -122,6 +127,7 @@ message CredentialDeleteRequest {
 }
 
 message CredentialDeleteResult {
+
     enum ResultCode {
         UNSPECIFIED = 0;
         BAD_REQUEST = 1;
@@ -130,6 +136,7 @@ message CredentialDeleteResult {
         PROVIDER_REFUSED = 4;
         USER_CANCELED = 5;
         USER_REFUSED = 6;
+        NO_PROVIDER_AVAILABLE = 7;
     }
 
     // required

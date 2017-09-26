@@ -142,7 +142,7 @@ public class SaveCredentialActivity extends AppCompatActivity {
                 startActivity(confirmIntent);
                 finish();
             } catch (IOException ex) {
-                finishWithResult(CredentialSaveResult.UNSPECIFIED);
+                finishWithResult(CredentialSaveResult.UNKNOWN);
             }
         }
     }
