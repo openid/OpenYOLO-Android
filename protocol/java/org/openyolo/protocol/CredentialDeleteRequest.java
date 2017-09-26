@@ -41,6 +41,13 @@ import org.openyolo.protocol.internal.IntentProtocolBufferExtractor;
 public final class CredentialDeleteRequest {
 
     /**
+     * Returns a deletion request for the given credential.
+     */
+    public static CredentialDeleteRequest fromCredential(Credential credential) {
+        return new Builder(credential).build();
+    }
+
+    /**
      * Creates a credential deletion request from its protocol buffer equivalent, in byte array
      * form.
      * @throws MalformedDataException if the given protocol buffer is invalid.

@@ -73,14 +73,16 @@ public class HintRetrieveRequest implements Parcelable {
     /**
      * Creates a hint request from the given set of authentication methods.
      */
-    public static HintRetrieveRequest of(AuthenticationMethod... authenticationMethods) {
+    public static HintRetrieveRequest fromAuthMethods(
+            AuthenticationMethod... authenticationMethods) {
         return new HintRetrieveRequest.Builder(authenticationMethods).build();
     }
 
     /**
      * Creates a hint request from the given set of authentication methods.
      */
-    public static HintRetrieveRequest of(Set<AuthenticationMethod> authenticationMethods) {
+    public static HintRetrieveRequest fromAuthMethods(
+            Set<AuthenticationMethod> authenticationMethods) {
         return new HintRetrieveRequest.Builder(authenticationMethods).build();
     }
 

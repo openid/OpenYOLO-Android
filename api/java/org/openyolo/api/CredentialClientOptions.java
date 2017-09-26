@@ -17,13 +17,15 @@ package org.openyolo.api;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.valid4j.Validation.validate;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 
 import org.openyolo.api.persistence.AppSettings;
 
 
 /**
- * Context object that may be used to configure a {@link CredentialClient} instance.
+ * Context object that may be used to configure a {@link CredentialClient} instance. It is
+ * recommended to use the default options via {@link CredentialClient#getInstance(Context)}.
  */
 public class CredentialClientOptions {
     private final AppSettings mAppSettings;

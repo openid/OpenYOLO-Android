@@ -91,7 +91,7 @@ public class HintRetrieveRequestTest {
                         .build());
 
         try {
-            HintRetrieveRequest request = HintRetrieveRequest.of(AuthenticationMethods.EMAIL);
+            HintRetrieveRequest request = HintRetrieveRequest.fromAuthMethods(AuthenticationMethods.EMAIL);
             Protobufs.HintRetrieveRequest proto = request.toProtocolBuffer();
             assertThat(proto.hasClientVersion());
             assertThat(proto.getClientVersion().getVendor()).isEqualTo(vendor);

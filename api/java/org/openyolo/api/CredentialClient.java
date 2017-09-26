@@ -68,21 +68,29 @@ import org.openyolo.protocol.MalformedDataException;
  * 2) Takes an Intent returned via {@link android.app.Activity#onActivityResult(int, int, Intent)}
  *    and returns the associated result.
  *
- * For example using the hint flow:
+ * For example using the retrieve credential flow:
  * <pre>{@code
- * CredentialClient client = CredentialClient.getInstance(this);
- * HintRetrieveRequest request = HintRetrieveRequest.of(AuthenticationMethods.EMAIL);
- *
- * Intent retrieveHintIntent = client.getHintRetrieveIntent(request);
- * startActivityForResult(retrieveHintIntent, RC_HINT);
+ * CredentialClient client = CredentialClient.getInstance(getContext());
  * // ...
  *
+ * CredentialRetrieveRequest request  =
+ *     CredentialRetrieveRequest.fromAuthMethods(
+ *         AuthenticationMethods.EMAIL,
+ *         AuthenticationMethods.GOOGLE);
+ * Intent retrieveCredentialIntent = client.getCredentialRetrieveIntent(request);
+ * startActivityForResult(retrieveCredentialIntent, RC_RETRIEVE_CREDENTIAL);
+ *
+ * // ...
  * @Override
  * public void onActivityResult(int requestCode, int resultCode, Intent data) {
  *     super.onActivityResult(requestCode, resultCode, data);
+ *     if (RC_RETRIEVE_CREDENTIAL == requestCode) {
+ *        CredentialRetrieveResult result = client.getCredentialRetrieveResult(data);
+ *        // handle result ...
+ *     }
+ * }
+ * }</pre>
  *
- *     HintRetrieveResult result = client.getHintRetrieveResult(data);
- * }}</pre>
  *
  * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#operations">
  *     OpenYOLO Specification: Operations</a>
@@ -126,8 +134,8 @@ public class CredentialClient {
     }
 
     /**
-     * Provides an Activity intent to request any available credentials from the credential
-     * providers on the device.
+     * Provides an Activity intent to request any available {@link Credential credentials} from the
+     * credential providers on the device.
      *
      * Launch the returned intent via
      * {@link android.app.Activity#startActivityForResult(Intent, int)} and extract the result via
@@ -139,7 +147,9 @@ public class CredentialClient {
      * // ...
      *
      * CredentialRetrieveRequest request  =
-     *     CredentialRetrieveRequest.of(AuthenticationMethods.EMAIL, AuthenticationMethods.GOOGLE);
+     *     CredentialRetrieveRequest.fromAuthMethods(
+     *         AuthenticationMethods.EMAIL,
+     *         AuthenticationMethods.GOOGLE);
      * Intent retrieveCredentialIntent = client.getCredentialRetrieveIntent(request);
      * startActivityForResult(retrieveCredentialIntent, RC_RETRIEVE_CREDENTIAL);
      *
@@ -156,6 +166,7 @@ public class CredentialClient {
      *
      * @see #getCredentialRetrieveResult(Intent)
      */
+    @NonNull
     public Intent getCredentialRetrieveIntent(CredentialRetrieveRequest request) {
         if (mDeviceState.isAutoSignInDisabled()) {
             request = new CredentialRetrieveRequest.Builder(request)
@@ -167,9 +178,39 @@ public class CredentialClient {
     }
 
     /**
-     * Provides an intent to request a login hint. This will target the user's preferred credential
-     * provider, if this can be determined.
+     * Provides an Activity intent to request any available {@link org.openyolo.protocol.Hint hints}
+     * from the credential providers on the device.
+     *
+     * Launch the returned intent via
+     * {@link android.app.Activity#startActivityForResult(Intent, int)} and extract the result via
+     * {@link #getHintRetrieveResult(Intent)} using the Intent data received in the associated
+     * {@link android.app.Activity#onActivityResult(int, int, Intent)} callback.
+     *
+     * <pre>{@code
+     * CredentialClient client = CredentialClient.getInstance(getContext());
+     * // ...
+     *
+     * HintRetrieveRequest request  =
+     *     HintRetrieveRequest.fromAuthMethods(
+     *         AuthenticationMethods.EMAIL,
+     *         AuthenticationMethods.GOOGLE);
+     * Intent retrieveHintIntent = client.getHintRetrieveIntent(request);
+     * startActivityForResult(retrieveCredentialIntent, RC_RETRIEVE_HINT);
+     *
+     * // ...
+     * @Override
+     * public void onActivityResult(int requestCode, int resultCode, Intent data) {
+     *     super.onActivityResult(requestCode, resultCode, data);
+     *     if (RC_RETRIEVE_HINT == requestCode) {
+     *        HintRetrieveResult result = client.getHintRetrieveResult(data);
+     *        // handle result ...
+     *     }
+     * }
+     * }</pre>
+     *
+     * @see #getHintRetrieveResult(Intent)
      */
+    @NonNull
     public Intent getHintRetrieveIntent(final HintRetrieveRequest request) {
         List<ComponentName> hintProviders = findProviders(HINT_CREDENTIAL_ACTION);
 
@@ -199,14 +240,46 @@ public class CredentialClient {
     }
 
     /**
-     * Provides an intent to save the provided credential. If no compatible credential providers
-     * exist on the device, {@code null} will be returned. The intent should be started with a
-     * call to
-     * {@link android.app.Activity#startActivityForResult(Intent, int) startActivityForResult}.
+     * Creates a {@link CredentialSaveRequest request} from the given credential.
      *
-     * <p>If the credential is successfully saved, {@link android.app.Activity#RESULT_OK} will
-     * be returned. Otherwise, {@link android.app.Activity#RESULT_CANCELED} will be returned.
+     * @see #getSaveIntent(Credential)
      */
+    @NonNull
+    public Intent getSaveIntent(final Credential credential) {
+        return getSaveIntent(CredentialSaveRequest.fromCredential(credential));
+    }
+
+    /**
+     * Provides an Activity intent to save the provided credential.
+     *
+     * Launch the returned intent via
+     * {@link android.app.Activity#startActivityForResult(Intent, int)} and extract the result via
+     * {@link #getCredentialSaveResult(Intent)} using the Intent data received in the associated
+     * {@link android.app.Activity#onActivityResult(int, int, Intent)} callback.
+     *
+     * <pre>{@code
+     * CredentialClient client = CredentialClient.getInstance(getContext());
+     * Credential credential = <Valid Credential>;
+     * // ...
+     *
+     * CredentialSaveRequest request  = CredentialSaveRequest.fromCredential(credential);
+     * Intent saveCredentialIntent = client.getSaveIntent(request);
+     * startActivityForResult(saveCredentialIntent, RC_SAVE_CREDENTIAL);
+     *
+     * // ...
+     * @Override
+     * public void onActivityResult(int requestCode, int resultCode, Intent data) {
+     *     super.onActivityResult(requestCode, resultCode, data);
+     *     if (RC_SAVE_CREDENTIAL == requestCode) {
+     *        CredentialSaveResult result = client.getCredentialSaveResult(data);
+     *        // handle result ...
+     *     }
+     * }
+     * }</pre>
+     *
+     * @see #getCredentialSaveResult(Intent)
+     */
+    @NonNull
     public Intent getSaveIntent(final CredentialSaveRequest saveRequest) {
         List<ComponentName> saveProviders = findProviders(SAVE_CREDENTIAL_ACTION);
 
@@ -240,16 +313,51 @@ public class CredentialClient {
     }
 
     /**
-     * Provides an intent to delete a credential. If no compatible credential providers exist
-     * on the device, {@code null} will be returned. The intent should be started with a call
-     * to {@link android.app.Activity#startActivityForResult(Intent, int) startActivityForResult}.
+     * Creates a {@link CredentialDeleteRequest request} from the given credential.
      *
-     * <p>Upon completion of the request, the result data will be returned in the Intent passed
-     * to {@link android.app.Activity#onActivityResult(int, int, android.content.Intent)}, and
-     * can be extracted by calling {@link #getDeleteResult(Intent)}.
+     * @see #getDeleteIntent(CredentialDeleteRequest)
      */
-    public Intent getDeleteIntent(@NonNull Credential credentialToDelete) {
-        require(credentialToDelete, notNullValue());
+    @NonNull
+    public Intent getDeleteIntent(@NonNull Credential credential) {
+        require(credential, notNullValue());
+
+        return getDeleteIntent(CredentialDeleteRequest.fromCredential(credential));
+    }
+
+    /**
+     * Provides an Activity intent to delete the given {@link Credential credential} from the
+     * credential provider on the device.
+     *
+     * Launch the returned intent via
+     * {@link android.app.Activity#startActivityForResult(Intent, int)} and extract the result via
+     * {@link #getDeleteResult(Intent)} using the Intent data received in the associated
+     * {@link android.app.Activity#onActivityResult(int, int, Intent)} callback.
+     *
+     * <pre>{@code
+     * CredentialClient client = CredentialClient.getInstance(getContext());
+     * Credential credential = <Credential that is no longer valid>;
+     * // ...
+     *
+     * Intent deleteCredentialIntent = client.getDeleteIntent(request);
+     * startActivityForResult(deleteCredentialIntent, RC_DELETE_CREDENTIAL);
+     *
+     * // ...
+     * @Override
+     * public void onActivityResult(int requestCode, int resultCode, Intent data) {
+     *     super.onActivityResult(requestCode, resultCode, data);
+     *     if (RC_DELETE_CREDENTIAL == requestCode) {
+     *         result = client.getDeleteResult(data);
+     *        // handle result ...
+     *     }
+     * }
+     * }</pre>
+     *
+     * @see #getDeleteResult(Intent)
+     */
+    @NonNull
+    public Intent getDeleteIntent(@NonNull CredentialDeleteRequest request) {
+        require(request, notNullValue());
+
         List<ComponentName> deleteProviders =
                 findProviders(DELETE_CREDENTIAL_ACTION);
 
@@ -260,9 +368,6 @@ public class CredentialClient {
 
             return FinishWithResultActivity.createIntent(mApplicationContext, result);
         }
-
-        CredentialDeleteRequest request =
-                new CredentialDeleteRequest.Builder(credentialToDelete).build();
 
         byte[] encodedRequest = request.toProtobuf().toByteArray();
 
@@ -315,27 +420,50 @@ public class CredentialClient {
     }
 
     /**
-     * Extracts a credential from the data returned via
-     * {@link android.app.Activity#onActivityResult(int, int, Intent) onActivityResult},
-     * after a credential retrieve intent completes.
+     * Returns the result of a {@link CredentialRetrieveResult}.
+     *
+     * <pre>{@code
+     * CredentialClient client = CredentialClient.getInstance(getContext());
+     *
+     * // ...
+     * @Override
+     * public void onActivityResult(int requestCode, int resultCode, Intent data) {
+     *     super.onActivityResult(requestCode, resultCode, data);
+     *     if (RC_RETRIEVE_CREDENTIAL == requestCode) {
+     *        CredentialRetrieveResult result = client.getCredentialRetrieveResult(data);
+     *        if (result.isSuccessful()) {
+     *          // A credential was retrieved, you may automatically sign the user in.
+     *          result.getCredential();
+     *        } else {
+     *          // A credential was not retrieved, you may look at the result code to determine why
+     *          // and decide what step to take next. For example, result code may inform you of the
+     *          // user's intent such as CredentialRetrieveResult.CODE_USER_CANCELED.
+     *          result.getResultCode();
+     *        }
+     *     }
+     * }
+     * }</pre>
+     *
+     *
+     * @see #getCredentialRetrieveIntent(CredentialRetrieveRequest)
      */
     @NonNull
     public CredentialRetrieveResult getCredentialRetrieveResult(
             @Nullable Intent resultData) {
         if (resultData == null) {
             Log.i(LOG_TAG, "resultData is null, returning default response");
-            return createDefaultCredentialRetrieveResult();
+            return CredentialRetrieveResult.UNKNOWN;
         }
 
         if (!resultData.hasExtra(EXTRA_RETRIEVE_RESULT)) {
             Log.i(LOG_TAG, "retrieve result missing from response, returning default response");
-            return createDefaultCredentialRetrieveResult();
+            return CredentialRetrieveResult.UNKNOWN;
         }
 
         byte[] resultBytes = resultData.getByteArrayExtra(EXTRA_RETRIEVE_RESULT);
         if (resultBytes == null) {
             Log.i(LOG_TAG, "No retrieve result found in result data, returning default response");
-            return createDefaultCredentialRetrieveResult();
+            return CredentialRetrieveResult.UNKNOWN;
         }
 
         try {
@@ -350,81 +478,124 @@ public class CredentialClient {
             return result;
         } catch (MalformedDataException ex) {
             Log.e(LOG_TAG, "validation of result proto failed, returning default response", ex);
-            return createDefaultCredentialRetrieveResult();
+            return CredentialRetrieveResult.UNKNOWN;
         }
     }
 
     /**
-     * Extracts the result of a hint retrieve request from the intent data returned by a provider.
+     * Returns the result of a {@link HintRetrieveResult}.
+     *
+     * <pre>{@code
+     * CredentialClient client = CredentialClient.getInstance(getContext());
+     *
+     * // ...
+     * @Override
+     * public void onActivityResult(int requestCode, int resultCode, Intent data) {
+     *     super.onActivityResult(requestCode, resultCode, data);
+     *     if (RC_RETRIEVE_HINT == requestCode) {
+     *        HintRetrieveResult result = client.getHintRetrieveResult(data);
+     *        if (result.isSuccessful()) {
+     *          // A hint was retrieved, you may be able to automatically create an account for the
+     *          // user, or offer the user to sign in if an existing account matches the hint.
+     *          result.getHint();
+     *        } else {
+     *          // A credential was not retrieved, you may look at the result code to determine why
+     *          // and decide what step to take next. For example, result code may inform you of the
+     *          // user's intent such as HintRetrieveResult.CODE_USER_CANCELED.
+     *          result.getResultCode();
+     *        }
+     *     }
+     * }
+     * }</pre>
+     *
+     * @see #getHintRetrieveIntent(HintRetrieveRequest)
      */
     @NonNull
     public HintRetrieveResult getHintRetrieveResult(Intent resultData) {
         if (resultData == null) {
             Log.i(LOG_TAG, "resultData is null, returning default response");
-            return createDefaultHintRetrieveResult();
+            return HintRetrieveResult.UNKNOWN;
         }
 
         if (!resultData.hasExtra(EXTRA_HINT_RESULT)) {
             Log.i(LOG_TAG, "hint result missing from response, returning default response");
-            return createDefaultHintRetrieveResult();
+            return HintRetrieveResult.UNKNOWN;
         }
 
         byte[] resultBytes = resultData.getByteArrayExtra(EXTRA_HINT_RESULT);
         if (resultBytes == null) {
             Log.i(LOG_TAG, "No hint result found in result data, returning default response");
-            return createDefaultHintRetrieveResult();
+            return HintRetrieveResult.UNKNOWN;
         }
 
         try {
             return HintRetrieveResult.fromProtobufBytes(resultBytes);
         } catch (MalformedDataException ex) {
             Log.e(LOG_TAG, "hint result is malformed, returning default response", ex);
-            return createDefaultHintRetrieveResult();
+            return HintRetrieveResult.UNKNOWN;
         }
     }
 
     /**
-     * Extracts the result of a credential save request from the intent data returned by a provider.
+     * Returns the result of a {@link CredentialSaveRequest}.
+     *
+     * <pre>{@code
+     * CredentialClient client = CredentialClient.getInstance(getContext());
+     *
+     * // ...
+     * @Override
+     * public void onActivityResult(int requestCode, int resultCode, Intent data) {
+     *     super.onActivityResult(requestCode, resultCode, data);
+     *     if (RC_SAVE_CREDENTIAL == requestCode) {
+     *        CredentialSaveResult result = client.getCredentialSaveResult(data);
+     *        // Most people will not need to check the result of a save request. Simply fire and
+     *        // forget.
+     *     }
+     * }
+     * }</pre>
+     *
+     * @see #getSaveIntent(CredentialSaveRequest)
      */
     @NonNull
     public CredentialSaveResult getCredentialSaveResult(Intent resultData) {
         if (resultData == null) {
             Log.i(LOG_TAG, "resultData is null, returning default response");
-            return createDefaultCredentialSaveResult();
+            return CredentialSaveResult.UNKNOWN;
         }
 
         final byte[] resultBytes = resultData.getByteArrayExtra(EXTRA_SAVE_RESULT);
         if (resultBytes == null) {
             Log.i(LOG_TAG, "No save result found in result data, returning default response");
-            return createDefaultCredentialSaveResult();
+            return CredentialSaveResult.UNKNOWN;
         }
 
         try {
             return CredentialSaveResult.fromProtobufBytes(resultBytes);
         } catch (MalformedDataException ex) {
             Log.e(LOG_TAG, "save result is malformed, returning default response", ex);
-            return createDefaultCredentialSaveResult();
+            return CredentialSaveResult.UNKNOWN;
         }
     }
 
     /**
-     * Disables automatically signing a user until a successful response is given to
-     * {@link CredentialClient#getCredentialRetrieveResult(Intent)}.
-     */
-    public void disableAutoSignIn() {
-        mDeviceState.setIsAutoSignInDisabled(true);
-    }
-
-    @NonNull
-    private static CredentialSaveResult createDefaultCredentialSaveResult() {
-        return new CredentialSaveResult.Builder(CredentialSaveResult.CODE_UNKNOWN)
-                .build();
-    }
-
-    /**
-     * Extracts the result of a credential deletion request from the intent data returned by
-     * a provider. If the result is missing or malformed, {@link CredentialDeleteResult#UNKNOWN}
-     * is returned.
+     * Returns the result of a {@link CredentialDeleteRequest}.
+     *
+     * <pre>{@code
+     * CredentialClient client = CredentialClient.getInstance(getContext());
+     *
+     * // ...
+     * @Override
+     * public void onActivityResult(int requestCode, int resultCode, Intent data) {
+     *     super.onActivityResult(requestCode, resultCode, data);
+     *     if (RC_DELETE_CREDENTIAL == requestCode) {
+     *        CredentialSaveResult result = client.getCredentialSaveResult(data);
+     *        // Most people will not need to check the result of a delete request. Simply fire and
+     *        // forget.
+     *     }
+     * }
+     * }</pre>
+     *
+     * @see #getDeleteIntent(CredentialDeleteRequest)
      */
     @NonNull
     public CredentialDeleteResult getDeleteResult(Intent resultData) {
@@ -436,15 +607,28 @@ public class CredentialClient {
         }
     }
 
-    @NonNull
-    private static CredentialRetrieveResult createDefaultCredentialRetrieveResult() {
-        return new CredentialRetrieveResult.Builder(CredentialRetrieveResult.CODE_UNKNOWN)
-                .build();
-    }
-
-    @NonNull
-    private static HintRetrieveResult createDefaultHintRetrieveResult() {
-        return HintRetrieveResult.UNKNOWN;
+    /**
+     * Disables automatically signing in a user until a successful response is given to
+     * {@link CredentialClient#getCredentialRetrieveResult(Intent)}. Instead a user is required to
+     * interact with the providers (e.g. click the credential they would like to sign in) before a
+     * credential is returned.
+     *
+     * This feature allows clients to easily avoid a common case where a user signs out and is then
+     * automatically signed back in. By calling this method when a user is signed out no additional
+     * logic to track the user's intention is required.
+     * <pre>{@code
+     *
+     * // ...
+     * public void signOutUser() {
+     *     // Your application's custom sign out logic.
+     *     // ...
+     *     CredentialClient client = CredentialClient.getInstance(getContext());
+     *     client.disableAutoSignIn();
+     * }
+     * }</pre>
+     */
+    public void disableAutoSignIn() {
+        mDeviceState.setIsAutoSignInDisabled(true);
     }
 
     private List<ComponentName> findProviders(@NonNull String action) {

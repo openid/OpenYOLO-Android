@@ -83,7 +83,7 @@ public class CredentialClientTest {
     private static final byte[] INVALID_PROTO = new byte[] { 0, 1, 2, 3 };
 
     private static final HintRetrieveRequest EMAIL_HINT_REQUEST =
-            HintRetrieveRequest.of(AuthenticationMethods.EMAIL);
+            HintRetrieveRequest.fromAuthMethods(AuthenticationMethods.EMAIL);
 
     @Mock
     private Context mockContext;
