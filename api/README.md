@@ -1,5 +1,10 @@
 # OpenYOLO for Android - Programmatic Credential API
 
+<div align="center">
+  <img src="https://user-images.githubusercontent.com/445775/30930082-60d21ace-a375-11e7-90cf-cc75fe5747fd.gif"/>
+  <em>Example of auto sign-in</em>
+</div>
+
 This is an open-source library for the OpenYOLO for Android protocol. It allows you to easily
 manipulate credentials for your application by interacting with the credential provider of the
 user's choice. This allows you to:
