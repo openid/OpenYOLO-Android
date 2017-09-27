@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.openyolo.api;
+package org.openyolo.api.internal;
 
 import android.content.Context;
 import android.support.annotation.VisibleForTesting;
@@ -126,7 +126,7 @@ public class KnownProviders {
      * of your app and the user's credentials.
      */
     @VisibleForTesting
-    static void setApplicationBoundInstance(KnownProviders instance) {
+    public static void setApplicationBoundInstance(KnownProviders instance) {
         INSTANCE_REF.set(instance);
     }
 
@@ -134,7 +134,7 @@ public class KnownProviders {
      * FOR TESTING ONLY - Clears the current instance of KnownProvider.
      */
     @VisibleForTesting
-    static void clearApplicationBoundInstance() {
+    public static void clearApplicationBoundInstance() {
         INSTANCE_REF.set(null);
     }
 

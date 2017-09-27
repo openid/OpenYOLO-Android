@@ -15,7 +15,7 @@
  *
  */
 
-package org.openyolo.api;
+package org.openyolo.api.internal;
 
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;

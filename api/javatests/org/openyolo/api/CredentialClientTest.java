@@ -40,6 +40,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.openyolo.api.internal.FinishWithResultActivity;
+import org.openyolo.api.internal.KnownProviders;
 import org.openyolo.api.persistence.AppSettings;
 import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.AuthenticationMethods;

@@ -42,6 +42,7 @@ import java.util.List;
 import org.openyolo.api.internal.ActivityResult;
 import org.openyolo.api.internal.CredentialRetrieveActivity;
 import org.openyolo.api.internal.FinishWithResultActivity;
+import org.openyolo.api.internal.KnownProviders;
 import org.openyolo.api.internal.ProviderPickerActivity;
 import org.openyolo.api.persistence.AppSettings;
 import org.openyolo.api.persistence.internal.AppSettingsImpl;

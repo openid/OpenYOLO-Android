@@ -41,7 +41,6 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.openyolo.api.KnownProviders;
 import org.openyolo.api.R;
 import org.openyolo.protocol.CredentialDeleteResult;
 import org.openyolo.protocol.CredentialRetrieveResult;
