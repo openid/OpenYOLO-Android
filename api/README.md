@@ -2,7 +2,7 @@
 
 <div align="center">
   <img src="https://user-images.githubusercontent.com/445775/30930082-60d21ace-a375-11e7-90cf-cc75fe5747fd.gif"/>
-  <em>Example of auto sign-in</em>
+  <p><em>Example of auto sign-in</em></p>
 </div>
 
 This is an open-source library for the OpenYOLO for Android protocol. It allows you to easily
