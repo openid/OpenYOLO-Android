@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.openyolo.api.R;
+import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.CredentialDeleteResult;
 import org.openyolo.protocol.CredentialRetrieveResult;
 import org.openyolo.protocol.CredentialSaveResult;
@@ -234,8 +235,24 @@ public final class ProviderPickerActivity extends Activity {
                 try {
                     String packageName = providerIntent.getComponent().getPackageName();
                     ApplicationInfo info = pm.getApplicationInfo(packageName, 0);
-                    mProviderIcons.add(info.loadIcon(pm));
-                    mProviderNames.add(pm.getApplicationLabel(info).toString());
+
+                    // NOTE(dxslly): Google's provider implementation lives inside the Google Play
+                    // Services APK which has a different application label and icon than user's
+                    // expect. To avoid confusion, a special case is made to provide the correct
+                    // branding. Ideally this should be solved at the protocol level (e.g. optional
+                    // metadata specified in the manifest that can override these defaults for
+                    // trusted providers).
+                    AuthenticationDomain authDomain =
+                            AuthenticationDomain.fromPackageName(getContext(), packageName);
+                    if (KnownProviders.GOOGLE_PROVIDER.equals(authDomain)) {
+                        mProviderIcons.add(getDrawable(R.drawable.google_g_standard_color));
+                        mProviderNames.add(
+                                getString(R.string.provider_picker_google_provider_name));
+                    } else {
+                        mProviderIcons.add(info.loadIcon(pm));
+                        mProviderNames.add(pm.getApplicationLabel(info).toString());
+                    }
+
                     mProviderKnown.add(knownProviders.isKnown(packageName));
                 } catch (PackageManager.NameNotFoundException e) {
                     Log.wtf(LOG_TAG, "Failed to retrieve package info for intent");

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="provider_picker_activity_label">Credential provider picker</string>
+    <string name="provider_picker_google_provider_name" translatable="false">Google Smart Lock</string>
 
     <string name="possibly_unsafe">Possibly unsafe</string>
 
