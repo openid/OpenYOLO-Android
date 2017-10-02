@@ -5,7 +5,7 @@
   <p><em>Example of auto sign-in</em></p>
 </div>
 
-This is an open-source library for the OpenYOLO for Android protocol. It allows you to easily
+This is an open-source client library for the OpenYOLO for Android protocol. It allows you to easily
 manipulate credentials for your application by interacting with the credential provider of the
 user's choice. This allows you to:
 
@@ -14,24 +14,27 @@ user's choice. This allows you to:
 1. Prompt users after sign-in/sign up to save their credentials for future automatic sign in.
 
 ## Installation
-As a pre-requisite, you will need to add the OpenYOLO Api as a dependency. For example, if your
-project uses Gradle:
+[ ![Download](https://api.bintray.com/packages/openid/net.openid/openyolo-api/images/download.svg) ](https://bintray.com/openid/net.openid/openyolo-api/_latestVersion)
+
+As a pre-requisite, you will need to add the OpenYOLO Api as a dependency. Check
+[here](https://bintray.com/openid/net.openid/openyolo-api) or the above button for the latest
+version. For example, if your project uses Gradle:
 
 ```groovy
 dependencies {
     // ...
-    compile 'com.openyolo:api:xxx'
+    compile 'com.openyolo:openyolo-api:x.y.z'
 }
 ```
 
 ## Terminology
 
- - [Authentication Method](https://spec.openyolo.org/openyolo-android-spec.html#authentication-methods):
+ - [Authentication Method](http://openid.net/specs/openyolo-android-ID1.html#authentication-methods):
 An authentication method is a mechanism by which a credential can be verified. It is represented as
 a URI of the form ```scheme://authority```. For example OpenYOLO defines several common types such
 as ``openyolo://email`` and ```openyolo://phone```.  When requesting a credential or hint your
 application will declare which authentication methods it supports.
- - [Authentication Domain](https://spec.openyolo.org/openyolo-android-spec.html#authentication-domains):
+ - [Authentication Domain](http://openid.net/specs/openyolo-android-ID1.html#authentication-domains):
 An authentication domain is the scope in which a credential is considered to be usable. A domain
 spans a single Android application or web address. If your authentication system does not span
 multiple domains you can safely ignore this concept as a client. However, if your application offers
