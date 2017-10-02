@@ -16,13 +16,11 @@ package org.openyolo.protocol;
 
 import static java.util.Collections.EMPTY_SET;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.openyolo.protocol.internal.CustomMatchers.isHttpsUriStr;
-import static org.openyolo.protocol.internal.CustomMatchers.notNullOrEmptyString;
 import static org.valid4j.Validation.validate;
 
 import android.content.Intent;
@@ -32,6 +30,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 
+import com.google.protobuf.ByteString;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,6 +38,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.openyolo.protocol.internal.AdditionalPropertiesUtil;
 import org.openyolo.protocol.internal.AuthenticationMethodConverters;
 import org.openyolo.protocol.internal.ByteStringConverters;
 import org.openyolo.protocol.internal.ClientVersionUtil;
@@ -137,7 +137,7 @@ public class CredentialRetrieveRequest implements Parcelable {
     private final Map<String, TokenRequestInfo> mTokenProviders;
 
     @NonNull
-    private final Map<String, byte[]> mAdditionalProps;
+    private final Map<String, ByteString> mAdditionalProps;
 
     @NonNull
     private final boolean mRequireUserMediation;
@@ -145,7 +145,7 @@ public class CredentialRetrieveRequest implements Parcelable {
     private CredentialRetrieveRequest(Builder builder) {
         mAuthMethods = Collections.unmodifiableSet(builder.mAuthMethods);
         mTokenProviders = Collections.unmodifiableMap(builder.mTokenProviders);
-        mAdditionalProps = Collections.unmodifiableMap(builder.mAdditionalParams);
+        mAdditionalProps = Collections.unmodifiableMap(builder.mAdditionalProps);
         mRequireUserMediation = builder.mRequireUserMediation;
     }
 
@@ -183,7 +183,34 @@ public class CredentialRetrieveRequest implements Parcelable {
      */
     @NonNull
     public Map<String, byte[]> getAdditionalProperties() {
-        return mAdditionalProps;
+        return CollectionConverter.convertMapValues(
+                mAdditionalProps,
+                ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY);
+    }
+
+    /**
+     * Returns the additional, non-standard property identified by the specified key. If this
+     * additional property does not exist, then `null` is returned.
+     */
+    @Nullable
+    public byte[] getAdditionalProperty(String key) {
+        ByteString value = mAdditionalProps.get(key);
+        if (value == null) {
+            return null;
+        }
+
+        return value.toByteArray();
+    }
+
+    /**
+     * Returns the additional, non-standard property identified by the specified key, where the
+     * value is assumed to be a UTF-8 encoded string. If this additional property does not exist,
+     * then `null` is returned.
+     */
+    @Nullable
+    public String getAdditionalPropertyAsString(String key) {
+        return AdditionalPropertiesHelper.decodeStringValue(
+                getAdditionalProperty(key));
     }
 
     @Override
@@ -212,10 +239,7 @@ public class CredentialRetrieveRequest implements Parcelable {
                         CollectionConverter.convertMapValues(
                                 mTokenProviders,
                                 TokenRequestInfoConverters.OBJECT_TO_PROTOBUF))
-                .putAllAdditionalProps(
-                        CollectionConverter.convertMapValues(
-                                mAdditionalProps,
-                                ByteStringConverters.BYTE_ARRAY_TO_BYTE_STRING))
+                .putAllAdditionalProps(mAdditionalProps)
                 .setRequireUserMediation(mRequireUserMediation)
                 .build();
     }
@@ -227,7 +251,7 @@ public class CredentialRetrieveRequest implements Parcelable {
 
         private Set<AuthenticationMethod> mAuthMethods = new HashSet<>();
         private Map<String, TokenRequestInfo> mTokenProviders = new HashMap<>();
-        private Map<String, byte[]> mAdditionalParams = new HashMap<>();
+        private Map<String, ByteString> mAdditionalProps = new HashMap<>();
         private boolean mRequireUserMediation = DEFAULT_REQUIRE_USER_MEDIATION_VALUE;
 
         /**
@@ -237,7 +261,7 @@ public class CredentialRetrieveRequest implements Parcelable {
         public Builder(CredentialRetrieveRequest request) {
             mAuthMethods = request.mAuthMethods;
             mTokenProviders = request.mTokenProviders;
-            mAdditionalParams = request.mAdditionalProps;
+            mAdditionalProps = request.mAdditionalProps;
             mRequireUserMediation = request.mRequireUserMediation;
         }
 
@@ -362,19 +386,35 @@ public class CredentialRetrieveRequest implements Parcelable {
          * non-null, and contain only non-null keys and values.
          */
         public Builder setAdditionalProperties(
-                @NonNull Map<String, byte[]> additionalParams) {
-            validate(additionalParams, notNullValue(), IllegalArgumentException.class);
-            validate(
-                    additionalParams.keySet(),
-                    everyItem(notNullOrEmptyString()),
-                    IllegalArgumentException.class);
-            validate(
-                    additionalParams.values(),
-                    everyItem(notNullValue()),
-                    IllegalArgumentException.class);
-
-            mAdditionalParams = additionalParams;
+                @NonNull Map<String, byte[]> additionalProps) {
+            mAdditionalProps =
+                    AdditionalPropertiesUtil.validateAdditionalProperties(additionalProps);
             return this;
+        }
+
+        /**
+         * Specifies an additional, non-standard property to include in the credential.
+         */
+        @NonNull
+        public Builder setAdditionalProperty(@NonNull String key, @Nullable byte[] value) {
+            ByteString immutableValue;
+            if (value == null) {
+                immutableValue = null;
+            } else {
+                immutableValue = ByteString.copyFrom(value);
+            }
+
+            mAdditionalProps.put(key, immutableValue);
+            return this;
+        }
+
+        /**
+         * Specifies an additional, non-standard property with a string value to include in the
+         * credential.
+         */
+        @NonNull
+        public Builder setAdditionalPropertyAsString(@NonNull String key, @Nullable String value) {
+            return setAdditionalProperty(key, AdditionalPropertiesHelper.encodeStringValue(value));
         }
 
         /**
