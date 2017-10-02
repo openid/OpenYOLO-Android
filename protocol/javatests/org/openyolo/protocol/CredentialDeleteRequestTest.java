@@ -14,10 +14,19 @@
 
 package org.openyolo.protocol;
 
+import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.openyolo.protocol.AuthenticationMethods.EMAIL;
+import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_ANOTHER_KEY;
+import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_STRING_VALUE;
+import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_TEST_KEY;
+import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_TWO_BYTE_VALUE;
+import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_ZERO_BYTE_VALUE;
 import static org.openyolo.protocol.TestConstants.INVALID_PROTO_BYTES;
 
 import android.content.Intent;
+import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.ByteString;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.openyolo.protocol.TestConstants.ValidAdditionalProperties;
@@ -47,7 +56,7 @@ public class CredentialDeleteRequestTest {
 
         public static void assertEquals(CredentialDeleteRequest request) {
             ValidFacebookCredential.assertEqualTo(request.getCredential());
-            ValidAdditionalProperties.assertEquals(request.getAdditionalProps());
+            ValidAdditionalProperties.assertEquals(request.getAdditionalProperties());
         }
     }
 
@@ -62,6 +71,90 @@ public class CredentialDeleteRequestTest {
     @Test(expected = IllegalArgumentException.class)
     public void build_nullCredential_throwsIllegalArgumentException() {
         new CredentialDeleteRequest.Builder(null).build();
+    }
+
+    @Test
+    public void testBuilder_setAdditionalProperty() {
+        CredentialDeleteRequest cdr = new CredentialDeleteRequest.Builder(
+                ValidFacebookCredential.make())
+                .setAdditionalProperty(ADDITIONAL_PROP_TEST_KEY, ADDITIONAL_PROP_TWO_BYTE_VALUE)
+                .setAdditionalProperty(ADDITIONAL_PROP_ANOTHER_KEY, ADDITIONAL_PROP_ZERO_BYTE_VALUE)
+                .build();
+
+        Map<String, byte[]> additionalProps = cdr.getAdditionalProperties();
+        assertThat(additionalProps.size()).isEqualTo(2);
+        assertThat(additionalProps.containsKey(ADDITIONAL_PROP_TEST_KEY));
+        assertThat(additionalProps.get(ADDITIONAL_PROP_TEST_KEY))
+                .isEqualTo(ADDITIONAL_PROP_TWO_BYTE_VALUE);
+        assertThat(additionalProps.containsKey(ADDITIONAL_PROP_ANOTHER_KEY));
+        assertThat(additionalProps.get(ADDITIONAL_PROP_ANOTHER_KEY))
+                .isEqualTo(ADDITIONAL_PROP_ZERO_BYTE_VALUE);
+    }
+
+    @Test
+    public void testBuilder_setAdditionalProperty_overwriteExistingValue() {
+        CredentialDeleteRequest cdr = new CredentialDeleteRequest.Builder(
+                ValidFacebookCredential.make())
+                .setAdditionalProperty(ADDITIONAL_PROP_TEST_KEY, ADDITIONAL_PROP_TWO_BYTE_VALUE)
+                .setAdditionalProperty(ADDITIONAL_PROP_TEST_KEY, ADDITIONAL_PROP_ZERO_BYTE_VALUE)
+                .build();
+
+        Map<String, byte[]> additionalProps = cdr.getAdditionalProperties();
+        assertThat(additionalProps.size()).isEqualTo(1);
+        assertThat(additionalProps.containsKey(ADDITIONAL_PROP_TEST_KEY));
+        assertThat(additionalProps.get(ADDITIONAL_PROP_TEST_KEY))
+                .isEqualTo(ADDITIONAL_PROP_ZERO_BYTE_VALUE);
+    }
+
+    @Test
+    public void testBuilder_setAdditionalPropertyAsString() {
+        CredentialDeleteRequest cdr = new CredentialDeleteRequest.Builder(
+                ValidFacebookCredential.make())
+                .setAdditionalPropertyAsString(
+                        ADDITIONAL_PROP_TEST_KEY,
+                        ADDITIONAL_PROP_STRING_VALUE)
+                .build();
+
+        Map<String, byte[]> additionalProps = cdr.getAdditionalProperties();
+        assertThat(additionalProps.size()).isEqualTo(1);
+        assertThat(additionalProps.containsKey(ADDITIONAL_PROP_TEST_KEY));
+        assertThat(additionalProps.get(ADDITIONAL_PROP_TEST_KEY))
+                .isEqualTo(AdditionalPropertiesHelper.encodeStringValue(
+                        ADDITIONAL_PROP_STRING_VALUE));
+    }
+
+    @Test
+    public void testGetAdditionalProperty() {
+        CredentialDeleteRequest cdr = new CredentialDeleteRequest.Builder(
+                ValidFacebookCredential.make())
+                .setAdditionalProperties(ImmutableMap.of(
+                        ADDITIONAL_PROP_TEST_KEY,
+                        ADDITIONAL_PROP_TWO_BYTE_VALUE))
+                .build();
+
+        assertThat(cdr.getAdditionalProperty(ADDITIONAL_PROP_TEST_KEY))
+                .isEqualTo(ADDITIONAL_PROP_TWO_BYTE_VALUE);
+    }
+
+    @Test
+    public void testGetAdditionalProperty_withMissingKey() {
+        CredentialDeleteRequest cdr = new CredentialDeleteRequest.Builder(
+                ValidFacebookCredential.make())
+                .build();
+        assertThat(cdr.getAdditionalProperty("missingKey")).isNull();
+    }
+
+    @Test
+    public void testGetAdditionalPropertyAsString() {
+        CredentialDeleteRequest cdr = new CredentialDeleteRequest.Builder(
+                ValidFacebookCredential.make())
+                .setAdditionalProperties(ImmutableMap.of(
+                        ADDITIONAL_PROP_TEST_KEY,
+                        AdditionalPropertiesHelper.encodeStringValue(ADDITIONAL_PROP_STRING_VALUE)))
+                .build();
+
+        assertThat(cdr.getAdditionalPropertyAsString(ADDITIONAL_PROP_TEST_KEY))
+                .isEqualTo(ADDITIONAL_PROP_STRING_VALUE);
     }
 
     @Test

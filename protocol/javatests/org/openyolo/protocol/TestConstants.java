@@ -41,6 +41,13 @@ public final class TestConstants {
     public static final byte[] INVALID_PROTO_BYTES =
             new byte[] { 'i', 'n', 'v', 'a', 'l', 'i', 'd' };
 
+    public static final String ADDITIONAL_PROP_TEST_KEY = "testKey";
+    public static final String ADDITIONAL_PROP_ANOTHER_KEY = "anotherKey";
+
+    public static final byte[] ADDITIONAL_PROP_TWO_BYTE_VALUE = new byte[] { 0, 1 };
+    public static final byte[] ADDITIONAL_PROP_ZERO_BYTE_VALUE = new byte[] {};
+    public static final String ADDITIONAL_PROP_STRING_VALUE = "value";
+
     public static final class ValidAdditionalProperties {
         private static final String ADDITIONAL_KEY = "extra";
         private static final byte[] ADDITIONAL_VALUE = "value".getBytes();

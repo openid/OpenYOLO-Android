@@ -19,6 +19,11 @@ package org.openyolo.protocol;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.assertj.core.api.Java6Assertions.linesOf;
 import static org.openyolo.protocol.AuthenticationMethods.EMAIL;
+import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_ANOTHER_KEY;
+import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_STRING_VALUE;
+import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_TEST_KEY;
+import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_TWO_BYTE_VALUE;
+import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_ZERO_BYTE_VALUE;
 
 import android.net.Uri;
 import android.os.Parcel;
@@ -49,13 +54,6 @@ public class CredentialTest {
                     + "6ImFsaWNlQGV4YW1wbGUuY29tIiwibmFtZSI6IkFsaWNlIE1jVGVzdGVyc29uIiw"
                     + "icGljdHVyZSI6Imh0dHBzOi8vcm9ib2hhc2gub3JnL2FsaWNlIn0.2-D7AZ1C7mv"
                     + "dLRf6Q7aqH8Ah4rlK1uuHPSU2HPImtyk";
-
-    private static final String ADDITIONAL_PROP_TEST_KEY = "testKey";
-    private static final String ADDITIONAL_PROP_ANOTHER_KEY = "anotherKey";
-
-    private static final byte[] ADDITIONAL_PROP_TWO_BYTE_VALUE = new byte[] { 0, 1 };
-    private static final byte[] ADDITIONAL_PROP_ZERO_BYTE_VALUE = new byte[] {};
-    private static final String ADDITIONAL_PROP_STRING_VALUE = "value";
 
     @Test
     public void fromProtobuf_withValidCredential_returnsEquivalentCredential() throws Exception {
