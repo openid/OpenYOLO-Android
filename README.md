@@ -1,6 +1,6 @@
 ![OpenYOLO for Android](https://rawgit.com/openid/OpenYOLO-Android/master/openyolo_android_lockup.svg)
 
-[![Build Status](https://www.bitrise.io/app/e7b1a2bcce9d787c.svg?token=kvggLFAJ-Tx48g6I671NSg)](https://www.bitrise.io/app/e7b1a2bcce9d787c)
+[![Build Status](https://travis-ci.org/openid/OpenYOLO-Android.svg?branch=master)](https://travis-ci.org/openid/OpenYOLO-Android)
 [![codecov](https://codecov.io/gh/openid/OpenYOLO-Android/branch/master/graph/badge.svg)](https://codecov.io/gh/openid/OpenYOLO-Android)
 
 OpenYOLO for Android is a protocol for storing, updating and assisting in the 
