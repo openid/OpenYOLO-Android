@@ -17,7 +17,7 @@ bintray {
 
         version {
             name = rootProject.versionName
-            desc = "AppAuth for Android"
+            desc = "OpenYOLO for Android"
             released = rootProject.versionDate
             vcsTag = rootProject.versionName
         }
