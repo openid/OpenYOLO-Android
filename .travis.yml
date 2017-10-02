@@ -1,0 +1,8 @@
+# Travis documentation for Android project builds:
+# https://docs.travis-ci.com/user/languages/android
+
+language: android
+android:
+  components:
+    - build-tools-26.0.1
+    - android-26
