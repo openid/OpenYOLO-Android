@@ -219,6 +219,31 @@ public final class Credential implements Parcelable {
             ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY);
     }
 
+    /**
+     * Returns the additional, non-standard property identified by the specified key. If this
+     * additional property does not exist, then `null` is returned.
+     */
+    @Nullable
+    public byte[] getAdditionalProperty(String key) {
+        ByteString value = mAdditionalProps.get(key);
+        if (value == null) {
+            return null;
+        }
+
+        return value.toByteArray();
+    }
+
+    /**
+     * Returns the additional, non-standard property identified by the specified key, where the
+     * value is assumed to be a UTF-8 encoded string. If this additional property does not exist,
+     * then `null` is returned.
+     */
+    @Nullable
+    public String getAdditionalPropertyAsString(String key) {
+        return AdditionalPropertiesHelper.decodeStringValue(
+                getAdditionalProperty(key));
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -403,11 +428,37 @@ public final class Credential implements Parcelable {
         /**
          * Specifies any additional, non-standard properties associated with the credential.
          */
+        @NonNull
         public Builder setAdditionalProperties(@Nullable Map<String, byte[]> additionalProps) {
             mAdditionalProps =
                 AdditionalPropertiesUtil.validateAdditionalProperties(additionalProps);
 
             return this;
+        }
+
+        /**
+         * Specifies an additional, non-standard property to include in the credential.
+         */
+        @NonNull
+        public Builder setAdditionalProperty(@NonNull String key, @Nullable byte[] value) {
+            ByteString immutableValue;
+            if (value == null) {
+                immutableValue = null;
+            } else {
+                immutableValue = ByteString.copyFrom(value);
+            }
+
+            mAdditionalProps.put(key, immutableValue);
+            return this;
+        }
+
+        /**
+         * Specifies an additional, non-standard property with a string value to include in the
+         * credential.
+         */
+        @NonNull
+        public Builder setAdditionalPropertyAsString(@NonNull String key, @Nullable String value) {
+            return setAdditionalProperty(key, AdditionalPropertiesHelper.encodeStringValue(value));
         }
 
         /**

@@ -17,10 +17,15 @@
 package org.openyolo.protocol;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.assertj.core.api.Java6Assertions.linesOf;
 import static org.openyolo.protocol.AuthenticationMethods.EMAIL;
 
 import android.net.Uri;
 import android.os.Parcel;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.openyolo.protocol.TestConstants.ValidFacebookCredential;
@@ -44,6 +49,13 @@ public class CredentialTest {
                     + "6ImFsaWNlQGV4YW1wbGUuY29tIiwibmFtZSI6IkFsaWNlIE1jVGVzdGVyc29uIiw"
                     + "icGljdHVyZSI6Imh0dHBzOi8vcm9ib2hhc2gub3JnL2FsaWNlIn0.2-D7AZ1C7mv"
                     + "dLRf6Q7aqH8Ah4rlK1uuHPSU2HPImtyk";
+
+    private static final String ADDITIONAL_PROP_TEST_KEY = "testKey";
+    private static final String ADDITIONAL_PROP_ANOTHER_KEY = "anotherKey";
+
+    private static final byte[] ADDITIONAL_PROP_TWO_BYTE_VALUE = new byte[] { 0, 1 };
+    private static final byte[] ADDITIONAL_PROP_ZERO_BYTE_VALUE = new byte[] {};
+    private static final String ADDITIONAL_PROP_STRING_VALUE = "value";
 
     @Test
     public void fromProtobuf_withValidCredential_returnsEquivalentCredential() throws Exception {
@@ -275,6 +287,53 @@ public class CredentialTest {
     }
 
     @Test
+    public void testBuilder_setAdditionalProperty() {
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
+                .setAdditionalProperty(ADDITIONAL_PROP_TEST_KEY, ADDITIONAL_PROP_TWO_BYTE_VALUE)
+                .setAdditionalProperty(ADDITIONAL_PROP_ANOTHER_KEY, ADDITIONAL_PROP_ZERO_BYTE_VALUE)
+                .build();
+
+        Map<String, byte[]> additionalProps = cr.getAdditionalProperties();
+        assertThat(additionalProps.size()).isEqualTo(2);
+        assertThat(additionalProps.containsKey(ADDITIONAL_PROP_TEST_KEY));
+        assertThat(additionalProps.get(ADDITIONAL_PROP_TEST_KEY))
+                .isEqualTo(ADDITIONAL_PROP_TWO_BYTE_VALUE);
+        assertThat(additionalProps.containsKey(ADDITIONAL_PROP_ANOTHER_KEY));
+        assertThat(additionalProps.get(ADDITIONAL_PROP_ANOTHER_KEY))
+                .isEqualTo(ADDITIONAL_PROP_ZERO_BYTE_VALUE);
+    }
+
+    @Test
+    public void testBuilder_setAdditionalProperty_overwriteExistingValue() {
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
+                .setAdditionalProperty(ADDITIONAL_PROP_TEST_KEY, ADDITIONAL_PROP_TWO_BYTE_VALUE)
+                .setAdditionalProperty(ADDITIONAL_PROP_TEST_KEY, ADDITIONAL_PROP_ZERO_BYTE_VALUE)
+                .build();
+
+        Map<String, byte[]> additionalProps = cr.getAdditionalProperties();
+        assertThat(additionalProps.size()).isEqualTo(1);
+        assertThat(additionalProps.containsKey(ADDITIONAL_PROP_TEST_KEY));
+        assertThat(additionalProps.get(ADDITIONAL_PROP_TEST_KEY))
+                .isEqualTo(ADDITIONAL_PROP_ZERO_BYTE_VALUE);
+    }
+
+    @Test
+    public void testBuilder_setAdditionalPropertyAsString() {
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
+                .setAdditionalPropertyAsString(
+                        ADDITIONAL_PROP_TEST_KEY,
+                        ADDITIONAL_PROP_STRING_VALUE)
+                .build();
+
+        Map<String, byte[]> additionalProps = cr.getAdditionalProperties();
+        assertThat(additionalProps.size()).isEqualTo(1);
+        assertThat(additionalProps.containsKey(ADDITIONAL_PROP_TEST_KEY));
+        assertThat(additionalProps.get(ADDITIONAL_PROP_TEST_KEY))
+                .isEqualTo(AdditionalPropertiesHelper.encodeStringValue(
+                        ADDITIONAL_PROP_STRING_VALUE));
+    }
+
+    @Test
     public void testGetProto() {
         Credential cr = new Credential.Builder(
                 EMAIL_ID,
@@ -314,5 +373,33 @@ public class CredentialTest {
                 .isEqualTo(cr.getDisplayPicture());
         assertThat(readCredential.getPassword())
                 .isEqualTo(cr.getPassword());
+    }
+
+    @Test
+    public void testGetAdditionalProperty() {
+        String key = "testKey";
+        byte[] value = new byte[] { 0, 1 };
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
+                .setAdditionalProperties(ImmutableMap.of(key, value))
+                .build();
+
+        assertThat(cr.getAdditionalProperty(key)).isEqualTo(value);
+    }
+
+    @Test
+    public void testGetAdditionalProperty_withMissingKey() {
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN).build();
+        assertThat(cr.getAdditionalProperty("missingKey")).isNull();
+    }
+
+    @Test
+    public void testGetAdditionalPropertyAsString() {
+        String key = "testKey";
+        byte[] value = AdditionalPropertiesHelper.encodeStringValue("testValue");
+        Credential cr = new Credential.Builder(EMAIL_ID, EMAIL, AUTH_DOMAIN)
+                .setAdditionalProperties(ImmutableMap.of(key, value))
+                .build();
+
+        assertThat(cr.getAdditionalPropertyAsString(key)).isEqualTo("testValue");
     }
 }
