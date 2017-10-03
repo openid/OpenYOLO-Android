@@ -106,7 +106,7 @@ Pull requests are expected to at least meet the following criteria:
 ## Responsibilities of reviewers
 
 Reviewers (members of the 
-[@openid/openyolo-android-maintainers][maintainers-team] team) are expected
+@openid/openyolo-android-maintainers team) are expected
 to adhere to the following guidelines:
 
 - New pull requests should be allocated a reviewer within one business day of
@@ -150,7 +150,5 @@ The following acronyms and terms will be common in reviews:
   indicate to the reviewer that you have finished addressing their comments
   and the PR is ready for re-review.
 
-
-[maintainers-team]: https://github.com/orgs/openid/teams/openyolo-android-maintainers
 [oidf-ac-list]: http://groups.google.com/group/oidf-account-chooser-list
 [spec-repo]: https://github.com/openid/OpenYOLO-Spec
