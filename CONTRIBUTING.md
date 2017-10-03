@@ -131,11 +131,6 @@ to adhere to the following guidelines:
 
 The following acronyms and terms will be common in reviews:
 
-- CL: Change List. This term is commonly used by Googlers, and is 
-  interchangeable for PR (pull request). The reviewers from Google apologize in
-  advance if they use confusing, Google-specific terminology at any point in
-  their reviews or conversations :)
-
 - Fix in follow-up: a requested change from a reviewer (or a request from a
   submitter) that can be fixed in a follow-up pull request. If such a change
   will not be fixed in the current PR, an issue should be opened to track its
