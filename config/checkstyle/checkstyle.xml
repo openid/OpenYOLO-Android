@@ -466,6 +466,12 @@ Description: https://source.android.com/source/code-style.html
     <property name="message" value="Line has trailing whitespace."/>
   </module>
 
+  <!-- Forbid Windows (CRLF) or old Mac style (CR) line endings -->
+  <module name="RegexpMultiline">
+    <property name="format" value="\r"/>
+    <property name="message" value="Do not use Windows or old Mac line endings"/>
+  </module>
+
   <!-- require Javadoc for all packages -->
   <module name="JavadocPackage"/>
 
