@@ -1,2 +1,4 @@
 # always use unix line endings
 * text eol=lf
+*.jar binary -diff
+*.png binary -diff
