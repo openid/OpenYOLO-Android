@@ -50,4 +50,8 @@ public final class AdditionalPropertiesHelper {
 
         return new String(value, UTF_8);
     }
+
+    private AdditionalPropertiesHelper() {
+        throw new IllegalStateException("not intended to be constructed");
+    }
 }
