@@ -11,25 +11,50 @@ any installed credential provider on the device.
 This repository contains the reference implementation of the OpenYOLO protocol,
 and the standard API and Service Provider Interface (SPI).
 
-OpenYOLO is inspired by, and ultimately intended to replace, Google's
-[Smart Lock for Passwords][yolo] API, which is
-internally known as YOLO (You Only Login Once).
+<div align="center">
+  <img src="https://user-images.githubusercontent.com/445775/30930082-60d21ace-a375-11e7-90cf-cc75fe5747fd.gif"/>
+  <p><em>Example of auto sign-in</em></p>
+</div>
 
-## OpenYOLO is *not* production ready
+## Project Status
 
-OpenYOLO is currently in the *experimental* stage; both the specification and
-reference implementation are *unstable*. We do not recommend that it be used
-in production Android apps. At such a time that OpenYOLO is considered stable
-and ready for production use, an official announcement shall be made and both
-the specification and reference implementation will be promoted to v1.0.0.
+OpenYOLO has reached beta production ready stage and can be integrated into production applications.
+The following credential providers include production implementations of OpenYOLO:
 
-## OpenYOLO Specification
+| <img src="https://user-images.githubusercontent.com/445775/31100963-59c51db2-a780-11e7-87f4-e7ab2750b92a.png" width="200" height="200" /> | <img src="https://user-images.githubusercontent.com/445775/31101083-0cc4fd92-a781-11e7-95fe-9f9e9fadae70.png" width="200" height="200" /> | <img src="https://user-images.githubusercontent.com/445775/31101050-eeb9966e-a780-11e7-96ae-614f765f3f12.png" width="200" height="200" /> |
+|:---:|:---:|:---:|
+| 1Password | Dashlane | Google Smart Lock |
 
-The OpenYOLO for Android specification can be found 
-[here](https://spec.openyolo.org/openyolo-android-spec.html). This is
-currently under review by the 
-[Account Chooser and OpenYOLO Working Group](http://openid.net/wg/ac/),
-with the intention for it to become an implementor's draft by Q3 2017,
-and reach full standardization by Q4 2017.
+The OpenYOLO for Android specification can be found [here](http://openid.net/specs/openyolo-android-03.html).
+This is currently under review as an implementor's draft by the
+[Account Chooser and OpenYOLO Working Group](http://openid.net/wg/ac/), with the goal for it to
+reach final specification status in the near future.
 
-[yolo]: https://developers.google.com/identity/smartlock-passwords/android/
+## Getting Started as a Client
+
+[![Download](https://api.bintray.com/packages/openid/net.openid/openyolo-api/images/download.svg) ](https://bintray.com/openid/net.openid/openyolo-api/_latestVersion)
+
+The client library for the OpenYOLO for Android protocol lives in the ```api``` directory. It allows
+you to easily manipulate credentials for your application by interacting with the credential
+provider of the user's choice. This allows you to:
+
+1. Automatically sign users into your app using saved credentials.
+1. Rapidly on-board new users by bootstrapping off of existing identities.
+1. Prompt users after sign-in/sign up to save their credentials for future automatic sign in.
+
+<div align="center">
+  <b><a href="api">Getting Started Guide</a></b> | <b><a href="demoapps">Sample Implementation</a></b>
+</div>
+
+
+## Getting Started as a Credential Provider
+
+[ ![Download](https://api.bintray.com/packages/openid/net.openid/openyolo-spi/images/download.svg) ](https://bintray.com/openid/net.openid/openyolo-spi/_latestVersion)
+
+A getting started guide has not been written for credential providers. In its absence the protocol's
+specification as well as several sample implementations are good alternatives.
+
+<div align="center">
+  <b><a href="demoproviders">Sample Implementations</a></b> | <b><a href="testapp">Test App</a></b> | <b><a href="http://openid.net/specs/openyolo-android-03.html">Specification</a></b>
+</div>
+

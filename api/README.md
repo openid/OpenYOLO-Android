@@ -23,7 +23,7 @@ version. For example, if your project uses Gradle:
 ```groovy
 dependencies {
     // ...
-    compile 'com.openyolo:openyolo-api:x.y.z'
+    compile 'org.openyolo:openyolo-api:x.y.z'
 }
 ```
 
