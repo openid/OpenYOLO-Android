@@ -15,8 +15,14 @@
 package org.openyolo.protocol;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_ANOTHER_KEY;
+import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_STRING_VALUE;
+import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_TEST_KEY;
+import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_TWO_BYTE_VALUE;
+import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_ZERO_BYTE_VALUE;
 
 import android.content.Intent;
+import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,7 +72,7 @@ public class CredentialRetrieveResultTest {
     private static void assertEqualTo(CredentialRetrieveResult result) {
       assertThat(result.getResultCode()).isEqualTo(RESULT_CODE);
       ValidCredential.assertEqualTo(result.getCredential());
-      ValidProperties.assertEqualTo(result.getAdditionalProps());
+      ValidProperties.assertEqualTo(result.getAdditionalProperties());
     }
   }
 
@@ -88,9 +94,93 @@ public class CredentialRetrieveResultTest {
     private static void assertEqualTo(CredentialRetrieveResult result) {
       assertThat(result.getResultCode()).isEqualTo(RESULT_CODE);
       assertThat(result.getCredential()).isNull();
-      ValidProperties.assertEqualTo(result.getAdditionalProps());
+      ValidProperties.assertEqualTo(result.getAdditionalProperties());
     }
   }
+
+  @Test
+  public void testBuilder_setAdditionalProperty() {
+    CredentialRetrieveResult cdr = new CredentialRetrieveResult.Builder(
+            CredentialRetrieveResult.CODE_NO_CREDENTIALS_AVAILABLE)
+            .setAdditionalProperty(ADDITIONAL_PROP_TEST_KEY, ADDITIONAL_PROP_TWO_BYTE_VALUE)
+            .setAdditionalProperty(ADDITIONAL_PROP_ANOTHER_KEY, ADDITIONAL_PROP_ZERO_BYTE_VALUE)
+            .build();
+
+    Map<String, byte[]> additionalProps = cdr.getAdditionalProperties();
+    assertThat(additionalProps.size()).isEqualTo(2);
+    assertThat(additionalProps.containsKey(ADDITIONAL_PROP_TEST_KEY));
+    assertThat(additionalProps.get(ADDITIONAL_PROP_TEST_KEY))
+            .isEqualTo(ADDITIONAL_PROP_TWO_BYTE_VALUE);
+    assertThat(additionalProps.containsKey(ADDITIONAL_PROP_ANOTHER_KEY));
+    assertThat(additionalProps.get(ADDITIONAL_PROP_ANOTHER_KEY))
+            .isEqualTo(ADDITIONAL_PROP_ZERO_BYTE_VALUE);
+  }
+
+  @Test
+  public void testBuilder_setAdditionalProperty_overwriteExistingValue() {
+    CredentialRetrieveResult cdr = new CredentialRetrieveResult.Builder(
+            CredentialRetrieveResult.CODE_NO_CREDENTIALS_AVAILABLE)
+            .setAdditionalProperty(ADDITIONAL_PROP_TEST_KEY, ADDITIONAL_PROP_TWO_BYTE_VALUE)
+            .setAdditionalProperty(ADDITIONAL_PROP_TEST_KEY, ADDITIONAL_PROP_ZERO_BYTE_VALUE)
+            .build();
+
+    Map<String, byte[]> additionalProps = cdr.getAdditionalProperties();
+    assertThat(additionalProps.size()).isEqualTo(1);
+    assertThat(additionalProps.containsKey(ADDITIONAL_PROP_TEST_KEY));
+    assertThat(additionalProps.get(ADDITIONAL_PROP_TEST_KEY))
+            .isEqualTo(ADDITIONAL_PROP_ZERO_BYTE_VALUE);
+  }
+
+  @Test
+  public void testBuilder_setAdditionalPropertyAsString() {
+    CredentialRetrieveResult cdr = new CredentialRetrieveResult.Builder(
+            CredentialRetrieveResult.CODE_NO_CREDENTIALS_AVAILABLE)
+            .setAdditionalPropertyAsString(
+                    ADDITIONAL_PROP_TEST_KEY,
+                    ADDITIONAL_PROP_STRING_VALUE)
+            .build();
+
+    Map<String, byte[]> additionalProps = cdr.getAdditionalProperties();
+    assertThat(additionalProps.size()).isEqualTo(1);
+    assertThat(additionalProps.containsKey(ADDITIONAL_PROP_TEST_KEY));
+    assertThat(additionalProps.get(ADDITIONAL_PROP_TEST_KEY))
+            .isEqualTo(AdditionalPropertiesHelper.encodeStringValue(
+                    ADDITIONAL_PROP_STRING_VALUE));
+  }
+
+    @Test
+    public void testGetAdditionalProperty() {
+        CredentialRetrieveResult cdr = new CredentialRetrieveResult.Builder(
+                CredentialRetrieveResult.CODE_NO_CREDENTIALS_AVAILABLE)
+                .setAdditionalProperties(ImmutableMap.of(
+                        ADDITIONAL_PROP_TEST_KEY,
+                        ADDITIONAL_PROP_TWO_BYTE_VALUE))
+                .build();
+
+        assertThat(cdr.getAdditionalProperty(ADDITIONAL_PROP_TEST_KEY))
+                .isEqualTo(ADDITIONAL_PROP_TWO_BYTE_VALUE);
+    }
+
+    @Test
+    public void testGetAdditionalProperty_withMissingKey() {
+        CredentialRetrieveResult cdr = new CredentialRetrieveResult.Builder(
+                CredentialRetrieveResult.CODE_NO_CREDENTIALS_AVAILABLE)
+                .build();
+        assertThat(cdr.getAdditionalProperty("missingKey")).isNull();
+    }
+
+    @Test
+    public void testGetAdditionalPropertyAsString() {
+        CredentialRetrieveResult cdr = new CredentialRetrieveResult.Builder(
+                CredentialRetrieveResult.CODE_NO_CREDENTIALS_AVAILABLE)
+                .setAdditionalProperties(ImmutableMap.of(
+                        ADDITIONAL_PROP_TEST_KEY,
+                        AdditionalPropertiesHelper.encodeStringValue(ADDITIONAL_PROP_STRING_VALUE)))
+                .build();
+
+        assertThat(cdr.getAdditionalPropertyAsString(ADDITIONAL_PROP_TEST_KEY))
+                .isEqualTo(ADDITIONAL_PROP_STRING_VALUE);
+    }
 
   @Test
   public void fromProtobufBytes_withValidCredentialSelectedResult_returnsEquivalent() throws Exception {

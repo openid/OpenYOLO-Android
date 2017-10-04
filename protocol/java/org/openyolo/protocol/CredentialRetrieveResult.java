@@ -191,10 +191,35 @@ public final class CredentialRetrieveResult {
      * The additional, non-standard properties returned by the credential provider, if available.
      */
     @NonNull
-    public Map<String, byte[]> getAdditionalProps() {
+    public Map<String, byte[]> getAdditionalProperties() {
         return CollectionConverter.convertMapValues(
                 mAdditionalProps,
                 ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY);
+    }
+
+    /**
+     * Returns the additional, non-standard property identified by the specified key. If this
+     * additional property does not exist, then `null` is returned.
+     */
+    @Nullable
+    public byte[] getAdditionalProperty(String key) {
+        ByteString value = mAdditionalProps.get(key);
+        if (value == null) {
+            return null;
+        }
+
+        return value.toByteArray();
+    }
+
+    /**
+     * Returns the additional, non-standard property identified by the specified key, where the
+     * value is assumed to be a UTF-8 encoded string. If this additional property does not exist,
+     * then `null` is returned.
+     */
+    @Nullable
+    public String getAdditionalPropertyAsString(String key) {
+        return AdditionalPropertiesHelper.decodeStringValue(
+                getAdditionalProperty(key));
     }
 
     /**
@@ -308,6 +333,31 @@ public final class CredentialRetrieveResult {
                     AdditionalPropertiesUtil.validateAdditionalPropertiesFromProto(
                             additionalProperties);
             return this;
+        }
+
+        /**
+         * Specifies an additional, non-standard property to include in the result.
+         */
+        @NonNull
+        public Builder setAdditionalProperty(@NonNull String key, @Nullable byte[] value) {
+            ByteString immutableValue;
+            if (value == null) {
+                immutableValue = null;
+            } else {
+                immutableValue = ByteString.copyFrom(value);
+            }
+
+            mAdditionalProps.put(key, immutableValue);
+            return this;
+        }
+
+        /**
+         * Specifies an additional, non-standard property with a string value to include in the
+         * result.
+         */
+        @NonNull
+        public Builder setAdditionalPropertyAsString(@NonNull String key, @Nullable String value) {
+            return setAdditionalProperty(key, AdditionalPropertiesHelper.encodeStringValue(value));
         }
 
         /**

@@ -372,7 +372,7 @@ public class CredentialClientTest {
         assertThat(result.getResultCode()).isEqualTo(
                 CredentialRetrieveResult.CODE_NO_CREDENTIALS_AVAILABLE);
         assertThat(result.getCredential()).isNull();
-        assertThat(result.getAdditionalProps()).isEmpty();
+        assertThat(result.getAdditionalProperties()).isEmpty();
 
         verifyNoMoreInteractions(mockDeviceState);
     }
@@ -398,7 +398,7 @@ public class CredentialClientTest {
         assertThat(result.getCredential()).isNotNull();
         assertThat(result.getCredential().getIdentifier())
                 .isEqualTo(testCredential.getIdentifier());
-        assertThat(result.getAdditionalProps()).isEmpty();
+        assertThat(result.getAdditionalProperties()).isEmpty();
 
         verify(mockDeviceState).setIsAutoSignInDisabled(eq(false));
     }
@@ -410,7 +410,7 @@ public class CredentialClientTest {
         assertThat(result).isNotNull();
         assertThat(result.getResultCode()).isEqualTo(CredentialRetrieveResult.CODE_UNKNOWN);
         assertThat(result.getCredential()).isNull();
-        assertThat(result.getAdditionalProps()).isEmpty();
+        assertThat(result.getAdditionalProperties()).isEmpty();
     }
 
     private void addKnownProviders(String... packageNames) {
