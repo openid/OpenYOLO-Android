@@ -17,6 +17,8 @@ package org.openyolo.protocol;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
 import android.os.Parcel;
+import com.google.common.collect.ImmutableSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -34,6 +36,72 @@ import org.openyolo.protocol.TestConstants.ValidAdditionalProperties;
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
 public class HintRetrieveRequestTest {
+
+    @Test
+    public void testFromAuthMethods() {
+        HintRetrieveRequest request = HintRetrieveRequest.fromAuthMethods(
+                AuthenticationMethods.EMAIL,
+                AuthenticationMethods.FACEBOOK);
+
+        assertThat(request.getAuthenticationMethods()).containsExactly(
+                AuthenticationMethods.EMAIL,
+                AuthenticationMethods.FACEBOOK);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testFromAuthMethods_noneProvided() {
+        HintRetrieveRequest.fromAuthMethods();
+    }
+
+    @Test
+    public void testFromAuthMethods_withSet() {
+        HintRetrieveRequest request = HintRetrieveRequest.fromAuthMethods(
+                ImmutableSet.of(AuthenticationMethods.EMAIL, AuthenticationMethods.FACEBOOK));
+
+        assertThat(request.getAuthenticationMethods()).containsExactly(
+                AuthenticationMethods.EMAIL,
+                AuthenticationMethods.FACEBOOK);
+    }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void testFromAuthMethods_emptySet() {
+        HintRetrieveRequest.fromAuthMethods(Collections.emptySet());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testBuilder_emptyAuthMethodsSet() {
+        new HintRetrieveRequest.Builder(Collections.emptySet());
+    }
+
+    @Test
+    public void testBuilder_setTokenProviders() {
+        HintRetrieveRequest request = new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
+                .setTokenProviders(ValidTokenProviderMap.make())
+                .build();
+
+        ValidTokenProviderMap.assertEquals(request.getTokenProviders());
+    }
+
+    @Test
+    public void testBuilder_setTokenProviders_nullMap() {
+        HintRetrieveRequest request = new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
+                .setTokenProviders(null)
+                .build();
+
+        assertThat(request.getTokenProviders()).isEmpty();
+    }
+
+    @Test
+    public void testBuilder_addTokenProvider_noInfo() {
+        String tokenProvider = "https://my.token.provider";
+        HintRetrieveRequest request = new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
+                .addTokenProvider(tokenProvider)
+                .build();
+
+        assertThat(request.getTokenProviders()).containsKey(tokenProvider);
+        assertThat(request.getTokenProviders().get(tokenProvider))
+                .isEqualTo(TokenRequestInfo.DEFAULT);
+    }
 
     @Test
     public void testBuild() {
