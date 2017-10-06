@@ -16,6 +16,7 @@
 
 package com.google.bbq;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.never;
@@ -26,53 +27,59 @@ import android.os.Parcel;
 import java.security.SecureRandom;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 /**
  * Battery of tests for the QueryResponse
  */
+@RunWith(RobolectricTestRunner.class)
+@Config(manifest = Config.NONE)
 public class QueryResponseTest {
-    @Mock
-    private Parcel mockParcel;
 
-    private QueryResponse underTest;
-    private String mResponderPackage = "mResponderPackage";
-    private long mResponseId = 128L;
-    private byte[] mResponseMessage = new byte[64];
+    private static final String PACKAGE = "com.example.provider";
+    private static final long RESPONSE_ID = 1234L;
+    private static final byte[] RESPONSE_MESSAGE = new byte[] { 0, 1, 2, 3, 4 };
 
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-        SecureRandom sr = new SecureRandom();
-        sr.nextBytes(mResponseMessage);
-
-        underTest = new QueryResponse(mResponderPackage, mResponseId, mResponseMessage);
-    }
+    private static final QueryResponse QUERY_RESPONSE =
+            new QueryResponse(PACKAGE, RESPONSE_ID, RESPONSE_MESSAGE);
 
     @Test
     public void testDescribeContents() throws Exception {
-        assertEquals(0, underTest.describeContents());
+        assertEquals(0, QUERY_RESPONSE.describeContents());
     }
 
     @Test
-    public void testWriteToParcel_WithResponseMessage() throws Exception {
-        underTest.writeToParcel(mockParcel, anyInt());
-        verify(mockParcel, times(1)).writeString(mResponderPackage);
-        verify(mockParcel, times(1)).writeLong(mResponseId);
-        verify(mockParcel, times(1)).writeInt(1);
-        verify(mockParcel, times(1)).writeInt(64);
-        verify(mockParcel, times(1)).writeByteArray(mResponseMessage);
+    public void testWriteAndReadParcel() throws Exception {
+        Parcel p = Parcel.obtain();
+        p.writeParcelable(QUERY_RESPONSE, 0);
+        p.setDataPosition(0);
+        QueryResponse read = p.readParcelable(QueryResponse.class.getClassLoader());
+
+        assertThat(read.responderPackage).isEqualTo(QUERY_RESPONSE.responderPackage);
+        assertThat(read.responseId).isEqualTo(QUERY_RESPONSE.responseId);
+        assertThat(read.responseMessage).isEqualTo(QUERY_RESPONSE.responseMessage);
     }
 
     @Test
-    public void testWriteToParcel_WithOutResponseMessage() throws Exception {
-        underTest = new QueryResponse(mResponderPackage, mResponseId, null);
-        underTest.writeToParcel(mockParcel, anyInt());
-        verify(mockParcel, times(1)).writeString(mResponderPackage);
-        verify(mockParcel, times(1)).writeLong(mResponseId);
-        verify(mockParcel, times(1)).writeInt(0);
-        verify(mockParcel, never()).writeByteArray(mResponseMessage);
+    public void testWriteAndReadParcel_noResponseMessage() {
+        QueryResponse queryResponse = new QueryResponse(PACKAGE, RESPONSE_ID, null);
+        Parcel p = Parcel.obtain();
+        p.writeParcelable(queryResponse, 0);
+        p.setDataPosition(0);
+        QueryResponse read = p.readParcelable(QueryResponse.class.getClassLoader());
+
+        assertThat(read.responderPackage).isEqualTo(QUERY_RESPONSE.responderPackage);
+        assertThat(read.responseId).isEqualTo(QUERY_RESPONSE.responseId);
+        assertThat(read.responseMessage).isNull();
     }
 
+    @Test
+    public void QueryResponseCreator_testNewArray() {
+        QueryResponse[] queryResponses = QueryResponse.CREATOR.newArray(10);
+        assertThat(queryResponses).hasSize(10);
+    }
 }
