@@ -28,7 +28,7 @@ android {
 
     lintOptions {
         warningsAsErrors true
-        disable 'InvalidPackage', 'TrulyRandom', 'GradleDependency'
+        disable 'InvalidPackage', 'TrulyRandom', 'GradleDependency', 'ObsoleteLintCustomCheck'
     }
 
     packagingOptions {

@@ -4,7 +4,7 @@
 language: android
 android:
   components:
-    - build-tools-26.0.1
+    - build-tools-26.0.2
     - android-26
 script:
   - ./gradlew check jacoco assemble
@@ -17,3 +17,6 @@ cache:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
     - $HOME/.m2
+licenses:
+  - 'android-sdk-license-.+'
+  - 'android-sdk-preview-license.+'
