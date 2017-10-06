@@ -52,7 +52,7 @@ import org.openyolo.protocol.internal.TokenRequestInfoConverters;
  * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#credential-retrieval">
  *     OpenYOLO Specification: Credential Retrieval</a>
  */
-public class CredentialRetrieveRequest implements Parcelable {
+public class CredentialRetrieveRequest implements Parcelable, AdditionalPropertiesContainer {
 
     @VisibleForTesting
     static final Boolean DEFAULT_REQUIRE_USER_MEDIATION_VALUE = false;
@@ -178,39 +178,22 @@ public class CredentialRetrieveRequest implements Parcelable {
     }
 
 
-    /**
-     * Retrieves the raw, byte-array value of the named additional parameter.
-     */
+    @Override
     @NonNull
     public Map<String, byte[]> getAdditionalProperties() {
-        return CollectionConverter.convertMapValues(
-                mAdditionalProps,
-                ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY);
+        return AdditionalPropertiesUtil.convertValuesToByteArrays(mAdditionalProps);
     }
 
-    /**
-     * Returns the additional, non-standard property identified by the specified key. If this
-     * additional property does not exist, then `null` is returned.
-     */
+    @Override
     @Nullable
     public byte[] getAdditionalProperty(String key) {
-        ByteString value = mAdditionalProps.get(key);
-        if (value == null) {
-            return null;
-        }
-
-        return value.toByteArray();
+        return AdditionalPropertiesUtil.getPropertyValue(mAdditionalProps, key);
     }
 
-    /**
-     * Returns the additional, non-standard property identified by the specified key, where the
-     * value is assumed to be a UTF-8 encoded string. If this additional property does not exist,
-     * then `null` is returned.
-     */
+    @Override
     @Nullable
     public String getAdditionalPropertyAsString(String key) {
-        return AdditionalPropertiesHelper.decodeStringValue(
-                getAdditionalProperty(key));
+        return AdditionalPropertiesUtil.getPropertyValueAsString(mAdditionalProps, key);
     }
 
     @Override
@@ -247,7 +230,8 @@ public class CredentialRetrieveRequest implements Parcelable {
     /**
      * Creates {@link CredentialRetrieveRequest} instances.
      */
-    public static final class Builder {
+    public static final class Builder
+            implements AdditionalPropertiesBuilder<CredentialRetrieveRequest, Builder> {
 
         private Set<AuthenticationMethod> mAuthMethods = new HashSet<>();
         private Map<String, TokenRequestInfo> mTokenProviders = new HashMap<>();
@@ -381,45 +365,32 @@ public class CredentialRetrieveRequest implements Parcelable {
             return this;
         }
 
-        /**
-         * Specifies additional, non-standard retrieve request parameters. The provided map must be
-         * non-null, and contain only non-null keys and values.
-         */
-        public Builder setAdditionalProperties(
-                @NonNull Map<String, byte[]> additionalProps) {
+        @Override
+        @NonNull
+        public Builder setAdditionalProperties(@Nullable Map<String, byte[]> additionalProps) {
             mAdditionalProps =
                     AdditionalPropertiesUtil.validateAdditionalProperties(additionalProps);
             return this;
         }
 
-        /**
-         * Specifies an additional, non-standard property to include in the credential.
-         */
+        @Override
         @NonNull
         public Builder setAdditionalProperty(@NonNull String key, @Nullable byte[] value) {
-            ByteString immutableValue;
-            if (value == null) {
-                immutableValue = null;
-            } else {
-                immutableValue = ByteString.copyFrom(value);
-            }
-
-            mAdditionalProps.put(key, immutableValue);
+            AdditionalPropertiesUtil.setPropertyValue(mAdditionalProps, key, value);
             return this;
         }
 
-        /**
-         * Specifies an additional, non-standard property with a string value to include in the
-         * credential.
-         */
+        @Override
         @NonNull
         public Builder setAdditionalPropertyAsString(@NonNull String key, @Nullable String value) {
-            return setAdditionalProperty(key, AdditionalPropertiesHelper.encodeStringValue(value));
+            AdditionalPropertiesUtil.setPropertyValueAsString(mAdditionalProps, key, value);
+            return this;
         }
 
         /**
          * Creates a {@link CredentialRetrieveRequest} using the properties set on the builder.
          */
+        @Override
         @NonNull
         public CredentialRetrieveRequest build() {
             return new CredentialRetrieveRequest(this);

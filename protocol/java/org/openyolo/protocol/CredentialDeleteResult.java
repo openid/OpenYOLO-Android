@@ -26,8 +26,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.openyolo.protocol.internal.AdditionalPropertiesUtil;
-import org.openyolo.protocol.internal.ByteStringConverters;
-import org.openyolo.protocol.internal.CollectionConverter;
 import org.openyolo.protocol.internal.IntentProtocolBufferExtractor;
 
 /**
@@ -37,7 +35,7 @@ import org.openyolo.protocol.internal.IntentProtocolBufferExtractor;
  * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#credential-deletion">
  *     OpenYOLO Specification: Credential Deletion</a>
  */
-public final class CredentialDeleteResult {
+public final class CredentialDeleteResult implements AdditionalPropertiesContainer {
 
     /**
      * Indicates that the provider returned a response that could not be interpreted.
@@ -214,14 +212,10 @@ public final class CredentialDeleteResult {
         return mResultCode;
     }
 
-    /**
-     * The additional, non-standard properties returned by the credential provider as part of the
-     * credential deletion result, if available.
-     */
+    @Override
+    @NonNull
     public Map<String, byte[]> getAdditionalProperties() {
-        return CollectionConverter.convertMapValues(
-                mAdditionalProps,
-                ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY);
+        return AdditionalPropertiesUtil.convertValuesToByteArrays(mAdditionalProps);
     }
 
     /**
@@ -230,12 +224,7 @@ public final class CredentialDeleteResult {
      */
     @Nullable
     public byte[] getAdditionalProperty(String key) {
-        ByteString value = mAdditionalProps.get(key);
-        if (value == null) {
-            return null;
-        }
-
-        return value.toByteArray();
+        return AdditionalPropertiesUtil.getPropertyValue(mAdditionalProps, key);
     }
 
     /**
@@ -245,8 +234,7 @@ public final class CredentialDeleteResult {
      */
     @Nullable
     public String getAdditionalPropertyAsString(String key) {
-        return AdditionalPropertiesHelper.decodeStringValue(
-                getAdditionalProperty(key));
+        return AdditionalPropertiesUtil.getPropertyValueAsString(mAdditionalProps, key);
     }
 
     /**
@@ -273,7 +261,8 @@ public final class CredentialDeleteResult {
     /**
      * Creates instances of {@link CredentialDeleteResult}.
      */
-    public static final class Builder {
+    public static final class Builder
+            implements AdditionalPropertiesBuilder<CredentialDeleteResult, Builder> {
 
         private int mResultCode;
 
@@ -311,39 +300,26 @@ public final class CredentialDeleteResult {
             return this;
         }
 
-        /**
-         * Specifies the set of additional, non-standard properties to carry with the credential
-         * deletion result. A null map is treated as an empty map.
-         */
+        @Override
+        @NonNull
         public Builder setAdditionalProperties(@Nullable Map<String, byte[]> additionalProperties) {
             mAdditionalProps = AdditionalPropertiesUtil.validateAdditionalProperties(
                     additionalProperties);
             return this;
         }
 
-        /**
-         * Specifies an additional, non-standard property to include in the result.
-         */
+        @Override
         @NonNull
         public Builder setAdditionalProperty(@NonNull String key, @Nullable byte[] value) {
-            ByteString immutableValue;
-            if (value == null) {
-                immutableValue = null;
-            } else {
-                immutableValue = ByteString.copyFrom(value);
-            }
-
-            mAdditionalProps.put(key, immutableValue);
+            AdditionalPropertiesUtil.setPropertyValue(mAdditionalProps, key, value);
             return this;
         }
 
-        /**
-         * Specifies an additional, non-standard property with a string value to include in the
-         * result.
-         */
+        @Override
         @NonNull
         public Builder setAdditionalPropertyAsString(@NonNull String key, @Nullable String value) {
-            return setAdditionalProperty(key, AdditionalPropertiesHelper.encodeStringValue(value));
+            AdditionalPropertiesUtil.setPropertyValueAsString(mAdditionalProps, key, value);
+            return this;
         }
 
         private Builder setAdditionalPropertiesFromProto(
@@ -356,6 +332,8 @@ public final class CredentialDeleteResult {
         /**
          * Creates the credential deletion result, from the specified properties.
          */
+        @Override
+        @NonNull
         public CredentialDeleteResult build() {
             return new CredentialDeleteResult(this);
         }

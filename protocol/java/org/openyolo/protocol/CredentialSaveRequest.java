@@ -39,7 +39,7 @@ import org.openyolo.protocol.internal.CollectionConverter;
  * @see <a href="https://spec.openyolo.org/openyolo-android-spec.html#saving-credentials">
  *     OpenYOLO specification: Saving Credentials</a>
  */
-public final class CredentialSaveRequest implements Parcelable {
+public final class CredentialSaveRequest implements Parcelable, AdditionalPropertiesContainer {
 
     /**
      * Parcelable reader for {@link CredentialSaveRequest} instances.
@@ -105,14 +105,22 @@ public final class CredentialSaveRequest implements Parcelable {
         return mCredential;
     }
 
-    /**
-     * The map of additional, non-standard properties included with this request.
-     */
+    @Override
     @NonNull
     public Map<String, byte[]> getAdditionalProperties() {
-        return CollectionConverter.convertMapValues(
-            mAdditionalProperties,
-            ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY);
+        return AdditionalPropertiesUtil.convertValuesToByteArrays(mAdditionalProperties);
+    }
+
+    @Nullable
+    @Override
+    public byte[] getAdditionalProperty(String key) {
+        return AdditionalPropertiesUtil.getPropertyValue(mAdditionalProperties, key);
+    }
+
+    @Nullable
+    @Override
+    public String getAdditionalPropertyAsString(String key) {
+        return AdditionalPropertiesUtil.getPropertyValueAsString(mAdditionalProperties, key);
     }
 
     @Override
@@ -141,7 +149,8 @@ public final class CredentialSaveRequest implements Parcelable {
     /**
      * Creates {@link CredentialSaveRequest} instances.
      */
-    public static final class Builder {
+    public static final class Builder
+            implements AdditionalPropertiesBuilder<CredentialSaveRequest, Builder> {
 
         private Credential mCredential;
         private Map<String, ByteString> mAdditionalProps = new HashMap<>();
@@ -187,10 +196,7 @@ public final class CredentialSaveRequest implements Parcelable {
             return this;
         }
 
-        /**
-         * Specifies the set of additional, non-standard properties to carry with the credential
-         * save request. A null map is treated as an empty map.
-         */
+        @Override
         @NonNull
         public Builder setAdditionalProperties(@Nullable Map<String, byte[]> additionalParams) {
             mAdditionalProps =
@@ -198,9 +204,24 @@ public final class CredentialSaveRequest implements Parcelable {
             return this;
         }
 
+        @NonNull
+        @Override
+        public Builder setAdditionalProperty(@NonNull String key, @Nullable byte[] value) {
+            AdditionalPropertiesUtil.setPropertyValue(mAdditionalProps, key, value);
+            return this;
+        }
+
+        @NonNull
+        @Override
+        public Builder setAdditionalPropertyAsString(@NonNull String key, @Nullable String value) {
+            AdditionalPropertiesUtil.setPropertyValueAsString(mAdditionalProps, key, value);
+            return this;
+        }
+
         /**
          * Finalizes the creation of the credential save request.
          */
+        @Override
         public CredentialSaveRequest build() {
             return new CredentialSaveRequest(this);
         }

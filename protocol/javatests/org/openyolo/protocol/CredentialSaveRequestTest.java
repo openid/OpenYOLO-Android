@@ -151,24 +151,4 @@ public final class CredentialSaveRequestTest {
     public void builder_withNullCredential_throwsIllegalArgumentException() {
         new CredentialSaveRequest.Builder((Credential) null);
     }
-
-    public void builder_setAdditionalPropertiesWithNull_returnsEmptyMap() {
-        CredentialSaveRequest request =
-                new CredentialSaveRequest.Builder(ValidRequest.CREDENTIAL)
-                        .setAdditionalProperties(ValidRequest.ADDITIONAL_PROPERTIES)
-                        .setAdditionalProperties(null)
-                        .build();
-
-        assertThat(request.getAdditionalProperties()).isEmpty();
-    }
-
-    @Test
-    public void builder_setAdditionalProperties_isSuccessful() {
-        final CredentialSaveRequest request =
-                new CredentialSaveRequest.Builder(ValidRequest.CREDENTIAL)
-                        .setAdditionalProperties(ValidRequest.ADDITIONAL_PROPERTIES)
-                        .build();
-
-        ValidProperties.assertEqualTo(request.getAdditionalProperties());
-    }
 }

@@ -19,7 +19,6 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 import android.os.Parcel;
 import com.google.common.collect.ImmutableSet;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import org.junit.Test;
@@ -302,25 +301,6 @@ public class HintRetrieveRequestTest {
     public void testBuild_addAuthenticationMethod_nullUri() {
         new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
                 .addAuthenticationMethod(null)
-                .build();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testBuild_setAdditionalProperties_nullKey() {
-        HashMap<String, byte[]> additionalProps = new HashMap<>();
-        additionalProps.put(null, new byte[0]);
-        new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
-                .setAdditionalProperties(additionalProps)
-                .build();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Test(expected = IllegalArgumentException.class)
-    public void testBuild_setAdditionalProperty_nullValue() {
-        HashMap<String, byte[]> additionalProps = new HashMap<>();
-        additionalProps.put("a", null);
-        new HintRetrieveRequest.Builder(AuthenticationMethods.EMAIL)
-                .setAdditionalProperties(additionalProps)
                 .build();
     }
 

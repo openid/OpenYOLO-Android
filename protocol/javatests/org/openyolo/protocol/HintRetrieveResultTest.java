@@ -67,17 +67,6 @@ public class HintRetrieveResultTest {
     }
 
     @Test
-    public void buildSetAdditionalProperties() {
-        HintRetrieveResult result = new HintRetrieveResult.Builder(
-                HintRetrieveResult.CODE_NO_HINTS_AVAILABLE)
-                .setAdditionalProperties(ValidAdditionalProperties.make())
-                .build();
-
-        assertThat(result.getAdditionalProperties()).hasSize(1);
-        ValidAdditionalProperties.assertEquals(result.getAdditionalProperties());
-    }
-
-    @Test
     public void toProtobuf() {
         HintRetrieveResult result = new HintRetrieveResult.Builder(
                 HintRetrieveResult.CODE_HINT_SELECTED)

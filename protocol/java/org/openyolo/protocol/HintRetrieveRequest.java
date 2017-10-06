@@ -50,7 +50,7 @@ import org.openyolo.protocol.internal.TokenRequestInfoConverters;
  * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#hints">
  *     OpenYOLO specification: Hint</a>
  */
-public class HintRetrieveRequest implements Parcelable {
+public class HintRetrieveRequest implements Parcelable, AdditionalPropertiesContainer {
 
     /**
      * Parcelable reader for {@link HintRetrieveRequest} instances.
@@ -153,14 +153,22 @@ public class HintRetrieveRequest implements Parcelable {
         return mPasswordSpec;
     }
 
-    /**
-     * The map of additional, non-standard properties included with this request.
-     */
+    @Override
     @NonNull
     public Map<String, byte[]> getAdditionalProperties() {
-        return CollectionConverter.convertMapValues(
-                mAdditionalProperties,
-                ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY);
+        return AdditionalPropertiesUtil.convertValuesToByteArrays(mAdditionalProperties);
+    }
+
+    @Nullable
+    @Override
+    public byte[] getAdditionalProperty(String key) {
+        return AdditionalPropertiesUtil.getPropertyValue(mAdditionalProperties, key);
+    }
+
+    @Nullable
+    @Override
+    public String getAdditionalPropertyAsString(String key) {
+        return AdditionalPropertiesUtil.getPropertyValueAsString(mAdditionalProperties, key);
     }
 
     @Override
@@ -198,7 +206,8 @@ public class HintRetrieveRequest implements Parcelable {
     /**
      * Creates {@link HintRetrieveRequest} instances.
      */
-    public static final class Builder {
+    public static final class Builder
+            implements AdditionalPropertiesBuilder<HintRetrieveRequest, Builder> {
 
         private Set<AuthenticationMethod> mAuthMethods = new HashSet<>();
         private Map<String, ByteString> mAdditionalProps = new HashMap<>();
@@ -340,14 +349,25 @@ public class HintRetrieveRequest implements Parcelable {
             return this;
         }
 
-        /**
-         * Specifies additional, non-standard hint request parameters. The provided map
-         * must be non-null, and contain only non-empty keys and non-null values.
-         */
+        @Override
         @NonNull
-        public Builder setAdditionalProperties(@Nullable Map<String, byte[]> additionalParams) {
+        public Builder setAdditionalProperties(@Nullable Map<String, byte[]> additionalProps) {
             mAdditionalProps =
-                    AdditionalPropertiesUtil.validateAdditionalProperties(additionalParams);
+                    AdditionalPropertiesUtil.validateAdditionalProperties(additionalProps);
+            return this;
+        }
+
+        @Override
+        @NonNull
+        public Builder setAdditionalProperty(@NonNull String key, @Nullable byte[] value) {
+            AdditionalPropertiesUtil.setPropertyValue(mAdditionalProps, key, value);
+            return this;
+        }
+
+        @Override
+        @NonNull
+        public Builder setAdditionalPropertyAsString(@NonNull String key, @Nullable String value) {
+            AdditionalPropertiesUtil.setPropertyValueAsString(mAdditionalProps, key, value);
             return this;
         }
 
@@ -366,6 +386,7 @@ public class HintRetrieveRequest implements Parcelable {
         /**
          * Creates a {@link HintRetrieveRequest} with the properties specified on the builder.
          */
+        @Override
         @NonNull
         public HintRetrieveRequest build() {
             return new HintRetrieveRequest(this);

@@ -34,8 +34,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.openyolo.protocol.internal.AdditionalPropertiesUtil;
-import org.openyolo.protocol.internal.ByteStringConverters;
-import org.openyolo.protocol.internal.CollectionConverter;
 
 /**
  * A representation of a hint for use in account discovery or account creation. This provides a
@@ -49,7 +47,7 @@ import org.openyolo.protocol.internal.CollectionConverter;
  * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#hints">
  *     OpenYOLO specification: Hint</a>
  */
-public final class Hint implements Parcelable {
+public final class Hint implements Parcelable, AdditionalPropertiesContainer {
 
     /**
      * Parcelable reader for {@link Hint} instances.
@@ -203,14 +201,22 @@ public final class Hint implements Parcelable {
         return mIdToken;
     }
 
-    /**
-     * Additional, non-standard properties associated with the hint.
-     */
+    @Override
     @NonNull
     public Map<String, byte[]> getAdditionalProperties() {
-        return CollectionConverter.convertMapValues(
-                mAdditionalProps,
-                ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY);
+        return AdditionalPropertiesUtil.convertValuesToByteArrays(mAdditionalProps);
+    }
+
+    @Nullable
+    @Override
+    public byte[] getAdditionalProperty(String key) {
+        return AdditionalPropertiesUtil.getPropertyValue(mAdditionalProps, key);
+    }
+
+    @Nullable
+    @Override
+    public String getAdditionalPropertyAsString(String key) {
+        return AdditionalPropertiesUtil.getPropertyValueAsString(mAdditionalProps, key);
     }
 
     @Override
@@ -228,7 +234,7 @@ public final class Hint implements Parcelable {
     /**
      * Creates instances of {@link Hint}.
      */
-    public static final class Builder {
+    public static final class Builder implements AdditionalPropertiesBuilder<Hint, Builder> {
 
         @NonNull
         private String mId;
@@ -379,12 +385,25 @@ public final class Hint implements Parcelable {
             return this;
         }
 
-        /**
-         * Specifies any additional, non-standard properties associated with the hint.
-         */
+        @Override
+        @NonNull
         public Builder setAdditionalProperties(@Nullable Map<String, byte[]> additionalProps) {
             mAdditionalProps =
                     AdditionalPropertiesUtil.validateAdditionalProperties(additionalProps);
+            return this;
+        }
+
+        @Override
+        @NonNull
+        public Builder setAdditionalProperty(@NonNull String key, @Nullable byte[] value) {
+            AdditionalPropertiesUtil.setPropertyValue(mAdditionalProps, key, value);
+            return this;
+        }
+
+        @Override
+        @NonNull
+        public Builder setAdditionalPropertyAsString(@NonNull String key, @Nullable String value) {
+            AdditionalPropertiesUtil.setPropertyValueAsString(mAdditionalProps, key, value);
             return this;
         }
 
@@ -398,6 +417,8 @@ public final class Hint implements Parcelable {
         /**
          * Creates the {@link Hint hint} instance with the specified properties.
          */
+        @Override
+        @NonNull
         public Hint build() {
             return new Hint(this);
         }

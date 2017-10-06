@@ -27,8 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 import org.openyolo.protocol.Protobufs.HintRetrieveResult.ResultCode;
 import org.openyolo.protocol.internal.AdditionalPropertiesUtil;
-import org.openyolo.protocol.internal.ByteStringConverters;
-import org.openyolo.protocol.internal.CollectionConverter;
 
 /**
  * A response to a {@link HintRetrieveRequest hint request}. The status code indicates the outcome
@@ -37,7 +35,7 @@ import org.openyolo.protocol.internal.CollectionConverter;
  * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#hints">
  *     OpenYOLO specification: Hint</a>
  */
-public final class HintRetrieveResult {
+public final class HintRetrieveResult implements AdditionalPropertiesContainer {
 
     /**
      * Indicates that the provider returned a response that could not be interpreted.
@@ -209,21 +207,29 @@ public final class HintRetrieveResult {
         return mHint;
     }
 
-    /**
-     * The additional, non-standard properties returned by the credential provider as part of the
-     * hint result, if available.
-     */
+    @Override
     @NonNull
     public Map<String, byte[]> getAdditionalProperties() {
-        return CollectionConverter.convertMapValues(
-                mAdditionalProps,
-                ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY);
+        return AdditionalPropertiesUtil.convertValuesToByteArrays(mAdditionalProps);
+    }
+
+    @Nullable
+    @Override
+    public byte[] getAdditionalProperty(String key) {
+        return AdditionalPropertiesUtil.getPropertyValue(mAdditionalProps, key);
+    }
+
+    @Nullable
+    @Override
+    public String getAdditionalPropertyAsString(String key) {
+        return AdditionalPropertiesUtil.getPropertyValueAsString(mAdditionalProps, key);
     }
 
     /**
      * Creates {@link HintRetrieveResult} instances.
      */
-    public static final class Builder {
+    public static final class Builder
+            implements AdditionalPropertiesBuilder<HintRetrieveResult, Builder> {
 
         private int mResultCode;
 
@@ -284,14 +290,25 @@ public final class HintRetrieveResult {
             return this;
         }
 
-        /**
-         * Specifies the set of additional, non-standard properties to return as part of this
-         * result. A null map is treated as an empty map. For a non-null map, all keys and values
-         * must not be null, and the keys must not be empty.
-         */
-        public Builder setAdditionalProperties(Map<String, byte[]> additionalProps) {
+        @Override
+        @NonNull
+        public Builder setAdditionalProperties(@Nullable Map<String, byte[]> additionalProps) {
             mAdditionalProps =
                     AdditionalPropertiesUtil.validateAdditionalProperties(additionalProps);
+            return this;
+        }
+
+        @Override
+        @NonNull
+        public Builder setAdditionalProperty(@NonNull String key, @Nullable byte[] value) {
+            AdditionalPropertiesUtil.setPropertyValue(mAdditionalProps, key, value);
+            return this;
+        }
+
+        @Override
+        @NonNull
+        public Builder setAdditionalPropertyAsString(@NonNull String key, @Nullable String value) {
+            AdditionalPropertiesUtil.setPropertyValueAsString(mAdditionalProps, key, value);
             return this;
         }
 
@@ -304,6 +321,8 @@ public final class HintRetrieveResult {
         /**
          * Creates the hint retrieve result, from the specified properties.
          */
+        @Override
+        @NonNull
         public HintRetrieveResult build() {
             return new HintRetrieveResult(this);
         }

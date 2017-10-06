@@ -47,7 +47,7 @@ import org.openyolo.protocol.internal.CollectionConverter;
  * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#credentials">
  *     OpenYOLO Specification: Credential</a>
  */
-public final class Credential implements Parcelable {
+public final class Credential implements Parcelable, AdditionalPropertiesContainer {
 
     /**
      * Parcelable reader for {@link Credential} instances.
@@ -209,39 +209,22 @@ public final class Credential implements Parcelable {
         return mIdToken;
     }
 
-    /**
-     * Additional, non-standard properties associated with the credential.
-     */
+    @Override
     @NonNull
     public Map<String, byte[]> getAdditionalProperties() {
-        return CollectionConverter.convertMapValues(
-            mAdditionalProps,
-            ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY);
+        return AdditionalPropertiesUtil.convertValuesToByteArrays(mAdditionalProps);
     }
 
-    /**
-     * Returns the additional, non-standard property identified by the specified key. If this
-     * additional property does not exist, then `null` is returned.
-     */
+    @Override
     @Nullable
     public byte[] getAdditionalProperty(String key) {
-        ByteString value = mAdditionalProps.get(key);
-        if (value == null) {
-            return null;
-        }
-
-        return value.toByteArray();
+        return AdditionalPropertiesUtil.getPropertyValue(mAdditionalProps, key);
     }
 
-    /**
-     * Returns the additional, non-standard property identified by the specified key, where the
-     * value is assumed to be a UTF-8 encoded string. If this additional property does not exist,
-     * then `null` is returned.
-     */
+    @Override
     @Nullable
     public String getAdditionalPropertyAsString(String key) {
-        return AdditionalPropertiesHelper.decodeStringValue(
-                getAdditionalProperty(key));
+        return AdditionalPropertiesUtil.getPropertyValueAsString(mAdditionalProps, key);
     }
 
     @Override
@@ -259,7 +242,7 @@ public final class Credential implements Parcelable {
     /**
      * Creates instances of {@link Credential}.
      */
-    public static final class Builder {
+    public static final class Builder implements AdditionalPropertiesBuilder<Credential, Builder> {
 
         private String mId;
         private AuthenticationMethod mAuthMethod;
@@ -436,34 +419,24 @@ public final class Credential implements Parcelable {
             return this;
         }
 
-        /**
-         * Specifies an additional, non-standard property to include in the credential.
-         */
+        @Override
         @NonNull
         public Builder setAdditionalProperty(@NonNull String key, @Nullable byte[] value) {
-            ByteString immutableValue;
-            if (value == null) {
-                immutableValue = null;
-            } else {
-                immutableValue = ByteString.copyFrom(value);
-            }
-
-            mAdditionalProps.put(key, immutableValue);
+            AdditionalPropertiesUtil.setPropertyValue(mAdditionalProps, key, value);
             return this;
         }
 
-        /**
-         * Specifies an additional, non-standard property with a string value to include in the
-         * credential.
-         */
+        @Override
         @NonNull
         public Builder setAdditionalPropertyAsString(@NonNull String key, @Nullable String value) {
-            return setAdditionalProperty(key, AdditionalPropertiesHelper.encodeStringValue(value));
+            AdditionalPropertiesUtil.setPropertyValueAsString(mAdditionalProps, key, value);
+            return this;
         }
 
         /**
          * Creates the {@link Credential credential} instance with all properties specified.
          */
+        @Override
         @NonNull
         public Credential build() {
             return new Credential(this);

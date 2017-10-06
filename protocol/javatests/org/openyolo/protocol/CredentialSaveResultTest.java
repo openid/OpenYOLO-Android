@@ -95,25 +95,4 @@ public final class CredentialSaveResultTest {
     public void fromProto_withNullProto_throwsMalformedDataException() throws Exception {
         CredentialSaveResult.fromProtobuf(null);
     }
-
-    @Test
-    public void builder_setAdditionalProperties_isSuccessful() {
-        final CredentialSaveResult result =
-                new CredentialSaveResult.Builder(ValidResult.RESULT_CODE)
-                        .setAdditionalProperties(ValidResult.ADDITIONAL_PROPERTIES)
-                        .build();
-
-        ValidResult.assertEqualTo(result);
-    }
-
-    @Test
-    public void builder_setAdditionalPropertiesWithNull_isEmptyMap() {
-        CredentialSaveResult result =
-                new CredentialSaveResult.Builder(ValidResult.RESULT_CODE)
-                        .setAdditionalProperties(ValidResult.ADDITIONAL_PROPERTIES)
-                        .setAdditionalProperties(null)
-                        .build();
-
-        assertThat(result.getAdditionalProperties()).isEmpty();
-    }
 }

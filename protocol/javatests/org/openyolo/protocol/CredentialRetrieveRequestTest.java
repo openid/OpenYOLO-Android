@@ -18,18 +18,10 @@
 package org.openyolo.protocol;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_ANOTHER_KEY;
-import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_STRING_VALUE;
-import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_TEST_KEY;
-import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_TWO_BYTE_VALUE;
-import static org.openyolo.protocol.TestConstants.ADDITIONAL_PROP_ZERO_BYTE_VALUE;
-
 
 import android.os.Parcel;
-import com.google.common.collect.ImmutableMap;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,90 +55,6 @@ public class CredentialRetrieveRequestTest {
     @Test(expected = IllegalArgumentException.class)
     public void builderUriSetConstructor_withEmptySet_throwsIllegalArgumentException() {
         new CredentialRetrieveRequest.Builder(new HashSet<AuthenticationMethod>());
-    }
-
-    @Test
-    public void testBuilder_setAdditionalProperty() {
-        CredentialRetrieveRequest cdr = new CredentialRetrieveRequest.Builder(
-                AuthenticationMethods.EMAIL)
-                .setAdditionalProperty(ADDITIONAL_PROP_TEST_KEY, ADDITIONAL_PROP_TWO_BYTE_VALUE)
-                .setAdditionalProperty(ADDITIONAL_PROP_ANOTHER_KEY, ADDITIONAL_PROP_ZERO_BYTE_VALUE)
-                .build();
-
-        Map<String, byte[]> additionalProps = cdr.getAdditionalProperties();
-        assertThat(additionalProps.size()).isEqualTo(2);
-        assertThat(additionalProps.containsKey(ADDITIONAL_PROP_TEST_KEY));
-        assertThat(additionalProps.get(ADDITIONAL_PROP_TEST_KEY))
-                .isEqualTo(ADDITIONAL_PROP_TWO_BYTE_VALUE);
-        assertThat(additionalProps.containsKey(ADDITIONAL_PROP_ANOTHER_KEY));
-        assertThat(additionalProps.get(ADDITIONAL_PROP_ANOTHER_KEY))
-                .isEqualTo(ADDITIONAL_PROP_ZERO_BYTE_VALUE);
-    }
-
-    @Test
-    public void testBuilder_setAdditionalProperty_overwriteExistingValue() {
-        CredentialRetrieveRequest cdr = new CredentialRetrieveRequest.Builder(
-                AuthenticationMethods.EMAIL)
-                .setAdditionalProperty(ADDITIONAL_PROP_TEST_KEY, ADDITIONAL_PROP_TWO_BYTE_VALUE)
-                .setAdditionalProperty(ADDITIONAL_PROP_TEST_KEY, ADDITIONAL_PROP_ZERO_BYTE_VALUE)
-                .build();
-
-        Map<String, byte[]> additionalProps = cdr.getAdditionalProperties();
-        assertThat(additionalProps.size()).isEqualTo(1);
-        assertThat(additionalProps.containsKey(ADDITIONAL_PROP_TEST_KEY));
-        assertThat(additionalProps.get(ADDITIONAL_PROP_TEST_KEY))
-                .isEqualTo(ADDITIONAL_PROP_ZERO_BYTE_VALUE);
-    }
-
-    @Test
-    public void testBuilder_setAdditionalPropertyAsString() {
-        CredentialRetrieveRequest cdr = new CredentialRetrieveRequest.Builder(
-                AuthenticationMethods.EMAIL)
-                .setAdditionalPropertyAsString(
-                        ADDITIONAL_PROP_TEST_KEY,
-                        ADDITIONAL_PROP_STRING_VALUE)
-                .build();
-
-        Map<String, byte[]> additionalProps = cdr.getAdditionalProperties();
-        assertThat(additionalProps.size()).isEqualTo(1);
-        assertThat(additionalProps.containsKey(ADDITIONAL_PROP_TEST_KEY));
-        assertThat(additionalProps.get(ADDITIONAL_PROP_TEST_KEY))
-                .isEqualTo(AdditionalPropertiesHelper.encodeStringValue(
-                        ADDITIONAL_PROP_STRING_VALUE));
-    }
-
-    @Test
-    public void testGetAdditionalProperty() {
-        CredentialRetrieveRequest cdr = new CredentialRetrieveRequest.Builder(
-                AuthenticationMethods.EMAIL)
-                .setAdditionalProperties(ImmutableMap.of(
-                        ADDITIONAL_PROP_TEST_KEY,
-                        ADDITIONAL_PROP_TWO_BYTE_VALUE))
-                .build();
-
-        assertThat(cdr.getAdditionalProperty(ADDITIONAL_PROP_TEST_KEY))
-                .isEqualTo(ADDITIONAL_PROP_TWO_BYTE_VALUE);
-    }
-
-    @Test
-    public void testGetAdditionalProperty_withMissingKey() {
-        CredentialRetrieveRequest cdr = new CredentialRetrieveRequest.Builder(
-                AuthenticationMethods.EMAIL)
-                .build();
-        assertThat(cdr.getAdditionalProperty("missingKey")).isNull();
-    }
-
-    @Test
-    public void testGetAdditionalPropertyAsString() {
-        CredentialRetrieveRequest cdr = new CredentialRetrieveRequest.Builder(
-                AuthenticationMethods.EMAIL)
-                .setAdditionalProperties(ImmutableMap.of(
-                        ADDITIONAL_PROP_TEST_KEY,
-                        AdditionalPropertiesHelper.encodeStringValue(ADDITIONAL_PROP_STRING_VALUE)))
-                .build();
-
-        assertThat(cdr.getAdditionalPropertyAsString(ADDITIONAL_PROP_TEST_KEY))
-                .isEqualTo(ADDITIONAL_PROP_STRING_VALUE);
     }
 
     @Test(expected = MalformedDataException.class)

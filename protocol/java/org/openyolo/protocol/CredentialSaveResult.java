@@ -36,7 +36,7 @@ import org.openyolo.protocol.internal.CollectionConverter;
  * @see <a href="https://spec.openyolo.org/openyolo-android-spec.html#saving-credentials">
  *     OpenYOLO specification: Saving Credential</a>
  */
-public final class CredentialSaveResult {
+public final class CredentialSaveResult implements AdditionalPropertiesContainer {
 
     /**
      * Indicates that the provider returned a response that could not be interpreted.
@@ -212,20 +212,29 @@ public final class CredentialSaveResult {
         return mResultCode;
     }
 
-    /**
-     * The additional, non-standard properties returned by the credential provider, if available.
-     */
+    @Override
     @NonNull
     public Map<String, byte[]> getAdditionalProperties() {
-        return CollectionConverter.convertMapValues(
-                mAdditionalProperties,
-                ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY);
+        return AdditionalPropertiesUtil.convertValuesToByteArrays(mAdditionalProperties);
+    }
+
+    @Nullable
+    @Override
+    public byte[] getAdditionalProperty(String key) {
+        return AdditionalPropertiesUtil.getPropertyValue(mAdditionalProperties, key);
+    }
+
+    @Nullable
+    @Override
+    public String getAdditionalPropertyAsString(String key) {
+        return AdditionalPropertiesUtil.getPropertyValueAsString(mAdditionalProperties, key);
     }
 
     /**
      * Creates {@link CredentialSaveResult} instances.
      */
-    public static final class Builder {
+    public static final class Builder
+            implements AdditionalPropertiesBuilder<CredentialSaveResult, Builder> {
         private int mResultCode = CODE_UNKNOWN;
         private Map<String, ByteString> mAdditionalProps = new HashMap<>();
 
@@ -265,20 +274,33 @@ public final class CredentialSaveResult {
             return this;
         }
 
-        /**
-         * Specifies the set of additional, non-standard properties to carry with the credential
-         * deletion request. A null map is treated as an empty map.
-         */
+        @Override
+        @NonNull
         public Builder setAdditionalProperties(@Nullable Map<String, byte[]> additionalProps) {
             mAdditionalProps =
                     AdditionalPropertiesUtil.validateAdditionalProperties(additionalProps);
+            return this;
+        }
 
+        @Override
+        @NonNull
+        public Builder setAdditionalProperty(@NonNull String key, @Nullable byte[] value) {
+            AdditionalPropertiesUtil.setPropertyValue(mAdditionalProps, key, value);
+            return this;
+        }
+
+        @Override
+        @NonNull
+        public Builder setAdditionalPropertyAsString(@NonNull String key, @Nullable String value) {
+            AdditionalPropertiesUtil.setPropertyValueAsString(mAdditionalProps, key, value);
             return this;
         }
 
         /**
          * Finalizes the creation of the credential save result.
          */
+        @Override
+        @NonNull
         public CredentialSaveResult build() {
             return new CredentialSaveResult(this);
         }

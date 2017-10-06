@@ -27,8 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 import org.openyolo.protocol.Protobufs.CredentialRetrieveResult.ResultCode;
 import org.openyolo.protocol.internal.AdditionalPropertiesUtil;
-import org.openyolo.protocol.internal.ByteStringConverters;
-import org.openyolo.protocol.internal.CollectionConverter;
 
 /**
  * Result data which is sent in response to a credential retrieve request. Contains a result code,
@@ -38,7 +36,7 @@ import org.openyolo.protocol.internal.CollectionConverter;
  * @see <a href="http://spec.openyolo.org/openyolo-android-spec.html#credential-retrieval">
  *     OpenYOLO Specification: Credential Retrieval</a>
  */
-public final class CredentialRetrieveResult {
+public final class CredentialRetrieveResult implements AdditionalPropertiesContainer {
 
     /**
      * Indicates that the provider returned a response that could not be interpreted.
@@ -187,39 +185,22 @@ public final class CredentialRetrieveResult {
         return mCredential;
     }
 
-    /**
-     * The additional, non-standard properties returned by the credential provider, if available.
-     */
+    @Override
     @NonNull
     public Map<String, byte[]> getAdditionalProperties() {
-        return CollectionConverter.convertMapValues(
-                mAdditionalProps,
-                ByteStringConverters.BYTE_STRING_TO_BYTE_ARRAY);
+        return AdditionalPropertiesUtil.convertValuesToByteArrays(mAdditionalProps);
     }
 
-    /**
-     * Returns the additional, non-standard property identified by the specified key. If this
-     * additional property does not exist, then `null` is returned.
-     */
+    @Override
     @Nullable
     public byte[] getAdditionalProperty(String key) {
-        ByteString value = mAdditionalProps.get(key);
-        if (value == null) {
-            return null;
-        }
-
-        return value.toByteArray();
+        return AdditionalPropertiesUtil.getPropertyValue(mAdditionalProps, key);
     }
 
-    /**
-     * Returns the additional, non-standard property identified by the specified key, where the
-     * value is assumed to be a UTF-8 encoded string. If this additional property does not exist,
-     * then `null` is returned.
-     */
+    @Override
     @Nullable
     public String getAdditionalPropertyAsString(String key) {
-        return AdditionalPropertiesHelper.decodeStringValue(
-                getAdditionalProperty(key));
+        return AdditionalPropertiesUtil.getPropertyValueAsString(mAdditionalProps, key);
     }
 
     /**
@@ -254,7 +235,8 @@ public final class CredentialRetrieveResult {
     /**
      * Creates validated {@link CredentialRetrieveResult} instances.
      */
-    public static final class Builder {
+    public static final class Builder
+            implements AdditionalPropertiesBuilder<CredentialRetrieveResult, Builder> {
 
         private int mResultCode;
         private Credential mCredential;
@@ -316,11 +298,8 @@ public final class CredentialRetrieveResult {
             return this;
         }
 
-        /**
-         * Specifies the set of additional, non-standard properties to return as part of this
-         * result. The keys and values of the provided map must not be null. The keys must not
-         * be empty.
-         */
+        @Override
+        @NonNull
         public Builder setAdditionalProperties(Map<String, byte[]> additionalProperties) {
             mAdditionalProps =
                     AdditionalPropertiesUtil.validateAdditionalProperties(additionalProperties);
@@ -335,34 +314,25 @@ public final class CredentialRetrieveResult {
             return this;
         }
 
-        /**
-         * Specifies an additional, non-standard property to include in the result.
-         */
+        @Override
         @NonNull
         public Builder setAdditionalProperty(@NonNull String key, @Nullable byte[] value) {
-            ByteString immutableValue;
-            if (value == null) {
-                immutableValue = null;
-            } else {
-                immutableValue = ByteString.copyFrom(value);
-            }
-
-            mAdditionalProps.put(key, immutableValue);
+            AdditionalPropertiesUtil.setPropertyValue(mAdditionalProps, key, value);
             return this;
         }
 
-        /**
-         * Specifies an additional, non-standard property with a string value to include in the
-         * result.
-         */
+        @Override
         @NonNull
         public Builder setAdditionalPropertyAsString(@NonNull String key, @Nullable String value) {
-            return setAdditionalProperty(key, AdditionalPropertiesHelper.encodeStringValue(value));
+            AdditionalPropertiesUtil.setPropertyValueAsString(mAdditionalProps, key, value);
+            return this;
         }
 
         /**
          * Finalizes the creation of the credential retrieval result.
          */
+        @Override
+        @NonNull
         public CredentialRetrieveResult build() {
             return new CredentialRetrieveResult(this);
         }

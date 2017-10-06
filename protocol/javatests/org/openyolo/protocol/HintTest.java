@@ -100,22 +100,6 @@ public final class HintTest {
     }
 
     @Test
-    public void builderSetAdditionalProps() {
-        String additionalKey = "extra";
-        byte[] additionalValue = "value".getBytes();
-
-        Map<String, byte[]> additionalProps = new HashMap<>();
-        additionalProps.put(additionalKey, additionalValue);
-        Hint hint = new Hint.Builder(ValidEmailHint.make())
-                .setAdditionalProperties(additionalProps)
-                .build();
-
-        assertThat(hint.getAdditionalProperties()).hasSize(1);
-        assertThat(hint.getAdditionalProperties()).containsKey(additionalKey);
-        assertThat(hint.getAdditionalProperties().get(additionalKey)).isEqualTo(additionalValue);
-    }
-
-    @Test
     public void builder_withHintContructor_isEquivalent() {
         Hint hint = new Hint.Builder(ValidEmailHint.make()).build();
 
