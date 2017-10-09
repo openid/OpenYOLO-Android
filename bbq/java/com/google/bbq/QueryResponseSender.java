@@ -16,6 +16,7 @@ package com.google.bbq;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.valid4j.Assertive.require;
+import static org.valid4j.Validation.validate;
 
 import android.content.Context;
 import android.content.Intent;
@@ -49,7 +50,7 @@ public class QueryResponseSender {
     public void sendResponse(
             @NonNull BroadcastQuery query,
             @Nullable byte[] responseMessage) {
-        require(query, notNullValue());
+        validate(query, notNullValue(), NullPointerException.class);
 
         BroadcastQueryResponse.Builder responseBuilder = createResponseBuilder(query);
         if (responseMessage != null) {
