@@ -80,7 +80,7 @@ public class DeleteTestPageFragment extends TestPageFragment  {
             return;
         }
 
-        CredentialDeleteResult deleteResult = mApi.getDeleteResult(data);
+        CredentialDeleteResult deleteResult = mApi.getCredentialDeleteResult(data);
 
         @StringRes
         int resultMessageId;

@@ -331,7 +331,7 @@ public class CredentialClient {
      *
      * Launch the returned intent via
      * {@link android.app.Activity#startActivityForResult(Intent, int)} and extract the result via
-     * {@link #getDeleteResult(Intent)} using the Intent data received in the associated
+     * {@link #getCredentialDeleteResult(Intent)} using the Intent data received in the associated
      * {@link android.app.Activity#onActivityResult(int, int, Intent)} callback.
      *
      * <pre>{@code
@@ -347,13 +347,13 @@ public class CredentialClient {
      * public void onActivityResult(int requestCode, int resultCode, Intent data) {
      *     super.onActivityResult(requestCode, resultCode, data);
      *     if (RC_DELETE_CREDENTIAL == requestCode) {
-     *         result = client.getDeleteResult(data);
+     *         result = client.getCredentialDeleteResult(data);
      *        // handle result ...
      *     }
      * }
      * }</pre>
      *
-     * @see #getDeleteResult(Intent)
+     * @see #getCredentialDeleteResult(Intent)
      */
     @NonNull
     public Intent getDeleteIntent(@NonNull CredentialDeleteRequest request) {
@@ -599,7 +599,7 @@ public class CredentialClient {
      * @see #getDeleteIntent(CredentialDeleteRequest)
      */
     @NonNull
-    public CredentialDeleteResult getDeleteResult(Intent resultData) {
+    public CredentialDeleteResult getCredentialDeleteResult(Intent resultData) {
         try {
             return CredentialDeleteResult.fromResultIntentData(resultData);
         } catch (MalformedDataException ex) {
