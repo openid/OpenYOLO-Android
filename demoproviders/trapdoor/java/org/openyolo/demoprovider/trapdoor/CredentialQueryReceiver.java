@@ -20,13 +20,11 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import com.google.bbq.Protobufs.BroadcastQuery;
 import com.google.bbq.QueryResponseSender;
-import com.google.protobuf.ByteString;
 import java.util.Set;
 import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.AuthenticationMethods;
 import org.openyolo.protocol.CredentialRetrieveRequest;
 import org.openyolo.protocol.Protobufs.CredentialRetrieveBbqResponse;
-import org.openyolo.protocol.internal.IntentUtil;
 import org.openyolo.spi.BaseCredentialQueryReceiver;
 
 /**
@@ -67,7 +65,7 @@ public class CredentialQueryReceiver extends BaseCredentialQueryReceiver {
 
         Intent retrieveIntent = RetrieveActivity.createIntent(applicationContext);
         CredentialRetrieveBbqResponse response = CredentialRetrieveBbqResponse.newBuilder()
-                .setRetrieveIntent(ByteString.copyFrom(IntentUtil.toBytes(retrieveIntent)))
+                .setCredentialsAvailable(true)
                 .build();
 
         Log.i(LOG_TAG, "Accepting credential request for claimed caller: "

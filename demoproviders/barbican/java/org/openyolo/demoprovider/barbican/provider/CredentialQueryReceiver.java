@@ -15,7 +15,6 @@
 package org.openyolo.demoprovider.barbican.provider;
 
 import android.content.Context;
-import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import com.google.bbq.Protobufs.BroadcastQuery;
@@ -28,7 +27,6 @@ import org.openyolo.demoprovider.barbican.storage.CredentialStorage;
 import org.openyolo.protocol.AuthenticationDomain;
 import org.openyolo.protocol.CredentialRetrieveRequest;
 import org.openyolo.protocol.Protobufs.CredentialRetrieveBbqResponse;
-import org.openyolo.protocol.internal.IntentUtil;
 import org.openyolo.spi.BaseCredentialQueryReceiver;
 
 /**
@@ -85,15 +83,11 @@ public class CredentialQueryReceiver extends BaseCredentialQueryReceiver {
                 + query.getRequestingApp() + ": "
                 + credentialsFound);
 
-        if (credentialsFound) {
-            Intent retrieveIntent = RetrieveCredentialActivity.createIntent(context, request);
-            CredentialRetrieveBbqResponse response =
-                    CredentialRetrieveBbqResponse.newBuilder()
-                            .setRetrieveIntent(IntentUtil.toByteString(retrieveIntent))
-                            .build();
-            responseBytes = response.toByteArray();
-        }
-
-        responseSender.sendResponse(query, responseBytes);
+        responseSender.sendResponse(
+                query,
+                CredentialRetrieveBbqResponse.newBuilder()
+                        .setCredentialsAvailable(credentialsFound)
+                        .build()
+                        .toByteArray());
     }
 }

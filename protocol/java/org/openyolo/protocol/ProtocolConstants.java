@@ -35,6 +35,15 @@ public final class ProtocolConstants {
     public static final String EXTRA_RETRIEVE_RESULT = "org.openyolo.credential.retrieve.result";
 
     /**
+     * The extra value key used to carry preloaded data as part of a credential retrieve Intent.
+     * This data is supplied by the credential provider during the broadcast phase of the retrieve
+     * flow, and sent back verbatim. The provider _should not_ implicitly trust this data, as it
+     * is possible for the client to tamper with it.
+     */
+    public static final String EXTRA_RETRIEVE_PRELOADED_DATA =
+            "org.openyolo.credential.retrieve.preloaded_data";
+
+    /**
      * The extra key value used to carry a hint request.
      */
     public static final String EXTRA_HINT_REQUEST = "org.openyolo.hint.request";
