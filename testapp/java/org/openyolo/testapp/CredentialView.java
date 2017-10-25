@@ -20,6 +20,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -182,10 +183,17 @@ public final class CredentialView extends LinearLayout {
 
     @OnTextChanged(R.id.profile_picture_field)
     void loadProfilePicture() {
-        GlideApp.with(getContext())
-                .load(Uri.parse(mProfilePictureField.getText().toString()))
-                .fitCenter()
-                .into(mProfilePictureView);
+        String profilePictureUri = mProfilePictureField.getText().toString();
+
+        if (profilePictureUri.trim().isEmpty()
+                || !Patterns.WEB_URL.matcher(profilePictureUri).matches()) {
+            mProfilePictureView.setImageDrawable(null);
+        } else {
+            GlideApp.with(getContext())
+                    .load(Uri.parse(profilePictureUri))
+                    .fitCenter()
+                    .into(mProfilePictureView);
+        }
     }
 
     /**
