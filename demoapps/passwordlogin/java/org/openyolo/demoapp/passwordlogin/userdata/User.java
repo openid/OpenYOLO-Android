@@ -29,18 +29,23 @@ public final class User {
 
     @PrimaryKey
     @ColumnInfo(name = "email")
+    @NonNull
     private final String mEmail;
 
     @ColumnInfo(name = "first_name")
+    @Nullable
     private final String mName;
 
     @ColumnInfo(name = "passwordSalt")
+    @NonNull
     private final String mPasswordSalt;
 
     @ColumnInfo(name = "passwordHash")
+    @NonNull
     private final String mPasswordHash;
 
     @ColumnInfo(name = "profile_picture_uri")
+    @Nullable
     private final String mProfilePictureUri;
 
     /**

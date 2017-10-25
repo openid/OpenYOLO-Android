@@ -5,7 +5,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.0-beta7'
+        classpath 'com.android.tools.build:gradle:3.0.0-rc2'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
         classpath 'org.ajoberstar:gradle-git:1.7.1'
@@ -53,8 +53,9 @@ task showVersion {
 project.ext.minSdkVersion = 15
 project.ext.compileSdkVersion = 26
 project.ext.buildToolsVersion = '26.0.2'
-project.ext.supportLibVersion = '26.0.2'
-project.ext.archVersion = '1.0.0-alpha5'
+project.ext.supportLibVersion = '26.1.0'
+project.ext.archRuntimeVersion = '1.0.3'
+project.ext.archVersion = '1.0.0-rc1'
 project.ext.glideVersion = '4.0.0'
 project.ext.valid4jVersion = '0.5.0'
 project.ext.hamcrestVersion = '1.3'

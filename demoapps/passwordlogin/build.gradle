@@ -28,7 +28,7 @@ android {
 
 dependencies {
     implementation project(':api')
-    implementation "android.arch.lifecycle:runtime:${rootProject.archVersion}"
+    implementation "android.arch.lifecycle:runtime:${rootProject.archRuntimeVersion}"
     implementation "android.arch.lifecycle:extensions:${rootProject.archVersion}"
     implementation "android.arch.persistence.room:runtime:${rootProject.archVersion}"
     implementation "com.android.support:support-annotations:${rootProject.supportLibVersion}"
