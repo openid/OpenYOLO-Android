@@ -84,6 +84,13 @@ public final class CredentialRetrieveResult implements AdditionalPropertiesConta
             Protobufs.CredentialRetrieveResult.ResultCode.USER_CANCELED_VALUE;
 
     /**
+     * Indicates that the provider(s) failed to respond in a timely manner. This error is usually
+     * transient, and due to the device being presently CPU-bound.
+     */
+    public static final int CODE_PROVIDER_TIMEOUT =
+            Protobufs.CredentialRetrieveResult.ResultCode.PROVIDER_TIMEOUT_VALUE;
+
+    /**
      * Pre-built result that indicates that the provider returned a response that could not be
      * interpreted.
      */
@@ -122,6 +129,13 @@ public final class CredentialRetrieveResult implements AdditionalPropertiesConta
      */
     public static final CredentialRetrieveResult USER_CANCELED =
             new CredentialRetrieveResult.Builder(CODE_USER_CANCELED).build();
+
+    /**
+     * Pre-built result that indicates that the provider(s) failed to respond in a timely manner.
+     * This error is usually transient, and due to the device being presently CPU-bound.
+     */
+    public static final CredentialRetrieveResult PROVIDER_TIMEOUT =
+            new CredentialRetrieveResult.Builder(CODE_PROVIDER_TIMEOUT).build();
 
     /**
      * Creates a credential retrieve result from its protocol buffer byte equivalent.

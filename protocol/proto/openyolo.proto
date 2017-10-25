@@ -83,6 +83,7 @@ message CredentialRetrieveResult {
         USER_REQUESTS_MANUAL_AUTH = 4;
         USER_CANCELED = 5;
         NO_PROVIDER_AVAILABLE = 6;
+        PROVIDER_TIMEOUT = 7;
     }
 
     // required

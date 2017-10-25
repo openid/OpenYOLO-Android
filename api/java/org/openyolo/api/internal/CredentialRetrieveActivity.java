@@ -47,6 +47,11 @@ public final class CredentialRetrieveActivity extends Activity {
     private static final String LOG_TAG = "CredentialRetrieveAct";
     private static final String EXTRA_REQUEST = "Request";
 
+    // The amount of time we will permit providers to "think" about responding to a retrieve
+    // BBQ request. The default BBQ timeout of two seconds proved to be too short when the device
+    // is actively updating and compiling apps, so we extend it here.
+    private static final long RETRIEVE_TIMEOUT_MS = 4000;
+
     private boolean mIsDestroyed = false;
 
     /**
@@ -77,6 +82,7 @@ public final class CredentialRetrieveActivity extends Activity {
                 .queryFor(
                         CREDENTIAL_DATA_TYPE,
                         request.toProtocolBuffer(),
+                        RETRIEVE_TIMEOUT_MS,
                         new CredentialRetrieveQueryCallback(request));
     }
 
@@ -143,8 +149,8 @@ public final class CredentialRetrieveActivity extends Activity {
 
             if (retrieveIntents.isEmpty()) {
                 setResult(
-                        CredentialRetrieveResult.CODE_UNKNOWN,
-                        CredentialRetrieveResult.UNKNOWN.toResultDataIntent());
+                        CredentialRetrieveResult.CODE_PROVIDER_TIMEOUT,
+                        CredentialRetrieveResult.PROVIDER_TIMEOUT.toResultDataIntent());
                 finish();
                 return;
             }
