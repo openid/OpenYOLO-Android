@@ -120,9 +120,10 @@ public final class CredentialRetrieveActivity extends Activity {
                 // absence of the credentials_available field.
 
                 if (response.getCredentialsAvailable()) {
-                    Intent retrieveIntent = new Intent(
+                    Intent retrieveIntent = ProviderResolver.createIntentForAction(
+                            CredentialRetrieveActivity.this.getApplicationContext(),
+                            queryResponse.responderPackage,
                             ProtocolConstants.RETRIEVE_CREDENTIAL_ACTION);
-                    retrieveIntent.setPackage(queryResponse.responderPackage);
                     retrieveIntent.putExtra(
                             ProtocolConstants.EXTRA_RETRIEVE_REQUEST,
                             mRetrieveRequest.toProtocolBuffer().toByteArray());
