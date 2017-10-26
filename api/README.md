@@ -39,7 +39,7 @@ An authentication domain is the scope in which a credential is considered to be 
 spans a single Android application or web address. If your authentication system does not span
 multiple domains you can safely ignore this concept as a client. However, if your application offers
 both an app and web app you can prove this relationship to credential providers to allow credentials
-to be shared between the two. ```TOOD(dxslly): Add guide for linking authentication domains.```
+to be shared between the two.
 
 ## Usage
 
@@ -209,7 +209,3 @@ public void signOutUser() {
     client.disableAutoSignIn();
 }
 ```
-
-## Testing against providers
-
-// TODO(dxslly): Describe how to test in the wild, enumerate production implementations?
