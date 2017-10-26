@@ -25,5 +25,11 @@
             android:text="@string/disable_auto_sign_in_button_label"
             android:theme="@style/GreenButtonThemeOverlay"/>
 
+        <TextView
+            android:id="@+id/version_text_view"
+            android:textAlignment="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
     </LinearLayout>
 </android.support.v4.widget.NestedScrollView>

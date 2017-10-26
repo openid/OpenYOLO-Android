@@ -114,6 +114,9 @@ public final class RetrieveTestPageFragment extends TestPageFragment {
             case CredentialRetrieveResult.CODE_USER_REQUESTS_MANUAL_AUTH:
                 resultMessageId = R.string.retrieve_manual_auth;
                 break;
+            case CredentialRetrieveResult.CODE_PROVIDER_TIMEOUT:
+                resultMessageId = R.string.retrieve_provider_timed_out;
+                break;
             default:
                 resultMessageId = R.string.retrieve_unknown_response;
         }

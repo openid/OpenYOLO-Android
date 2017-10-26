@@ -103,6 +103,14 @@ public final class CredentialRetrieveActivity extends Activity {
 
         @Override
         public void onResponse(long queryId, List<QueryResponse> queryResponses) {
+            if (queryResponses.isEmpty()) {
+                setResult(
+                        CredentialRetrieveResult.CODE_PROVIDER_TIMEOUT,
+                        CredentialRetrieveResult.PROVIDER_TIMEOUT.toResultDataIntent());
+                finish();
+                return;
+            }
+
             ArrayList<Intent> retrieveIntents = new ArrayList<>();
             for (QueryResponse queryResponse : queryResponses) {
                 Protobufs.CredentialRetrieveBbqResponse response;
@@ -150,8 +158,8 @@ public final class CredentialRetrieveActivity extends Activity {
 
             if (retrieveIntents.isEmpty()) {
                 setResult(
-                        CredentialRetrieveResult.CODE_PROVIDER_TIMEOUT,
-                        CredentialRetrieveResult.PROVIDER_TIMEOUT.toResultDataIntent());
+                        CredentialRetrieveResult.CODE_NO_PROVIDER_AVAILABLE,
+                        CredentialRetrieveResult.NO_PROVIDER_AVAILABLE.toResultDataIntent());
                 finish();
                 return;
             }

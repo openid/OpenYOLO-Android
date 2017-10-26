@@ -18,7 +18,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
+import android.widget.TextView;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import org.openyolo.api.CredentialClient;
@@ -27,6 +28,9 @@ import org.openyolo.api.CredentialClient;
  * Test page for actions that do not cleanly fit into another category.
  */
 public class OtherTestPageFragment extends TestPageFragment {
+
+    @BindView(R.id.version_text_view)
+    TextView mVersionTextView;
 
     private CredentialClient mApi;
 
@@ -49,6 +53,8 @@ public class OtherTestPageFragment extends TestPageFragment {
             Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.other_test_layout, container, false);
         ButterKnife.bind(this, view);
+
+        mVersionTextView.setText(getString(R.string.client_version_text, BuildConfig.VERSION_NAME));
 
         return view;
     }
