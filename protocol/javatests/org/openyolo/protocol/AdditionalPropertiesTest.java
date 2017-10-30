@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.Callable;
+
+import org.assertj.core.api.ThrowableAssert;
 import org.assertj.core.util.Maps;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,38 +60,88 @@ public class AdditionalPropertiesTest {
     private static final Map<String, Callable<AdditionalPropertiesBuilder>> buildersByContainerType =
             ImmutableMap.<String, Callable<AdditionalPropertiesBuilder>>builder()
                     .put("Credential",
-                            () -> new Credential.Builder(
-                                    ValidFacebookCredential.ID,
-                                    ValidFacebookCredential.AUTHENTICATION_METHOD,
-                                    ValidFacebookCredential.AUTHENTICATION_DOMAIN))
+                            new Callable<AdditionalPropertiesBuilder>() {
+                                @Override
+                                public AdditionalPropertiesBuilder call() throws Exception {
+                                    return new Credential.Builder(
+                                            ValidFacebookCredential.ID,
+                                            ValidFacebookCredential.AUTHENTICATION_METHOD,
+                                            ValidFacebookCredential.AUTHENTICATION_DOMAIN);
+                                }
+                            })
                     .put("CredentialDeleteRequest",
-                            () -> new CredentialDeleteRequest.Builder(
-                                    ValidFacebookCredential.make()))
+                            new Callable<AdditionalPropertiesBuilder>() {
+                                @Override
+                                public AdditionalPropertiesBuilder call() throws Exception {
+                                    return new CredentialDeleteRequest.Builder(
+                                            ValidFacebookCredential.make());
+                                }
+                            })
                     .put("CredentialDeleteResult",
-                            () -> new CredentialDeleteResult.Builder(
-                                    CredentialDeleteResult.CODE_DELETED))
+                            new Callable<AdditionalPropertiesBuilder>() {
+                                @Override
+                                public AdditionalPropertiesBuilder call() throws Exception {
+                                    return new CredentialDeleteResult.Builder(
+                                            CredentialDeleteResult.CODE_DELETED);
+                                }
+                            })
                     .put("CredentialRetrieveRequest",
-                            () -> new CredentialRetrieveRequest.Builder(
-                                    AuthenticationMethods.EMAIL))
+                            new Callable<AdditionalPropertiesBuilder>() {
+                                @Override
+                                public AdditionalPropertiesBuilder call() throws Exception {
+                                    return new CredentialRetrieveRequest.Builder(
+                                            AuthenticationMethods.EMAIL);
+                                }
+                            })
                     .put("CredentialRetrieveResult",
-                            () -> new CredentialRetrieveResult.Builder(
-                                    CredentialRetrieveResult.CODE_NO_CREDENTIALS_AVAILABLE))
+                            new Callable<AdditionalPropertiesBuilder>() {
+                                @Override
+                                public AdditionalPropertiesBuilder call() throws Exception {
+                                    return new CredentialRetrieveResult.Builder(
+                                            CredentialRetrieveResult.CODE_NO_CREDENTIALS_AVAILABLE);
+                                }
+                            })
                     .put("CredentialSaveRequest",
-                            () -> new CredentialSaveRequest.Builder(
-                                    ValidFacebookCredential.make()))
+                            new Callable<AdditionalPropertiesBuilder>() {
+                                @Override
+                                public AdditionalPropertiesBuilder call() throws Exception {
+                                    return new CredentialSaveRequest.Builder(
+                                            ValidFacebookCredential.make());
+                                }
+                            })
                     .put("CredentialSaveResult",
-                            () -> new CredentialSaveResult.Builder(
-                                    CredentialSaveResult.CODE_SAVED))
+                            new Callable<AdditionalPropertiesBuilder>() {
+                                @Override
+                                public AdditionalPropertiesBuilder call() throws Exception {
+                                    return new CredentialSaveResult.Builder(
+                                            CredentialSaveResult.CODE_SAVED);
+                                }
+                            })
                     .put("Hint",
-                            () -> new Hint.Builder(
-                                    ValidFacebookCredential.ID,
-                                    ValidFacebookCredential.AUTHENTICATION_METHOD))
+                            new Callable<AdditionalPropertiesBuilder>() {
+                                @Override
+                                public AdditionalPropertiesBuilder call() throws Exception {
+                                    return new Hint.Builder(
+                                            ValidFacebookCredential.ID,
+                                            ValidFacebookCredential.AUTHENTICATION_METHOD);
+                                }
+                            })
                     .put("HintRetrieveRequest",
-                            () -> new HintRetrieveRequest.Builder(
-                                    AuthenticationMethods.EMAIL))
+                            new Callable<AdditionalPropertiesBuilder>() {
+                                @Override
+                                public AdditionalPropertiesBuilder call() throws Exception {
+                                    return new HintRetrieveRequest.Builder(
+                                            AuthenticationMethods.EMAIL);
+                                }
+                            })
                     .put("HintRetrieveResult",
-                            () -> new HintRetrieveResult.Builder(
-                                    HintRetrieveResult.CODE_NO_HINTS_AVAILABLE))
+                            new Callable<AdditionalPropertiesBuilder>() {
+                                @Override
+                                public AdditionalPropertiesBuilder call() throws Exception {
+                                    return new HintRetrieveResult.Builder(
+                                            HintRetrieveResult.CODE_NO_HINTS_AVAILABLE);
+                                }
+                            })
             .build();
 
     @Parameters(name = "AdditionalPropertiesTest for {0}")
@@ -135,15 +187,25 @@ public class AdditionalPropertiesTest {
     @Test
     public void testBuilder_setAdditionalProperties_nullKey() {
         final Map<String, byte[]> mapWithNullKey = Maps.newHashMap(null, new byte[0]);
-        assertThatThrownBy(() -> mBuilder.setAdditionalProperties(mapWithNullKey))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            @Override
+            public void call() throws Throwable {
+                mBuilder.setAdditionalProperties(mapWithNullKey);
+            }
+        }).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     public void testBuild_setAdditionalProperty_nullValue() {
         final Map<String, byte[]> mapWithNullValue = Maps.newHashMap("a", null);
-        assertThatThrownBy(() -> mBuilder.setAdditionalProperties(mapWithNullValue))
-                .isInstanceOf(IllegalArgumentException.class);
+
+
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            @Override
+            public void call() throws Throwable {
+                mBuilder.setAdditionalProperties(mapWithNullValue);
+            }
+        }).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

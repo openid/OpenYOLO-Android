@@ -64,12 +64,12 @@ public class HintRetrieveRequestTest {
 
     @Test(expected=IllegalArgumentException.class)
     public void testFromAuthMethods_emptySet() {
-        HintRetrieveRequest.fromAuthMethods(Collections.emptySet());
+        HintRetrieveRequest.fromAuthMethods(Collections.<AuthenticationMethod>emptySet());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testBuilder_emptyAuthMethodsSet() {
-        new HintRetrieveRequest.Builder(Collections.emptySet());
+        new HintRetrieveRequest.Builder(Collections.<AuthenticationMethod>emptySet());
     }
 
     @Test

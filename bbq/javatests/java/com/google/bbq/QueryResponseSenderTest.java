@@ -25,6 +25,7 @@ import com.google.bbq.Protobufs.BroadcastQueryResponse;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -97,7 +98,11 @@ public class QueryResponseSenderTest {
     @SuppressWarnings("ConstantConditions")
     @Test
     public void sendResponse_nullQuery_nullReponse() throws Exception {
-        assertThatThrownBy(() -> mResponseSender.sendResponse(null, null))
-                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            @Override
+            public void call() throws Throwable {
+                mResponseSender.sendResponse(null, null);
+            }
+        }).isInstanceOf(NullPointerException.class);
     }
 }

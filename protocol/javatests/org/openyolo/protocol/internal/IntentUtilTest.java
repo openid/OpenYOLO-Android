@@ -19,11 +19,14 @@ package org.openyolo.protocol.internal;
 
 import static junit.framework.Assert.fail;
 import static junit.framework.TestCase.assertTrue;
+import static org.assertj.core.api.Java6Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 
 import android.content.Intent;
 import android.os.BadParcelableException;
 import android.os.Parcel;
+
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -70,22 +73,26 @@ public class IntentUtilTest {
 
     @Test
     public void fromBytes_withNullIntent_throwsBadParcelableException() {
-        byte[] intentBytes = toBytesUnchecked(null);
+        final byte[] intentBytes = toBytesUnchecked(null);
 
-
-        assertThrows(BadParcelableException.class, () -> {
-            IntentUtil.fromBytes(intentBytes);
-        });
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            @Override
+            public void call() throws Throwable {
+                IntentUtil.fromBytes(intentBytes);
+            }
+        }).isInstanceOf(BadParcelableException.class);
     }
 
     @Test
     public void fromBytes_withIntentNotPresent_throwsBadParcelableException() {
-        byte[] intentBytes = new byte[10];
+        final byte[] intentBytes = new byte[10];
 
-
-        assertThrows(BadParcelableException.class, () -> {
-            IntentUtil.fromBytes(intentBytes);
-        });
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            @Override
+            public void call() throws Throwable {
+                IntentUtil.fromBytes(intentBytes);
+            }
+        }).isInstanceOf(BadParcelableException.class);
     }
 
     private static byte[] toBytesUnchecked(Intent intent) {
@@ -97,34 +104,4 @@ public class IntentUtilTest {
         return intentBytes;
     }
 
-    private interface Operation {
-        void execute();
-    }
-
-    private static void assertThrows(Class expectedExceptionType, Operation operation) {
-        try {
-            operation.execute();
-
-            // No exception was thrown.
-            String failureMessage =
-                    String.format(
-                            "No exception was thrown, expected a %s exception",
-                            expectedExceptionType);
-
-            fail(failureMessage);
-        } catch (Exception ex) {
-            if (expectedExceptionType.isInstance(ex)) {
-                // Expected exception was thrown.
-                return;
-            }
-
-            // An unexpected exception was thrown.
-            String failureMessage =
-                    String.format(
-                            "Expected exception to be instance of %s, but was %s",
-                            expectedExceptionType,
-                            ex.getClass());
-            fail(failureMessage);
-        }
-    }
 }
