@@ -21,9 +21,9 @@ and the standard API and Service Provider Interface (SPI).
 OpenYOLO has reached beta production ready stage and can be integrated into production applications.
 The following credential providers include production implementations of OpenYOLO:
 
-| <img src="https://user-images.githubusercontent.com/445775/31100963-59c51db2-a780-11e7-87f4-e7ab2750b92a.png" width="200" height="200" /> | <img src="https://user-images.githubusercontent.com/445775/31101083-0cc4fd92-a781-11e7-95fe-9f9e9fadae70.png" width="200" height="200" /> | <img src="https://user-images.githubusercontent.com/445775/31101050-eeb9966e-a780-11e7-96ae-614f765f3f12.png" width="200" height="200" /> |
-|:---:|:---:|:---:|
-| 1Password | Dashlane | Google Smart Lock |
+| <img src="https://user-images.githubusercontent.com/445775/31100963-59c51db2-a780-11e7-87f4-e7ab2750b92a.png" width="200" height="200" /> | <img src="https://user-images.githubusercontent.com/445775/31101083-0cc4fd92-a781-11e7-95fe-9f9e9fadae70.png" width="200" height="200" /> | <img src="https://user-images.githubusercontent.com/445775/31101050-eeb9966e-a780-11e7-96ae-614f765f3f12.png" width="200" height="200" /> | <img src="https://user-images.githubusercontent.com/445775/32184911-078a0814-bd5b-11e7-8957-9a9b4d3cc415.png" width="200" height="200" /> |
+|:---:|:---:|:---:|:---:|
+| 1Password | Dashlane | Google Smart Lock | LastPass |
 
 The OpenYOLO for Android specification can be found [here](http://openid.net/specs/openyolo-android-03.html).
 This is currently under review as an implementor's draft by the
