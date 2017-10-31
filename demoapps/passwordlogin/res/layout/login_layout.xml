@@ -17,7 +17,9 @@
       android:id="@+id/contentFrame"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
-      tools:context=".LoginActivity">
+      android:importantForAutofill="noExcludeDescendants"
+      tools:context=".LoginActivity"
+      tools:ignore="UnusedAttribute">
 
     <LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
@@ -91,7 +93,9 @@
               android:layout_height="wrap_content"
               android:hint="@string/email_field_hint"
               android:inputType="textEmailAddress"
-              android:text="@={viewmodel.email}"/>
+              android:text="@={viewmodel.email}"
+              android:imeOptions="actionNext"
+              app:onEditorAction="@{viewmodel.editorActionListener}"/>
 
         </android.support.design.widget.TextInputLayout>
 
@@ -109,7 +113,9 @@
               android:layout_height="wrap_content"
               android:text="@={viewmodel.password}"
               android:inputType="textPassword"
-              android:hint="@string/password_field_hint" />
+              android:hint="@string/password_field_hint"
+              android:imeOptions="actionDone"
+              app:onEditorAction="@{viewmodel.editorActionListener}" />
 
         </android.support.design.widget.TextInputLayout>
 
@@ -118,7 +124,7 @@
             android:layout_height="72dp"
             android:layout_gravity="center"
             android:layout_margin="8dp"
-            android:onClick="@{viewmodel::signInButtonClicked}"
+            android:onClick="@{viewmodel::processAction}"
             app:srcCompat="@drawable/ic_done" />
 
         <TextView

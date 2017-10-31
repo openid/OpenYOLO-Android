@@ -27,10 +27,15 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.annotation.WorkerThread;
+import android.util.Base64;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
+import android.widget.TextView;
 import java.lang.ref.WeakReference;
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.openyolo.api.CredentialClient;
@@ -56,8 +61,6 @@ import org.openyolo.protocol.HintRetrieveResult;
 public final class LoginViewModel extends ObservableViewModel {
 
     private static final String TAG = "LoginViewModel";
-
-    private static final int MIN_PASSWORD_LENGTH = 4;
 
     /**
      * Indicates whether a progress bar should be displayed to the user, while an asynchronous
@@ -108,6 +111,15 @@ public final class LoginViewModel extends ObservableViewModel {
      * in a way that we cannot recover from, other than asking the user to potentially try again.
      */
     public final ObservableBoolean showError = new ObservableBoolean(false);
+
+    /**
+     * Listener for IME action events on the email and password fields.
+     */
+    public final TextView.OnEditorActionListener editorActionListener =
+            (view, actionId, event) -> {
+                processAction(view);
+                return true;
+            };
 
     @SuppressLint("StaticFieldLeak")
     private final OpenYoloDemoApplication mApplication;
@@ -212,6 +224,12 @@ public final class LoginViewModel extends ObservableViewModel {
                 break;
             case CredentialRetrieveResult.CODE_BAD_REQUEST:
                 Log.i(TAG, "Provider indicated that the request was malformed");
+                break;
+            case CredentialRetrieveResult.CODE_NO_PROVIDER_AVAILABLE:
+                Log.i(TAG, "No OpenYOLO providers available");
+                break;
+            case CredentialRetrieveResult.CODE_PROVIDER_TIMEOUT:
+                Log.i(TAG, "Provider failed to response in a timely manner");
                 break;
             case CredentialRetrieveResult.CODE_UNKNOWN:
             default:
@@ -342,7 +360,7 @@ public final class LoginViewModel extends ObservableViewModel {
      * Pushes handling of a sign in button click on the form to a background thread for processing.
      */
     @MainThread
-    public void signInButtonClicked(View view) {
+    public void processAction(View view) {
         getExecutor().execute(this::tryManualAuthentication);
     }
 
@@ -355,13 +373,6 @@ public final class LoginViewModel extends ObservableViewModel {
 
         if (!Patterns.EMAIL_ADDRESS.matcher(userEmail).matches()) {
             emailError.set(getResourceString(R.string.error_invalid_email));
-            return;
-        } else {
-            emailError.set("");
-        }
-
-        if (userPassword.length() < MIN_PASSWORD_LENGTH) {
-            passwordError.set(getResourceString(R.string.error_password_too_short));
             return;
         } else {
             emailError.set("");
@@ -383,13 +394,16 @@ public final class LoginViewModel extends ObservableViewModel {
                 passwordError.set(getResourceString(R.string.error_incorrect_password));
             }
         } else {
+            String profilePictureUri = "https://robohash.org/"
+                    + base64Sha256Hash(userEmail.getBytes(Charset.forName("UTF-8")));
+
             if (userPassword.isEmpty()) {
                 authPrompt.set(getResourceString(R.string.new_account_enter_password));
                 showPasswordField.set(true);
             } else if (mUserDataSource.createPasswordAccount(
                     userEmail,
-                    null, // name
-                    null, // profilePictureUri
+                    null, // no provided display name
+                    profilePictureUri, // profilePictureUri
                     userPassword)) {
                 trySaveCredential(
                         new Credential.Builder(
@@ -401,6 +415,18 @@ public final class LoginViewModel extends ObservableViewModel {
             } else {
                 showError.set(true);
             }
+        }
+    }
+
+    private String base64Sha256Hash(byte[] data) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] sha256Bytes = digest.digest(data);
+            return new String(
+                    Base64.encode(sha256Bytes, Base64.NO_WRAP | Base64.URL_SAFE),
+                    Charset.forName("UTF-8"));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 not supported on this platform!");
         }
     }
 

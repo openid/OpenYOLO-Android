@@ -41,17 +41,24 @@
           android:text="@string/signed_in_prompt"/>
 
       <LinearLayout
-          android:layout_width="match_parent"
+          android:layout_marginTop="8dp"
+          android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:padding="16dp"
-          android:orientation="horizontal">
+          android:paddingTop="8dp"
+          android:paddingBottom="8dp"
+          android:paddingLeft="12dp"
+          android:paddingRight="12dp"
+          android:orientation="horizontal"
+          android:layout_gravity="center"
+          android:background="@drawable/rounded_rect_border_grey_500">
 
         <ImageView
             android:id="@+id/profile_picture"
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:src="@{viewmodel.displayPicture}"
-            android:contentDescription="@string/user_profile_picture"/>
+            android:contentDescription="@string/user_profile_picture"
+            android:background="@drawable/rect_border_grey_300"/>
 
         <LinearLayout
             android:layout_width="0dp"
@@ -59,19 +66,22 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginLeft="8dp"
-            android:orientation="horizontal">
+            android:layout_gravity="center_vertical"
+            android:orientation="vertical">
 
           <TextView
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
               android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-              android:text="@{viewmodel.displayName}"/>
+              android:text="@{viewmodel.displayName}"
+              tools:text="John Doe"/>
 
           <TextView
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
               android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-              android:text="@{viewmodel.email}"/>
+              android:text="@{viewmodel.email}"
+              tools:text="jdoe@example.com"/>
         </LinearLayout>
 
       </LinearLayout>

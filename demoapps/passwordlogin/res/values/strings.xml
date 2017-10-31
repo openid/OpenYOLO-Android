@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="app_name_short">OpenYOLO</string>
+  <string name="app_name_short">Pwd Demo</string>
   <string name="email_field_hint">Email</string>
   <string name="password_field_hint">Password</string>
   <string name="login_header">OpenYOLO Demo - Password Login</string>
@@ -13,9 +13,9 @@
   <string name="error_prompt">Oops, that didn\'t work. Maybe try again?</string>
   <string name="signed_in_prompt">You are signed in as:</string>
   <string name="error_invalid_email">Invalid email address</string>
-  <string name="error_password_too_short">Password is too short</string>
   <string name="error_incorrect_password">Wrong password, please try again</string>
   <string name="user_profile_picture">User profile picture</string>
   <string name="existing_account_search_prompt">Looking for an existing account…</string>
   <string name="requesting_hint_prompt">Asking your credential manager for account details…</string>
+    <string name="no_display_name">[ no display name ]</string>
 </resources>

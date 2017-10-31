@@ -20,10 +20,13 @@ import android.support.annotation.AnyThread;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.WorkerThread;
+import android.text.TextUtils;
 import android.view.View;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.openyolo.api.CredentialClient;
 import org.openyolo.demoapp.passwordlogin.userdata.User;
 import org.openyolo.demoapp.passwordlogin.userdata.UserDataSource;
 
@@ -51,6 +54,9 @@ public final class MainViewModel extends ObservableViewModel {
 
     private final AtomicBoolean mFirstLoad = new AtomicBoolean(true);
     private final UserDataSource mUserDataSource;
+    private final CredentialClient mCredentialClient;
+    private final String mNoDisplayNameText;
+
     private WeakReference<MainNavigator> mNavigator;
 
     /**
@@ -59,6 +65,8 @@ public final class MainViewModel extends ObservableViewModel {
     public MainViewModel(@NonNull Application application) {
         super(application);
         mUserDataSource = ((OpenYoloDemoApplication)application).getUserRepository();
+        mCredentialClient = CredentialClient.getInstance(application);
+        mNoDisplayNameText = application.getResources().getString(R.string.no_display_name);
     }
 
     /**
@@ -88,7 +96,7 @@ public final class MainViewModel extends ObservableViewModel {
         }
 
         this.email.set(currentUser.getEmail());
-        this.displayName.set(currentUser.getName());
+        this.displayName.set(getDisplayName(currentUser));
         this.displayPicture.set(currentUser.getProfilePictureUri());
     }
 
@@ -100,6 +108,7 @@ public final class MainViewModel extends ObservableViewModel {
     public void onSignOutClicked(View view) {
         getExecutor().execute(() -> {
             mUserDataSource.signOut();
+            mCredentialClient.disableAutoSignIn();
             mNavigator.get().goToLogin();
         });
     }
@@ -107,5 +116,13 @@ public final class MainViewModel extends ObservableViewModel {
     @AnyThread
     private ScheduledExecutorService getExecutor() {
         return OpenYoloDemoApplication.getInstance(getApplication()).getExecutor();
+    }
+
+    private String getDisplayName(User user) {
+        String name = user.getName();
+        if (TextUtils.isEmpty(name)) {
+            name = mNoDisplayNameText;
+        }
+        return name;
     }
 }

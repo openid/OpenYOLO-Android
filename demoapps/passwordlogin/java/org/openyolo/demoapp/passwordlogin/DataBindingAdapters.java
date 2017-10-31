@@ -16,7 +16,9 @@ package org.openyolo.demoapp.passwordlogin;
 
 import android.databinding.BindingAdapter;
 import android.support.design.widget.TextInputLayout;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 /**
  * Android data binding extensions which make facilitate binding to more advanced field types.
@@ -42,5 +44,15 @@ public final class DataBindingAdapters {
     @BindingAdapter("errorText")
     public static void setErrorText(TextInputLayout layout, String errorText) {
         layout.setError(errorText);
+    }
+
+    /**
+     * Facilitates binding editor action listeners on EditText fields.
+     */
+    @BindingAdapter("onEditorAction")
+    public static void setOnEditorActionListener(
+            EditText layout,
+            TextView.OnEditorActionListener listener) {
+        layout.setOnEditorActionListener(listener);
     }
 }
