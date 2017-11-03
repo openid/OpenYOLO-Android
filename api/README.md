@@ -91,6 +91,7 @@ user wants to branch away from assisted account creation are:
 public void onActivityResult(int requestCode, int resultCode, Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
     if (RC_RETRIEVE_CREDENTIAL == requestCode) {
+       CredentialClient client = CredentialClient.getInstance(this);
        CredentialRetrieveResult result = client.getCredentialRetrieveResult(data);
        if (result.isSuccessful()) {
            // A credential was retrieved, you may automatically sign the user in.
@@ -119,7 +120,7 @@ HintRetrieveRequest request  =
         AuthenticationMethods.EMAIL,
         AuthenticationMethods.GOOGLE);
 Intent retrieveHintIntent = client.getHintRetrieveIntent(request);
-startActivityForResult(retrieveCredentialIntent, RC_RETRIEVE_HINT);
+startActivityForResult(retrieveHintIntent, RC_RETRIEVE_HINT);
 ```
 
 Receive the results and check if a hint was returned:
@@ -141,6 +142,7 @@ Once the account has been created you should save the credential for future retr
 public void onActivityResult(int requestCode, int resultCode, Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
     if (RC_RETRIEVE_HINT == requestCode) {
+       CredentialClient client = CredentialClient.getInstance(this);
        HintRetrieveResult result = client.getHintRetrieveResult(data);
        if (result.isSuccessful()) {
          // A hint was retrieved, you may be able to automatically create an account for the
@@ -163,12 +165,14 @@ is created) it is recommended that you save the new or updated credential to ena
 automatic sign-in experience.
 
 ```java
+CredentialClient client = CredentialClient.getInstance(getContext());
 // Craft the valid credential.
-String identifer = "joe@gmail.com";
+String identifier = "joe@gmail.com";
 AuthenticationMethod authMethod = AuthenticationMethods.EMAIL;
 AuthenticationDomain authDomain = AuthenticationDomain.getSelfAuthDomain(this);
-Credential credential = new Credential.Builder(identifier, authMethod, authDomain).build();
-
+Credential credential = new Credential.Builder(identifier, authMethod, authDomain)
+                                         .setPassword(password)
+                                         .build();
 // Or if you have created an account using a hint there is a utility method that will convert the
 // hint into a new Credential.Builder.
 Credential credential = hint.toCredentialBuilder(this).build();

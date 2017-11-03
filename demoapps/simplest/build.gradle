@@ -1,0 +1,40 @@
+apply plugin: 'com.android.application'
+apply plugin: 'checkstyle'
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+
+    defaultConfig {
+        applicationId 'org.openyolo.demoapp.simplest'
+        project.archivesBaseName = 'openyolo-demoapp-simplest'
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.compileSdkVersion
+        versionCode rootProject.ext.versionNum
+        versionName rootProject.ext.versionName
+    }
+
+    lintOptions {
+        warningsAsErrors true
+        disable 'GradleDependency'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt')
+        }
+    }
+}
+
+dependencies {
+    implementation project(':api')
+
+    implementation "com.android.support:support-annotations:${rootProject.supportLibVersion}"
+    implementation "com.android.support:appcompat-v7:${rootProject.supportLibVersion}"
+    implementation "com.android.support:design:${rootProject.supportLibVersion}"
+
+    apply from: "${rootDir}/config/testdeps.gradle", to: it
+}
+
+apply from: "${rootDir}/config/style.gradle"

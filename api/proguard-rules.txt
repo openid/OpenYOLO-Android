@@ -9,3 +9,6 @@
 
 # Hamcrest reflection
 -keep class org.hamcrest.** { *; }
+
+# Used by com.google.protobuf.UnsafeUtil
+-dontwarn sun.misc.Unsafe

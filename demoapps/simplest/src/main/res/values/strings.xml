@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">OpenYolo Simplest</string>
+    <string name="welcome_label">Demo of OpenYolo login/password authentication into a very simple application</string>
+    <string name="sign_in_button">I have an account</string>
+    <string name="sign_up_button">Create an account</string>
+    <string name="username_hint">Username or Email</string>
+    <string name="password_hint">Password</string>
+    <string name="login_btn">Login</string>
+    <string name="create_the_account_btn">Create the account</string>
+    <string name="logged_in_label">You are logged in!</string>
+    <string name="invalid_credentials">Either the login or the password is incorrect</string>
+</resources>
