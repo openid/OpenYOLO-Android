@@ -31,7 +31,6 @@ import static org.valid4j.Validation.validate;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ResolveInfo;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
@@ -44,6 +43,7 @@ import org.openyolo.api.internal.CredentialRetrieveActivity;
 import org.openyolo.api.internal.FinishWithResultActivity;
 import org.openyolo.api.internal.KnownProviders;
 import org.openyolo.api.internal.ProviderPickerActivity;
+import org.openyolo.api.internal.ProviderResolver;
 import org.openyolo.api.persistence.AppSettings;
 import org.openyolo.api.persistence.internal.AppSettingsImpl;
 import org.openyolo.protocol.Credential;
@@ -213,7 +213,8 @@ public class CredentialClient {
      */
     @NonNull
     public Intent getHintRetrieveIntent(final HintRetrieveRequest request) {
-        List<ComponentName> hintProviders = findProviders(HINT_CREDENTIAL_ACTION);
+        List<ComponentName> hintProviders =
+                ProviderResolver.findProviders(mApplicationContext, HINT_CREDENTIAL_ACTION);
 
         if (hintProviders.isEmpty()) {
             ActivityResult result = ActivityResult.of(
@@ -282,7 +283,8 @@ public class CredentialClient {
      */
     @NonNull
     public Intent getSaveIntent(final CredentialSaveRequest saveRequest) {
-        List<ComponentName> saveProviders = findProviders(SAVE_CREDENTIAL_ACTION);
+        List<ComponentName> saveProviders =
+                ProviderResolver.findProviders(mApplicationContext, SAVE_CREDENTIAL_ACTION);
 
         if (saveProviders.isEmpty()) {
             ActivityResult result = ActivityResult.of(
@@ -360,7 +362,7 @@ public class CredentialClient {
         require(request, notNullValue());
 
         List<ComponentName> deleteProviders =
-                findProviders(DELETE_CREDENTIAL_ACTION);
+                ProviderResolver.findProviders(mApplicationContext, DELETE_CREDENTIAL_ACTION);
 
         if (deleteProviders.isEmpty()) {
             ActivityResult result = ActivityResult.of(
@@ -630,23 +632,6 @@ public class CredentialClient {
      */
     public void disableAutoSignIn() {
         mDeviceState.setIsAutoSignInDisabled(true);
-    }
-
-    private List<ComponentName> findProviders(@NonNull String action) {
-        Intent saveIntent = new Intent(action);
-        saveIntent.addCategory(OPENYOLO_CATEGORY);
-
-        List<ResolveInfo> resolveInfos =
-                mApplicationContext.getPackageManager().queryIntentActivities(saveIntent, 0);
-
-        ArrayList<ComponentName> responders = new ArrayList<>();
-        for (ResolveInfo info : resolveInfos) {
-            responders.add(new ComponentName(
-                    info.activityInfo.packageName,
-                    info.activityInfo.name));
-        }
-
-        return responders;
     }
 
     @Nullable
